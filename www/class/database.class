@@ -1,0 +1,73 @@
+<?
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/mysql.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/oracle.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/cubrid.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/include/ms_util.php");
+
+
+if ( isset($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CLIENT_IP'];
+} else if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+} else if(isset($_SERVER['HTTP_X_FORWARDED']) && $_SERVER['HTTP_X_FORWARDED']) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED'];
+} else if(isset($_SERVER['HTTP_FORWARDED_FOR']) && $_SERVER['HTTP_FORWARDED_FOR']) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_FORWARDED_FOR'];
+} else if(isset($_SERVER['HTTP_FORWARDED']) && $_SERVER['HTTP_FORWARDED']) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_FORWARDED'];
+} else {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
+}
+
+@extract($_GET);
+@extract($_POST);
+@extract($_SERVER);
+@extract($_ENV);
+@extract($_SESSION);
+
+if (!class_exists(Database))
+{ // 클래스선언이 없으면...
+
+	if($_SERVER["HTTP_HOST"] == "cubrid.forbiz.co.kr") {
+		class Database extends Cubrid{
+			
+		
+		}
+	}else{
+		class Database extends MySQL{
+		
+		
+		}
+	}
+
+} // 클래스를 선언하고 종료한다...
+
+if(strpos($_SERVER['PHP_SELF'], '/admin/') !== false
+	&& strpos($_SERVER['PHP_SELF'], 'admin.php') === false
+	&& strpos($_SERVER['PHP_SELF'], 'language.php') === false
+	&& strpos($_SERVER['PHP_SELF'], '/v3/include/') === false){
+
+    $log_db = new Database;
+
+    if($_SERVER['REQUEST_METHOD'] == 'POST'){
+        $send_data = serialize($_POST);
+    }else{
+        $send_data = $_SERVER["QUERY_STRING"];
+    }
+
+    $http_host = $_SERVER["HTTP_HOST"].$_SERVER["PHP_SELF"];
+
+    if(strpos($act, 'insert') !== false) {
+        $sql = "INSERT INTO admin_log_new(log_ix, admin_code, admin_id, admin_name, crud_div, act, ip, request_method, http_host, send_data, regdate) VALUES ('', '".$admininfo['charger_ix']."', '".$admininfo['charger_id']."', '".$admininfo['charger']."', 'C', '".$act."', '".$_SERVER["REMOTE_ADDR"]."', '".$_SERVER["REQUEST_METHOD"]."', '".$http_host."', '".$send_data."', NOW())";
+    }else if(strpos($act, 'update') !== false) {
+        $sql = "INSERT INTO admin_log_new(log_ix, admin_code, admin_id, admin_name, crud_div, act, ip, request_method, http_host, send_data, regdate) VALUES ('', '".$admininfo['charger_ix']."', '".$admininfo['charger_id']."', '".$admininfo['charger']."', 'U', '".$act."', '".$_SERVER["REMOTE_ADDR"]."', '".$_SERVER["REQUEST_METHOD"]."', '".$http_host."', '".$send_data."', NOW())";
+    }else if(strpos($act, 'delete') !== false) {
+        $sql = "INSERT INTO admin_log_new(log_ix, admin_code, admin_id, admin_name, crud_div, act, ip, request_method, http_host, send_data, regdate) VALUES ('', '".$admininfo['charger_ix']."', '".$admininfo['charger_id']."', '".$admininfo['charger']."', 'D', '".$act."', '".$_SERVER["REMOTE_ADDR"]."', '".$_SERVER["REQUEST_METHOD"]."', '".$http_host."', '".$send_data."', NOW())";
+    }else{
+        $sql = "INSERT INTO admin_log_new(log_ix, admin_code, admin_id, admin_name, crud_div, act, ip, request_method, http_host, send_data, regdate) VALUES ('', '".$admininfo['charger_ix']."', '".$admininfo['charger_id']."', '".$admininfo['charger']."', 'R', '".$act."', '".$_SERVER["REMOTE_ADDR"]."', '".$_SERVER["REQUEST_METHOD"]."', '".$http_host."', '".$send_data."', NOW())";
+    }
+
+    $log_db->query($sql);
+}
+
+?>

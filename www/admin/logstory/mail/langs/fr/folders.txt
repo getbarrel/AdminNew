@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Folders headers              		;
+; ***************************************** ;
+
+fld_name_hea				= Dossiers
+fld_messages_hea				= Messages
+fld_size_hea				= Taille
+fld_empty_hea				= Vider
+fld_delete_hea				= Supprimer
+fld_total					= Total:
+fld_make_new				= Créer un nouveau dossier
+folders_to					= Dossiers de <!--%UM_USER_EMAIL%-->
+quota_usage				= Limite de quota: <!--%UM_USAGE_GRAPHIC%--> <b><!--%UM_TOTAL_USED%--></b> sur <b><!--%UM_AVAL_SIZE%--></b> utilisé.

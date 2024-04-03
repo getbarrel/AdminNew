@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<Cancel>
+	<OrderInfo>
+		<Command>R0</Command>
+		<OwnerID>SGDATA</OwnerID>
+		<InterfaceDate>20150521</InterfaceDate>
+		<InterfaceType>N</InterfaceType>
+		<ErpOrderID>20150521-00001</ErpOrderID>
+		<OrderType>9</OrderType>
+		<ItemID>BS0101BK95</ItemID>
+		<OrderSeq>1</OrderSeq>
+		<ContentType>2</ContentType>
+		<OrderQty>2</OrderQty>
+		<SCustName><![CDATA[김재현]]></SCustName>
+		<Szip>730-020</Szip>
+		<Saddr1><![CDATA[경북 구미시 도량동]]></Saddr1>
+		<Saddr2><![CDATA[5주공 뜨란채apt 507동 1301호]]></Saddr2>
+		<SPhone></SPhone>
+		<SCellPhone>010-7541-5077</SCellPhone>
+		<CustName><![CDATA[김재현]]></CustName>
+		<BPhone></BPhone>
+		<BCellPhone>010-7541-5077</BCellPhone>
+		<OrgOrderID>20150520-00001</OrgOrderID>
+		<Description><![CDATA[null]]></Description>
+		<GiftYn>N</GiftYn>
+		<ReasonID>1</ReasonID>
+		<ReasonName></ReasonName>
+		<PrepayYn>D</PrepayYn>
+		<PickYn>N</PickYn>
+	</OrderInfo>
+</Cancel>

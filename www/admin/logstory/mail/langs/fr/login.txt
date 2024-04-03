@@ -1,0 +1,13 @@
+
+; ***************************************** ;
+; Login			                    ;
+; ***************************************** ;
+
+lgn_title			= Authentification
+lgn_welcome_msg		= Bienvenue. Veuillez entrer vos informations de connexion. 
+lng_user_email		= e-Mail
+lng_user_name		= Nom d utilisateur
+lng_user_pwd		= Mot de passe
+lng_server			= Serveur
+lng_theme			= Thème
+lng_login_btn		= Login &gt;&gt;

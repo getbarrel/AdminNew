@@ -1,0 +1,184 @@
+<?
+include_once("/home/dev/www/include/config.php");
+
+if (!class_exists(MySQL))
+{ // 클래스선언이 없으면...
+
+class MySQL {
+
+	var $dbcon;		// 링크 식별자
+	var $db_host;	// 디비 호스트
+	var $db_user;	// 디비 사용자
+	var $db_pass;	// 디비 비밀번호
+	var $db_name;	// 디비 이름
+
+	var $result;	// 쿼리 결과셋
+	var $total;		// 쿼리 결과수
+	var $dt;		// 결과 데이터
+
+	function MySQL(){
+			$this->db_host = "dev.forbiz.co.kr";
+			$this->db_user = "forbiz";
+			$this->db_pass = "vhqlwm2011";
+			$this->db_name = "table_list";
+			//$this->nocache();
+	}
+
+	function dbcon($db_name)
+	{
+		$this->dbcon = mysql_connect($this->db_host,$this->db_user,$this->db_pass) or $this->error();
+
+		mysql_select_db($this->db_name,$this->dbcon) or $this->error();
+	}
+
+	function close()
+	{
+		return mysql_close($this->dbcon);
+	}
+
+	function query($sql)
+	{
+		if (!isset($this->dbcon))
+			$this->dbcon($this->db_name);
+
+		$this->result = mysql_query("$sql") or $this->error();
+
+		if (eregi('^SELECT',$sql)) $this->total();
+		if (eregi('^DESC',$sql)) $this->total();
+		if (eregi('^show',$sql)) $this->total();
+
+		return $this->result;
+	}
+
+	function fetch($rows = 0,$type = 'array')
+	{
+		$fetch = "mysql_fetch_$type";
+
+		if (@mysql_data_seek($this->result,$rows))
+			$this->dt = $fetch($this->result);
+
+		return $this->dt;
+	}
+
+	function fetchall(){
+		$i=0;
+		while ($row = mysql_fetch_array ($this->result)) {
+			$array1 = array("idx_"=>$i+1);
+			$marray = array_merge($array1, $row);
+			$data[] = $marray;
+
+
+			//echo "user_id: ".$data[$i][0]."<br>\n";
+			$i++;
+
+		  // echo "user_id: ".$row[0]."<br>\n";
+		   //echo "fullname: ".$row[1]."<br>\n";
+		}
+		//print_r($data);
+		return $data;
+
+	}
+
+	function total()
+	{
+		$this->total = @mysql_num_rows($this->result);
+	}
+
+	function error()
+	{
+		global $HTTP_REFERER;
+		echo("<script>\nalert('".addslashes(mysql_errno())." : ".addslashes(mysql_error())."');\nlocation = '".$HTTP_REFERER."';\n</script>");
+		exit;
+	}
+
+	function nocache()
+	{
+		header ("Cache-Control: no-cache, must-revalidate");
+		header ("Pragma: no-cache");
+	}
+}
+
+} // 클래스를 선언하고 종료한다...
+
+
+if (!class_exists(basicMySQL))
+{ // 클래스선언이 없으면...
+class basicMySQL {
+
+	var $dbcon;		// 링크 식별자
+	var $db_host;	// 디비 호스트
+	var $db_user;	// 디비 사용자
+	var $db_pass;	// 디비 비밀번호
+	var $db_name;	// 디비 이름
+
+	var $result;	// 쿼리 결과셋
+	var $total;		// 쿼리 결과수
+	var $dt;		// 결과 데이터
+
+	function basicMySQL()
+	{
+		$this->db_host = "localhost";
+		$this->db_user = "sms";
+		$this->db_pass = "sms!@#$";
+		$this->db_name = "mallstory_sms";
+
+		//$this->nocache();
+	}
+
+	function dbcon($db_name)
+	{
+		$this->dbcon = mysql_connect($this->db_host,$this->db_user,$this->db_pass) or $this->error();
+
+		mysql_select_db($this->db_name,$this->dbcon) or $this->error();
+	}
+
+	function close()
+	{
+		return mysql_close($this->dbcon);
+	}
+
+	function query($sql)
+	{
+		if (!isset($this->dbcon))
+			$this->dbcon($this->db_name);
+
+		$this->result = mysql_query("$sql") or $this->error();
+
+		if (eregi('^SELECT',$sql)) $this->total();
+		if (eregi('^DESC',$sql)) $this->total();
+		if (eregi('^show',$sql)) $this->total();
+
+		return $this->result;
+	}
+
+	function fetch($rows = 0,$type = 'array')
+	{
+		$fetch = "mysql_fetch_$type";
+
+		if (@mysql_data_seek($this->result,$rows))
+			$this->dt = $fetch($this->result);
+
+		return $this->dt;
+	}
+
+	function total()
+	{
+		$this->total = @mysql_num_rows($this->result);
+	}
+
+	function error()
+	{
+		global $HTTP_REFERER;
+		echo("<script>\nalert('".addslashes(mysql_errno())." : ".addslashes(mysql_error())."');\nlocation = '".$HTTP_REFERER."';\n</script>");
+		exit;
+	}
+
+	function nocache()
+	{
+		header ("Cache-Control: no-cache, must-revalidate");
+		header ("Pragma: no-cache");
+	}
+}
+
+} // 클래스를 선언하고 종료한다...
+?>

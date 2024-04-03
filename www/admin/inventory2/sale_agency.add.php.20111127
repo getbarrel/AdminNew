@@ -1,0 +1,183 @@
+<?
+include("../class/layout.class");
+
+$title = "판매처등록";
+
+$db = new Database;
+
+//echo $company_code;
+if($c_ix == ""){
+
+	$act = "insert";
+}else{
+	$db->query("SELECT * FROM inventory_company_info WHERE c_ix = '".$c_ix."' and company_div = 'SA'");
+
+	$act = "update";
+}
+
+$db->fetch();
+
+$phone = explode("-",$db->dt[company_tel]);
+$fax = explode("-",$db->dt[company_fax]);
+list($zip1, $zip2) = split("-",$db->dt[company_zip]);
+$charger1 = explode("-",$db->dt[charger1_mobile]);
+$charger2 = explode("-",$db->dt[charger2_mobile]);
+$charger3 = explode("-",$db->dt[charger3_mobile]);
+
+$Contents01 = "
+	<table width='100%' cellpadding=3 cellspacing=0 border='0' align='left'>
+	  <tr>
+	    <td align='left' colspan=6 style='padding-bottom:10px;'> ".GetTitleNavigation("$title", "재고관리 > $title")."</td>
+	</tr>
+	  <tr>
+	    <td align='left' colspan=4 > ".colorCirCleBox("#efefef","100%","<div style='padding:5px 5px 5px 15px;'><img src='../image/title_head.gif' align=absmiddle><b> 판매처 정보</b></div>")."</td>
+	  </tr>
+	   <tr bgcolor=#ffffff>
+	    <td width='20%'><img src='../image/ico_dot.gif' align=absmiddle> <b>판매처 구분</b></td>
+		<td colspan=3>
+			<select name='saler_agency'>
+				<option value='1' ".($db->dt[saler_agency] == "1" || $db->dt[saler_agency] == "" ? "selected":"").">온라인 쇼핑몰</option>
+				<option value='2' ".($db->dt[saler_agency] == "2"  ? "selected":"").">오프라인 매장</option>
+				<option value='3' ".($db->dt[saler_agency] == "3"  ? "selected":"").">오픈마켓</option>
+			</select>
+		</td>
+	  </tr>
+
+	  <tr hegiht=1><td colspan=4  class='td_underline'></td></tr>
+	  <tr bgcolor=#ffffff>
+	    <td width='20%' ><img src='../image/ico_dot.gif' align=absmiddle> <b>판매처명</b></td><td width='30%'colspan=3 ><input type=text name='company_name' value='".$db->dt[company_name]."' class='textbox'  style='width:100%' validation='true' title='판매처명'></td>
+
+	  </tr>
+	  <tr hegiht=1><td colspan=4  class='td_underline'></td></tr>
+	  <tr bgcolor=#ffffff>
+	    <td width='20%'  ><img src='../image/ico_dot.gif' align=absmiddle> <b>전화</b></td>
+		 <td width='30%'><input type=text name='company_phone1' value='".$phone[0]."' maxlength=3 size=3  class='textbox' validation='true' title='전화'> - <input type=text name='company_phone2' value='".$phone[1]."' maxlength=4 size=5 class='textbox' validation='true' title='전화'> - <input type=text name='company_phone3' value='".$phone[2]."' maxlength=4 size=5 class='textbox' validation='true' title='전화'></td>
+	    <td align=left style='padding:0 0 0 30' ><img src='../image/ico_dot.gif' align=absmiddle> 팩스</td><td><input type=text name='company_fax1' value='".$fax[0]."' maxlength=3 size=3 class='textbox' > - <input type=text name='company_fax2' value='".$fax[1]."' maxlength=4 size=5 class='textbox' > - <input type=text name='company_fax3' value='".$fax[2]."' maxlength=4 size=5 class='textbox' ></td>
+	  </tr>
+	  <tr hegiht=1><td colspan=4  class='td_underline'></td></tr>
+	  <tr bgcolor=#ffffff>
+	    <td width='20%'><img src='../image/ico_dot.gif' align=absmiddle> 판매처 설명   </td>
+	    <td colspan=3><textarea name='company_msg'  style='width:90%;height:70px;' validation=false title='판매처 설명'>".$db->dt[company_msg]."</textarea></td>
+	  </tr>
+
+	   <tr hegiht=1><td colspan=4  class='td_underline'></td></tr>
+
+	  </table>";
+
+$ContentsDesc01 = "
+<table width='660' cellpadding=0 cellspacing=0 border='0' align='left'>
+<tr>
+	<td align=left style='padding:10px;' class=small>
+
+	</td>
+</tr>
+</table>
+";
+
+$Contents02 = "
+	<table width='100%' cellpadding=3 cellspacing=0 border='0' >
+	  <col width=15%>
+	  <col width='*'>
+	  <col width=20%>
+	  <col width=20%>
+	  <col width=20%>
+	  <tr>
+	    <td align='left' colspan=5> ".colorCirCleBox("#efefef","100%","<div style='padding:5px 5px 5px 15px;'><img src='../image/title_head.gif' align=absmiddle><b> 담당자정보</b></div>")."</td>
+	  </tr>
+	  <tr bgcolor=#ffffff>
+		<td></td>
+		<td align=center>이름</td>
+		<td align=center>직책</td>
+		<td align=center>휴대폰</td>
+		<td align=center>이메일</td>
+	  </tr>
+	  <tr hegiht=1><td colspan=5  class='td_underline'></td></tr>
+	  <tr bgcolor=#ffffff >
+		<td ><img src='../image/ico_dot.gif' align=absmiddle> <b>대표담당자</b></td>
+	    <td align=center><input type=text name='charger1_name' value='".$db->dt[charger1_name]."'  size=20 class='textbox' validation='true' title='대표담당자명'></td>
+	    <td align=center><input type=text name='charger1_respon' value='".$db->dt[charger1_respon]."' size=15  class='textbox' validation='true' title='대표담당자직책'></td>
+		<td align=center><input type=text name='charger1_mobile1' value='".$charger1[0]."' maxlength=3 size=3  class='textbox' validation='true' title='대표담당자연락처'> - <input type=text name='charger1_mobile2' value='".$charger1[1]."' maxlength=4 size=4  class='textbox' validation='true' title='대표담당자연락처'> - <input type=text name='charger1_mobile3' value='".$charger1[2]."' maxlength=4 size=4  class='textbox' validation='true' title='대표담당자연락처'></td>
+		<td align=center><input type=text name='charger1_email' value='".$db->dt[charger1_email]."' size=20  class='textbox' validation='true' title='대표담당자이메일'></td>
+	  </tr>
+	  <tr hegiht=1><td colspan=5  class='td_underline'></td></tr>
+	   <tr bgcolor=#ffffff >
+		<td ><img src='../image/ico_dot.gif' align=absmiddle> 추가담당자1</td>
+	    <td align=center><input type=text name='charger2_name' value='".$db->dt[charger2_name]."'  size=20 class='textbox' ></td>
+	    <td align=center><input type=text name='charger2_respon' value='".$db->dt[charger2_respon]."' size=15  class='textbox' ></td>
+		<td align=center><input type=text name='charger2_mobile1' value='".$charger2[0]."' maxlength=3 size=3  class='textbox' > - <input type=text name='charger2_mobile2' value='".$charger2[1]."' maxlength=4 size=4  class='textbox' > - <input type=text name='charger2_mobile3' value='".$charger2[2]."' maxlength=4 size=4  class='textbox' ></td>
+		<td align=center><input type=text name='charger2_email' value='".$db->dt[charger2_email]."' size=20  class='textbox' ></td>
+	  </tr>
+	  <tr hegiht=1><td colspan=5  class='td_underline'></td></tr>
+	   <tr bgcolor=#ffffff >
+		<td ><img src='../image/ico_dot.gif' align=absmiddle> 추가담당자2</td>
+	    <td align=center><input type=text name='charger3_name' value='".$db->dt[charger3_name]."'  size=20 class='textbox' ></td>
+	    <td align=center><input type=text name='charger3_respon' value='".$db->dt[charger3_respon]."' size=15  class='textbox' ></td>
+		<td align=center><input type=text name='charger3_mobile1' value='".$charger3[0]."' maxlength=3 size=3  class='textbox' > - <input type=text name='charger3_mobile2' value='".$charger3[1]."' maxlength=4 size=4  class='textbox' > - <input type=text name='charger3_mobile3' value='".$charger3[2]."' maxlength=4 size=4  class='textbox' ></td>
+		<td align=center><input type=text name='charger3_email' value='".$db->dt[charger3_email]."' size=20  class='textbox' ></td>
+	  </tr>
+	  <tr hegiht=1><td colspan=5  class='td_underline'></td></tr>
+	  </table><br><br>";
+
+$ButtonString = "
+<table width='100%' cellpadding=0 cellspacing=0 border='0' align='left'>
+<tr bgcolor=#ffffff ><td colspan=4 align=right><input type='image' src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:hand;border:0px;' ></td></tr>
+</table>
+";
+
+
+$Contents = "<table width='100%' border=0>";
+$Contents = $Contents."<form name='edit_form' action='company.act.php' method='post' onsubmit='return CheckFormValue(document.edit_form)' enctype='multipart/form-data'><input name='act' type='hidden' value='$act'><input name='company_code' type='hidden' value='".$db->dt[company_code]."'><input type=hidden name=company_div value='SA'><input name='c_ix' type='hidden' value='".$db->dt[c_ix]."'>";
+//$Contents = $Contents."<tr ><img src='../funny/image/title_basicinfo.gif'><td></td></tr>";
+$Contents = $Contents."<tr><td>";
+//$Contents = $Contents.ShadowBox($Contents01);
+$Contents = $Contents.$Contents01."<br>";
+//$Contents = $Contents.$ContentsDesc01;
+$Contents = $Contents."</td></tr>";
+$Contents = $Contents."<tr><td>".$ContentsDesc01."</td></tr>";
+$Contents = $Contents."<tr height=30><td></td></tr>";
+$Contents = $Contents."<tr><td>";
+//$Contents = $Contents.ShadowBox($Contents02);
+$Contents = $Contents.$Contents02;
+//$Contents = $Contents.$ContentsDesc02;
+$Contents = $Contents."</td></tr>";
+$Contents = $Contents."<tr><td>".$ContentsDesc02."</td></tr>";
+$Contents = $Contents."<tr height=30><td></td></tr>";
+$Contents = $Contents."<tr><td>";
+//$Contents = $Contents.ShadowBox($Contents03);
+$Contents .= $Contents03;
+//$Contents = $Contents.$ContentsDesc03;
+$Contents = $Contents."</td></tr>";
+$Contents = $Contents."<tr><td>".$ContentsDesc03."</td></tr>";
+$Contents = $Contents."<tr><td>".$Contents04."</td></tr>";
+$Contents = $Contents."<tr><td>";
+$Contents = $Contents.$ButtonString;
+$Contents = $Contents."</td></tr></form>";
+$Contents = $Contents."</table >";
+
+
+
+
+$Script = "<script language='javascript' src='company.add.js'></script>
+<script language='javascript'>
+function zipcode() {
+	var zip = window.open('../member/zipcode.php','','width=440,height=300,scrollbars=yes,status=no');
+}
+
+function ChangeAddress(obj){
+	if(obj.checked){
+		document.getElementById('input_address_area').style.display = 'block';
+	}else{
+		document.getElementById('input_address_area').style.display = 'none';
+	}
+}
+</script>
+";
+$P = new LayOut();
+$P->addScript = $Script;
+$P->strLeftMenu = inventory_menu();
+$P->strContents = $Contents;
+$P->Navigation = "HOME > 재고관리 > $title";
+echo $P->PrintLayOut();
+
+
+?>

@@ -1,0 +1,8 @@
+
+; ***************************************** ;
+; Upload		                    ;
+; ***************************************** ;
+
+up_title 			= Adicionar arquivo
+up_information_text		= Selecione o arquivo desejado
+up_button_text			= Enviar

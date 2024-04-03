@@ -1,0 +1,7 @@
+; ***************************************** ;
+; Bad Login		                    ;
+; ***************************************** ;
+
+bdl_title			= Fehler während der Authentisierung
+bdl_msg				= Sie konnten mit dem eingegebenen Kontonamen/Kennwort nicht authentisiert werden<br><br>Bitte überprüfen Sie die Daten und versuchen Sie es erneut
+bdl_back			= Zurück

@@ -1,0 +1,13 @@
+
+; ***************************************** ;
+; Login			                    ;
+; ***************************************** ;
+
+lgn_title			= Login
+lgn_welcome_msg			= Benvenuto. Inserisci le informazioni per il tuo login:
+lng_user_email			= E-mail
+lng_user_name			= Nome
+lng_user_pwd			= Password
+lng_server			= POP-Server
+lng_theme			= Lingua
+lng_login_btn			= Accedi &gt;&gt;

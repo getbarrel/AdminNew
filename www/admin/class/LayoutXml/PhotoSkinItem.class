@@ -1,0 +1,49 @@
+<?php
+/**
+ * User: james
+ * Date: 12. 2. 27
+ * Time: 오후 8:52
+ */
+ 
+class PhotoSkinItem {
+	var $photoskin_index = "";
+    var $photoskin_name = "";
+    var $photoskin_type = "";
+    var $photoskin_path = "";
+//     function __construct($photoskin_name, $photoskin_type, $photoskin_path)
+//     {
+//         $this->setPhotoskinName($photoskin_name);
+//         $this->setPhotoskinType($photoskin_type);
+//         $this->setPhotoskinPath($photoskin_path);
+//     }
+
+//     public function getPhotoskinName()
+//     {
+//         return $this->photoskin_name;
+//     }
+
+//     public function setPhotoskinName($photoskin_name)
+//     {
+//         $this->photoskin_name = $photoskin_name;
+//     }
+
+//     public function getPhotoskinType()
+//     {
+//         return $this->photoskin_type;
+//     }
+
+//     public function setPhotoskinType($photoskin_type)
+//     {
+//         $this->photoskin_type = $photoskin_type;
+//     }
+
+//     public function getPhotoskinPath()
+//     {
+//         return $this->photoskin_path;
+//     }
+
+//     public function setPhotoskinPath($photoskin_path)
+//     {
+//         $this->photoskin_path = $photoskin_path;
+//     }
+}

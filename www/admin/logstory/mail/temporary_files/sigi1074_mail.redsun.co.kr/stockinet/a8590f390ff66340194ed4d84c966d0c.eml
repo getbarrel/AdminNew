@@ -1,0 +1,41 @@
+X-decoded-by: UebiMiau 2.5
+Return-path: <sado_yohan@hotmail.com>
+Received: from hotmail.com (bay19-f19.bay19.hotmail.com [64.4.53.69]) 	by redsun.co.kr (8.12.9/8.12.9) with ESMTP id j0QEv88N002430 	for <sigi1074@redsun.co.kr>; Wed, 26 Jan 2005 23:57:08 +0900; from mail pickup service by hotmail.com with Microsoft SMTPSVC; 	 Wed, 26 Jan 2005 06:27:03 -0800; from 61.74.225.190 by by19fd.bay19.hotmail.msn.com with HTTP; 	Wed, 26 Jan 2005 14:26:21 GMT
+Message-id: <BAY19-F199393120FE5BA65FE8F15F8870@phx.gbl>
+X-originating-ip: [61.74.225.190]
+X-originating-email: [sado_yohan@hotmail.com]
+X-sender: sado_yohan@hotmail.com
+From: =?ks_c_5601-1987?B?vcUgyMa9xA==?= <sado_yohan@hotmail.com>
+To: sigi1074@redsun.co.kr
+Subject: =?ks_c_5601-1987?B?aG90uN7Az7+hvK0gurizu7TCILjewM8gwNS0z7TZLi4u?=
+Date: Wed, 26 Jan 2005 23:26:21 +0900
+Mime-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987; format=flowed
+X-originalarrivaltime: 26 Jan 2005 14:27:03.0357 (UTC) FILETIME=[1ACC8ED0:01C503B3]
+Status: O
+X-um-status: 1
+
+<table width="430" border="0" cellpadding="3" cellspacing="1" 
+bgcolor="#B8B8B8" nowrap style='table-layout:fixed'>
+        <tr bgcolor="#A5D4D2" align="center" height="25">
+            <td width="35"  class="colresize">선택</td>
+            <td width="35"  class="colresize">순번</td>
+            <td width="70" class="colresize">품목명</td>
+            <td width="30"  class="colresize">수량</td>
+            <td width="50"  class="colresize">단위</td>
+            <td width="70"  class="colresize">날짜</td>
+            <td width="70"  class="colresize">장소</td>
+            <td width="70" class="colresize">비고</td>
+        </tr>
+        <tr bgcolor="#FFFFFF" height="27" align="center">
+            <td><Input type="radio" name="radio"></td>
+            <td>1</td>
+            <td><input type='text' class="input_box"></td>
+            <td><input type='text' class="input_box"></td>
+            <td><select class="input_box"><option>EA</option></select></td>
+            <td><input type='text' class="input_box"></td>
+            <td><input type='text' class="input_box"></td>
+            <td nowrap class="ellipsis">비고 비고 비고 비고 비고 비고 비고 
+비고 비고</td>
+        </tr>
+    </table>

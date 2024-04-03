@@ -1,0 +1,33 @@
+; ***************************************** ;
+; Advanced Editor		            ;
+; ***************************************** ;
+
+adv_warning_text_mode			= Per favore de-seleziona  "<!--%view_source%-->" prima di usare la barra degli strumenti
+adv_type_path				= Inserisci un URL:
+
+
+format_paragraph			= Paragrafo
+format_h1				= Titolo 1 <H1>
+format_h2				= Titolo 2 <H2>
+format_h3				= Titolo 3 <H3>
+format_h4				= Titolo 4 <H4>
+format_h5				= Titolo 5 <H5>
+format_h6				= Titolo 6 <H6>
+format_pre				= Formattato <PRE>
+format_clear_all			= Rimuovi tutto
+
+format_font				= Carattere
+format_size				= Dimensione
+
+format_color				= Colore
+format_back				= Sfondo
+color_red				= Rosso
+color_blue				= Blu
+color_green				= Verde
+color_black				= Nero
+color_yellow				= Giallo
+color_white				= Bianco
+
+view_source				= Visualizza sorgente
+text_mode				= Testo
+clear_format				= Cancella formattazione

@@ -1,0 +1,12 @@
+
+; ***************************************** ;
+; Search				                    ;
+; ***************************************** ;
+
+sch_information_text			= Inserisici una parola o una frase! <br> Solo i messaggi delle <b>cartelle locali</b> e i <b>messaggi letti </b>saranno verificati.
+sch_button_text				= Cerca &gt;&gt;
+sch_subject_hea				= Oggetto
+sch_from_hea				= Da
+sch_date_hea				= Data
+sch_folder_hea				= Cartella
+sch_no_results				= Nessuna corrispondeza trovata

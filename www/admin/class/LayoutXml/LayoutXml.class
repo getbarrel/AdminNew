@@ -1,0 +1,285 @@
+<?php
+/**
+ * User: james
+ * Date: 12. 2. 27
+ * Time: 오후 8:50
+ */
+
+	include "LayoutItem.class";
+	include "PhotoSkinItem.class";
+//	include "SimpleDOM.php";
+	
+    class LayoutXml {
+        var $path;
+        var $simpleXml;
+        var $photoSkins;
+        var $layouts;
+
+        public function __construct($path){
+            $this->photoSkins = array();
+            $this->layouts = array();
+
+            $this->setPath($path);
+        }
+
+        private function LoadXml($path){
+            if($path != ""){
+                $this->setPath($path);
+            }
+        }
+
+        public function SaveXml($path){
+
+            $photoskinsCount = count($this->photoSkins);
+            $layoutsCount = count($this->layouts);
+			echo("layout count : " . count($this->layouts));
+            $xml = new SimpleXMLElement("<?xml version=\"1.0\" encoding=\"utf-8\"?><layouts></layouts>");
+            $photoskins = $xml->addChild("photoskins");
+
+//             print_r($this->photoSkins);
+//             exit;
+
+            for($i = 0; $i < $photoskinsCount; $i++){
+                $photoskin = $photoskins->addChild("photoskin");
+                $photoskin->addAttribute("photoskin_type", $this->photoSkins[$i]->photoskin_type);
+                $photoskin->addAttribute("photoskin_name", $this->photoSkins[$i]->photoskin_name);
+                $photoskin->addChild("photoskin_path", $this->photoSkins[$i]->photoskin_path);
+            }
+
+            foreach ($this->layouts as $layoutItem) {
+                $layout = $xml->addChild("layout");
+
+                $layout->addAttribute("mall_ix", $layoutItem->mall_ix);
+                $layout->addAttribute("templet_name", $layoutItem->templet_name);
+                $layout->addAttribute("skin_type", $layoutItem->skin_type);
+                $layout->addAttribute("pcode", $layoutItem->pcode);
+                $layout->addAttribute("cid", $layoutItem->cid);
+                $layout->addAttribute("basic_link", $layoutItem->basic_link);
+                $layout->addAttribute("depth", $layoutItem->depth);
+                $layout->addAttribute("vlevel1", $layoutItem->vlevel1);
+                $layout->addAttribute("vlevel2", $layoutItem->vlevel2);
+                $layout->addAttribute("vlevel3", $layoutItem->vlevel3);
+                $layout->addAttribute("vlevel4", $layoutItem->vlevel4);
+                $layout->addAttribute("vlevel5", $layoutItem->vlevel5);
+                $layout->addChild("vlevelf", $layoutItem->vlevelf);
+
+                //$cname = $layout->addChild("cname", "<![CDATA[".$layoutItem->cname.]>");
+                $cname = $layout->addChild("cname", htmlspecialchars($layoutItem->cname));
+
+                $layout->addChild("path", $layoutItem->path);
+                $layout->addChild("layout", $layoutItem->layout);
+                $layout->addChild("page_navi", $layoutItem->page_navi);
+
+                $layout->addChild("header1", $layoutItem->header1);
+                $layout->addChild("header2", $layoutItem->header2);
+                $layout->addChild("leftmenu", $layoutItem->leftmenu);
+                $layout->addChild("contents", $layoutItem->contents);
+                $layout->addChild("contents_add", $layoutItem->contents_add);
+                $layout->addChild("rightmenu", $layoutItem->rightmenu);
+                $layout->addChild("footer1", $layoutItem->footer1);
+                $layout->addChild("footer2", $layoutItem->footer2);
+
+
+                $layout->addChild("catimg", $layoutItem->catimg);
+                $layout->addChild("leftcatimg", $layoutItem->leftcatimg);
+                $layout->addChild("subimg", $layoutItem->subimg);
+                $layout->addChild("category_top_view", $layoutItem->category_top_view);
+                $layout->addChild("category_display_type", $layoutItem->category_display_type);
+                $layout->addChild("bbs_name", $layoutItem->bbs_name);
+                $layout->addChild("category_use", $layoutItem->category_use);
+                $layout->addChild("is_layout_apply", $layoutItem->is_layout_apply);
+
+                $layout->addChild("page_type", $layoutItem->page_type);
+                $layout->addChild("page_path", $layoutItem->page_path);
+                $layout->addChild("page_link", $layoutItem->page_link);
+
+                //$title = $layout->addChild("page_title", "<![CDATA[".$layoutItem->page_title.]>");
+                $title = $layout->addChild("page_title", htmlspecialchars($layoutItem->page_title));
+
+                $layout->addChild("page_help", $layoutItem->page_help);
+                $layout->addChild("page_addscript", $layoutItem->page_addscript);
+                $layout->addChild("page_body", $layoutItem->page_body);
+
+                $layout->addChild("caching", $layoutItem->caching);
+                $layout->addChild("caching_time", $layoutItem->caching_time);
+                $layout->addChild("regedit", $layoutItem->regedit);
+
+            }
+	     try{
+		    $xml->asXML($path);
+	     }catch(Exception  $e){
+		    echo $e->getMessage;
+	     }
+        }
+
+        // type은 layouts 혹은 photoSkins
+        // 속성명과 찾을 값을 받음.
+        public function search($type, $propNames, $values){
+
+            if(($type != "layouts") && ($type != "photoskins")){
+                throw new Exception("type은 layouts나 photoskins여야합니다.");
+            }
+            
+            $items = array();
+            $i = 0;
+
+            $matchCount = count($propNames);
+
+            foreach($this->$type as $layout){
+                $matchedCount = 0;
+                foreach($propNames as $propName){
+		
+                    foreach($values as $value){
+		    
+                        if($layout->$propName ==  $value){
+			//echo $propName."=".$layout->$propName."<br>";
+                            $matchedCount ++;
+                        }
+                    }
+                }
+		
+		//echo $matchedCount ."==". $matchCount."<br>";
+                if($matchedCount == $matchCount){
+                    $items[$i] = $layout;
+		    //print_r($items);
+                    $i++;
+                }
+            }
+            return ($items);
+        }
+
+        private function LoadPhotoSkins()
+        {
+            $i = 0;
+            foreach($this->simpleXml->photoskins as $photoskin){
+                $i++;
+                $this->photoSkins[$i] = new PhotoSkinItem(
+                                            $photoskin->attributes()->photoskin_name
+                                           ,$photoskin->attributes()->photoskin_type
+                                           ,$photoskin->photoskin_path
+                                        );
+            }
+        }
+
+        private function Load()
+        {
+            $i = 0;
+
+			if($this->simpleXml->photoskins){
+            foreach($this->simpleXml->photoskins->photoskin as $photoSkin){
+            	$photoskinElement = new PhotoSkinItem();
+            	$photoskinElement->photoskin_index = $i;
+            	$photoskinElement->photoskin_type = (string) $photoSkin->attributes()->photoskin_type;
+            	$photoskinElement->photoskin_name = (string) $photoSkin->attributes()->photoskin_name;
+            	$photoskinElement->photoskin_path = (string) $photoSkin->photoskin_path;
+            	
+            	$this->photoSkins[$i] = $photoskinElement;
+            	
+            	$i++;
+            }
+			}
+			            
+            $i = 0;
+            foreach($this->simpleXml->layout as $layout){
+                $layoutElement = new LayoutItem();
+                $layoutElement->layout_index = $i;
+                $layoutElement->mall_ix = (string) $layout->attributes()->mall_ix;
+                $layoutElement->templet_name = (string) $layout->attributes()->templet_name;
+                $layoutElement->skin_type = (string) $layout->attributes()->skin_type;
+                $layoutElement->pcode =  (string) $layout->attributes()->pcode;
+                $layoutElement->cid   =  (string) $layout->attributes()->cid;
+
+                $layoutElement->basic_link = (string) $layout->attributes()->basic_link;
+                $layoutElement->depth = (string) $layout->attributes()->depth;
+                $layoutElement->vlevel1 = (string) $layout->attributes()->vlevel1;
+                $layoutElement->vlevel2 = (string) $layout->attributes()->vlevel2;
+                $layoutElement->vlevel3 = (string) $layout->attributes()->vlevel3;
+                $layoutElement->vlevel4 = (string) $layout->attributes()->vlevel4;
+                $layoutElement->vlevel5 = (string) $layout->attributes()->vlevel5;
+				$layoutElement->vlevelf = (string) $layout->vlevelf;
+				
+                $layoutElement->cname = (string) $layout->cname;
+                $layoutElement->path = (string) $layout->path;
+                $layoutElement->layout = (string) $layout->layout;
+                $layoutElement->page_navi = (string) $layout->page_navi;
+                $layoutElement->header1 = (string) $layout->header1;
+                $layoutElement->header2 = (string) $layout->header2;
+                $layoutElement->leftmenu = (string) $layout->leftmenu;
+                $layoutElement->contents = (string) $layout->contents;
+                $layoutElement->contents_add = (string) $layout->contents_add;
+                $layoutElement->rightmenu = (string) $layout->rightmenu;
+                $layoutElement->footer1 = (string) $layout->footer1;
+                $layoutElement->footer2 = (string) $layout->footer2;
+
+                $layoutElement->catimg = (string) $layout->catimg;
+                $layoutElement->leftcatimg = (string) $layout->leftcatimg;
+                $layoutElement->subimg = (string) $layout->subimg;
+                $layoutElement->category_top_view = (string) $layout->category_top_view;
+                $layoutElement->category_display_type = (string) $layout->category_display_type;
+                $layoutElement->bbs_name = (string) $layout->bbs_name;
+                $layoutElement->category_use = (string) $layout->category_use;
+                $layoutElement->is_layout_apply = (string) $layout->is_layout_apply;
+
+                $layoutElement->page_type = (string) $layout->page_type;
+                $layoutElement->page_path = (string) $layout->page_path;
+                $layoutElement->page_link = (string) $layout->page_link;
+                $layoutElement->page_title = (string) $layout->page_title;
+                $layoutElement->page_help = (string) $layout->page_help;
+                $layoutElement->page_addscript = (string) $layout->page_addscript;
+                $layoutElement->page_body = (string) $layout->page_body;
+                $layoutElement->page_desc = (string) $layout->page_desc;
+                $layoutElement->caching = (string) $layout->caching;
+                $layoutElement->caching_time = (string) $layout->caching_time;
+                $layoutElement->regedit = (string) $layout->regedit;
+
+                $this->layouts[$i] = $layoutElement;
+
+                $i++;
+
+
+
+            }
+
+//            print_r($this->layouts);
+        }
+
+        public function getPath()
+        {
+            return $this->path;
+        }
+
+        public function setPath($path)
+        {
+			//echo $path."<br><br>";
+            if(is_file($path)){
+				//echo "aaa";
+                $this->simpleXml = simplexml_load_file($path);
+            } else {
+                throw new Exception("xml 파일이 없습니다." . "파일명 : " . $path);
+            }
+
+            $this->path = $path;
+            $this->Load();
+        }
+
+        public function getSimpleXml()
+        {
+            return $this->simpleXml;
+        }
+    }
+
+    // 멤버함수는 아니지만 파일 따로 만들기 싫어서 넣어둠
+    // 이런게 많아지면 옮겨야겠지?
+    
+    function xsort(&$nodes, $child_name, $order=SORT_ASC)
+	{
+		$sort_proxy = array();
+	
+		foreach ($nodes as $k => $node) {
+			$sort_proxy[$k] = (string) $node->$child_name;
+		}
+	
+		array_multisort($sort_proxy, $order, $nodes);
+	}
+	
+    

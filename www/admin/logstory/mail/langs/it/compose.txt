@@ -1,0 +1,25 @@
+; ***************************************** ;
+; Compose                                   ;
+; ***************************************** ;
+
+to_hea					= A:
+cc_hea					= CC:
+bcc_hea					= CCN:
+subject_hea				= Oggetto:
+address_tip				= Address book
+
+attach_hea				= Allegati:
+attch_add_new				= Aggiungi allegato
+attch_name_hea				= Nome
+attch_size				= Dimensione
+attch_type_hea				= Tipo
+attch_dele_hea				= Cancella
+attch_no_hea				= Nessun file allegato!
+
+add_signature				= Aggiungi firma
+send_text				= Invia
+
+result_error				= Errore, la tua email non può essere inviata
+result_success				= E-mail spedita correttamente
+nav_continue				= Continua
+nav_back				= Indietro

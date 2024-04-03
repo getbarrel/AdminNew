@@ -1,0 +1,58 @@
+<?php
+/**
+ * User: james
+ * Date: 12. 2. 28
+ * Time: 오전 10:27
+ */
+ 
+class LayoutItem {
+    var $layout_index = "";
+    var $mall_ix = "";
+    var $templet_name = "";
+    var $skin_type = "";
+    var $pcode = "";
+    var $cid = "";
+    var $basic_link = "";
+    var $depth = "";
+    var $vlevel1 = "";
+    var $vlevel2 = "";
+    var $vlevel3 = "";
+    var $vlevel4 = "";
+    var $vlevel5 = "";
+	var $vlevelf = "";
+
+    var $cname = "";
+    var $path = "";
+    var $layout = "";
+    var $page_navi = "";
+    var $header1 = "";
+    var $header2 = "";
+    var $leftmenu = "";
+    var $contents = "";
+    var $contents_add = "";
+    var $rightmenu = "";
+    var $footer1 = "";
+    var $footer2 = "";
+
+    var $catimg = "";
+    var $leftcatimg = "";
+    var $subimg = "";
+    var $category_top_view = "";
+    var $category_display_type = "";
+    var $bbs_name = "";
+    var $category_use = "";
+    var $is_layout_apply = "";
+
+    var $page_type = "";
+    var $page_path = "";
+    var $page_link = "";
+    var $page_title = "";
+    var $page_help = "";
+    var $page_addscript = "";
+    var $page_body = "";
+    var $page_desc = "";
+    var $caching = "";
+    var $caching_time = "";
+    var $regedit = "";
+
+}

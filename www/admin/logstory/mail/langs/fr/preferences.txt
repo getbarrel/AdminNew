@@ -1,0 +1,21 @@
+; ***************************************** ;
+; Preferences		                    ;
+; ***************************************** ;
+
+prf_title 			= Préférences
+prf_general_title		= Informations Générales
+prf_name			= Nom
+prf_reply_to		= Répondre à
+prf_time_zone		= Fuseau horaire
+prf_trash_title		= Corbeille
+prf_save_to_trash		= Garder une copie des messages <b>supprimés</b> dans le dossier "<b><!--%UM_TRASH_EXTENDED%--></b>"
+prf_save_only_read	= Garder une copie des messages <b>lus</b> dans les dossier <b><!--%UM_TRASH_EXTENDED%--></b>"
+prf_empty_on_exit		= <b>Vider</b> la corbeille en quittant
+prf_sent_title		= Eléments envoyés
+prf_save_sent		= Garder une copie des messages <b>envoyés</b> dans le dossier "<b><!--%UM_SENT_EXTENDED%--></b>"
+prf_messages_title	= Messages
+prf_page_limit		= Nombre de messages maximum affichés par page
+prf_signature_title	= Signature
+prf_signature		= Tapez ou collez votre signature
+prf_auto_add_sign		= Ajouter la signature automatiquement aux nouveaux messages
+prf_save_button		= Enregistrer

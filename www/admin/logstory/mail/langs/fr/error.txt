@@ -1,0 +1,9 @@
+
+; ***************************************** ;
+; Error			                    ;
+; ***************************************** ;
+
+err_title			= Erreur
+err_msg			= Une erreur est survenue durant l éxécution de la commande<br><br>Veuillez vous reconnecter à nouveau
+err_system_msg		= Message système: 
+err_exit			= Quitter

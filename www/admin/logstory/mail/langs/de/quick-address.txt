@@ -1,0 +1,10 @@
+
+; ***************************************** ;
+; Quick address		                    ;
+; ***************************************** ;
+
+qad_title 			= Empfänger auswählen
+qad_select_address		= Wählen Sie einen Kontakt
+qad_to				= AN
+qad_cc				= CC
+qad_bcc				= BCC

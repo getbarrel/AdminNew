@@ -1,0 +1,381 @@
+/*
+@font-face {
+	font-family: »≠¿Ã∆Æµ•¿Ã;
+	src:url(/css/whiteday10.wdwf);
+}
+*/
+
+
+/*
+a.calendar_a:link {font-family:µ∏øÚ√º; text-decoration:none; color:#000000}
+a.calendar_a:visited {font-family:µ∏øÚ√º; text-decoration:none; color:#000000}
+a.calendar_a:hover {font-family:µ∏øÚ√º; text-decoration:none; color:red}
+a.calendar_a:active {font-family:µ∏øÚ√º; text-decoration:none; color:#000000}
+
+
+P {margin-top:0px;margin-bottom:0px;}
+BODY {
+	FONT-SIZE: 10pt; FONT-FAMILY: µ∏øÚ√º, µ∏øÚ,Helvetica; color: #404045
+}
+
+TD {
+	FONT-SIZE: 12px; FONT-FAMILY: µ∏øÚ√º,±º∏≤√º,Helvetica;
+	 color: #404045
+}
+SELECT{FONT-SIZE: 11px;}
+DIV{font-size:10pt;}
+FONT{font-size:10pt;}
+BODY {
+	SCROLLBAR-FACE-COLOR: #d6d3ce; 
+	SCROLLBAR-HIGHLIGHT-COLOR: #ffffff; 
+	SCROLLBAR-SHADOW-COLOR: #c6c3bd; 
+	SCROLLBAR-3DLIGHT-COLOR: #efebe7; 
+	SCROLLBAR-ARROW-COLOR: #000000; 
+	SCROLLBAR-TRACK-COLOR: #fffbff; 
+	SCROLLBAR-DARKSHADOW-COLOR: #efebe7; leftmargin: 0; topmargin: 0
+}
+BUTTON
+{
+	
+    BACKGROUND: #8FA7CB;
+    BORDER-BOTTOM: black 1px solid;
+    BORDER-LEFT: #ffffff 1px solid;
+    BORDER-RIGHT: black 1px solid;
+    BORDER-TOP: #ffffff 1px solid;
+    COLOR: white;
+    CURSOR: hand;
+    FONT-FAMILY: verdana, @µ∏øÚ;
+    FONT-SIZE: 11px;  
+    WIDTH: 110px
+}
+TEXTAREA{ font-family:µ∏øÚ√º,arial;font-size: 10pt;Padding-left:10px;}
+INPUT{ font-family:µ∏øÚ√º,arial;font-size: 10pt;Padding-left:10px;}
+INPUT.nonbg{
+	
+	background-color:#B0BACD;
+	border:0px
+	vertical-align:bottom;
+	width:100%;
+	height:100%;
+	padding-top:5px;
+	font-weight:bold;
+}
+/* ∞¯≈Îtd: ∆‰¿Ã¡ˆ∏≈±Ë */
+
+a.calendar_a:link {font-family:µ∏øÚ√º; text-decoration:none; color:gray}
+a.calendar_a:visited {font-family:µ∏øÚ√º; text-decoration:none; color:#ffffff}
+a.calendar_a:hover {font-family:µ∏øÚ√º; text-decoration:none; color:red}
+a.calendar_a:active {font-family:µ∏øÚ√º; text-decoration:none; color:#ffffff}
+
+a.calendar_hader_a:link {font-family:µ∏øÚ√º; text-decoration:bold; color:#ffffff;font-size:18px;}
+a.calendar_hader_a:visited {font-family:µ∏øÚ√º; text-decoration:none; color:#ffffff}
+a.calendar_hader_a:hover {font-family:µ∏øÚ√º; text-decoration:none; color:red}
+a.calendar_hader_a:active {font-family:µ∏øÚ√º; text-decoration:none; color:#ffffff}
+
+
+.calendarHeaderDisp{
+	font-size:18px;
+	color:#ffffff;
+}
+.controlpaneldefault
+{
+    BACKGROUND-COLOR: #efefef;
+    BORDER-BOTTOM: #000000 1px solid;
+    BORDER-LEFT: #99ccff 1px solid;
+    BORDER-RIGHT: #000000 1px solid;
+    BORDER-TOP: #99ccff 1px solid;
+    HEIGHT: 100%;
+    PADDING-BOTTOM: 5px;
+    PADDING-LEFT: 5px;
+    PADDING-RIGHT: 5px;
+    PADDING-TOP: 5px;
+    POSITION: relative;
+    Z-INDEX: 1;
+    WIDTH: 100%;
+
+}
+
+.tab_blue
+{
+    BACKGROUND-IMAGE: url(/img/UI_graytab.gif);
+    BACKGROUND-REPEAT: no-repeat;
+    COLOR: white;
+    CURSOR: hand;
+    FONT-FAMILY: verdana;
+    FONT-SIZE: 11px;
+    FONT-WEIGHT: bold;
+    HEIGHT: 26px;
+    LEFT: 2px;
+    PADDING-TOP: 4px;
+    POSITION: absolute;
+    TEXT-ALIGN: center;
+    TOP: 2px;
+    WIDTH: 140px;
+    Z-INDEX: 1
+}
+
+
+.bar
+{
+    BACKGROUND: #5E9EFC;
+    BORDER-BOTTOM: #000000 1px solid;
+    BORDER-TOP: #99ccff 1px solid;
+    height:27px;
+    PADDING-LEFT: 10px;
+    PADDING-RIGHT: 10px;
+    WIDTH: 100%
+}
+BUTTON
+{
+	
+    BACKGROUND: #8FA7CB;
+    BORDER-BOTTOM: black 1px solid;
+    BORDER-LEFT: #ffffff 1px solid;
+    BORDER-RIGHT: black 1px solid;
+    BORDER-TOP: #ffffff 1px solid;
+    COLOR: white;
+    CURSOR: hand;
+    FONT-FAMILY: ±º∏≤;
+    FONT-SIZE: 11px;  
+    WIDTH: 110px
+}
+
+BUTTON.bottom
+{
+
+    BACKGROUND: #4474FF
+    border-right:1px solid #000000;
+    BORDER-BOTTOM: black 1px solid;
+    BORDER-LEFT: #cccccc 1px solid;
+    BORDER-RIGHT: black 1px solid;
+    BORDER-TOP: #cccccc 1px solid;
+    COLOR: white;
+    CURSOR: hand;
+    height:25px;
+    FONT-FAMILY: verdana, @µ∏øÚ;
+    FONT-SIZE: 11px;    
+   
+}
+
+
+.table_td2 {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-LEFT: #efefef 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 1px; PADDING-RIGHT: 1px; PADDING-TOP: 1px; background-color:B0BACD
+}
+
+.table_td {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-LEFT: #efefef 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 5px; PADDING-TOP: 1px; background-color:#B0BACD
+}
+
+.table_left {
+	BORDER-BOTTOM: gray 1px solid; BORDER-LEFT: #efefef 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 1px; PADDING-TOP: 1px; background-color:#B0BACD
+}
+.table_middle {
+	BORDER-BOTTOM: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 1px; PADDING-TOP: 1px; background-color:#B0BACD
+}
+.table_right {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 1px; PADDING-TOP: 1px; background-color:#B0BACD
+}
+
+.table_td_S {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-LEFT: #efefef 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 5px; PADDING-TOP: 1px; background-color:#B0BACD;;COLOR:blue
+}
+
+.table_td_N {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-LEFT: #efefef 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 5px; PADDING-TOP: 1px; background-color:#B0BACD;COLOR:green
+}
+.table_td_L {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-LEFT: #efefef 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 5px; PADDING-RIGHT: 5px; PADDING-TOP: 1px; background-color:#B0BACD;COLOR:BROWN
+}
+
+.table_td3 {
+	BORDER-BOTTOM: gray 1px solid;  BORDER-LEFT: #efefef 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #efefef 1px solid; FONT-FAMILY: verdana; FONT-SIZE: 8pt; PADDING-BOTTOM: 1px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px; PADDING-TOP: 1px; background-color:B0BACD
+}
+.table_td3_cumul {
+	BORDER-BOTTOM: silver 1px solid;  
+	BORDER-LEFT: #ffffff 1px solid; 
+	BORDER-RIGHT: gray 1px solid; 
+	BORDER-TOP: #ffffff 1px solid; 
+	FONT-FAMILY: verdana; 
+	FONT-SIZE: 11px; 
+	PADDING-BOTTOM: 1px; PADDING-LEFT: 0px; 
+	PADDING-RIGHT: 5px; 
+	PADDING-TOP: 1px; 
+	background-color:#ffffff
+}
+
+
+
+.calendar{
+
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	Border-right:1px solid silver;
+	Border-bottom:1px solid silver; 
+	
+
+	PADDING: 4px; 
+	WIDTH: 13%; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	 TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+
+.calendarWeekHeadOff{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid;
+	Border-bottom:1px solid silver;
+	PADDING: 4px; 
+	WIDTH: 130px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+
+.calendarWeekHeadOn{
+	BORDER-TOP: silver 1px solid;
+	BORDER-left: silver 1px solid; 
+	Border-bottom:1px solid #ffffff;
+	PADDING: 4px; 
+	WIDTH: 130px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+.calendarWeekMiddleOff{
+	BORDER-TOP: #ffffff 1px solid;	
+	BORDER-left: 0px solid #ffffff;
+	BORDER-right: 0px solid #ffffff;
+	Border-bottom:1px solid #000000;
+	PADDING: 4px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+.calendarWeekMiddleOn{
+	BORDER-TOP: #000000 1px solid;
+	BORDER-left: 0px solid #ffffff;
+	BORDER-right: 0px solid #ffffff;
+	Border-bottom:1px solid #ffffff;
+	PADDING: 4px; 
+	WIDTH: 130px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+.calendarWeekTailOff{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #000000 1px solid;
+	Border-bottom:1px solid #000000;
+	PADDING: 4px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+
+.calendarWeekTailOn{
+	BORDER-TOP: #000000 1px solid;
+	BORDER-Right: #ffffff 1px solid; 
+	Border-bottom:1px solid #ffffff;
+	PADDING: 4px; 
+	WIDTH: 190px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+
+.calendar_on{
+	BORDER-TOP: 1px solid #000000; 
+	BORDER-left: 1px solid #000000;
+	Border-right:#ffffff 1px solid; 
+	Border-bottom:#ffffff 1px solid;
+	PADDING: 4px; 
+	WIDTH: 190px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:75px
+}
+
+.calendar_main_header{
+	
+	PADDING: 4px; 
+	WIDTH: 100%; 
+	CURSOR: hand; 
+	COLOR: #000000; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: gray; 
+	TEXT-DECORATION: none; 
+	HEIGHT:25px
+
+}
+
+.calendar_main{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	
+	PADDING: 4px; 
+	WIDTH: 100%; 
+	CURSOR: hand; 
+	COLOR: #000000; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: silver; 
+	TEXT-DECORATION: none; 
+	HEIGHT:25px
+
+}
+
+.calendarHeader{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	Border-right:1px solid silver;
+	Border-bottom:1px solid silver; 
+	PADDING: 4px; 
+	WIDTH: 190px; 
+	CURSOR: hand; 
+	COLOR: #ffffff; 
+	TOP: 0px; 
+	BACKGROUND-COLOR: silver; 
+	TEXT-DECORATION: none; 
+	FONT-WEIGHT:BOLD;
+	HEIGHT:25px
+
+
+}
+
+.calendarToday{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	Border-right:1px solid #000000;
+	Border-bottom:1px solid #000000; 
+	PADDING: 4px; 
+	WIDTH: 190px; 
+	CURSOR: hand; 
+	COLOR: gray; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: orange; 
+	TEXT-DECORATION: none; 
+	HEIGHT:25px
+}

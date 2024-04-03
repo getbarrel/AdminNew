@@ -1,0 +1,26 @@
+; ***************************************** ;
+; Compose                                   ;
+; ***************************************** ;
+
+to_hea				= A:
+cc_hea				= Copies à:
+bcc_hea				= Copies cachées:
+subject_hea				= Objet:
+address_tip				= Carnet d adresses
+
+
+attach_hea				= Pièces jointes:
+attch_add_new			= Ajouter une pièce jointe
+attch_name_hea			= Nom
+attch_size				= Taille
+attch_type_hea			= Type
+attch_dele_hea			= Supprimer
+attch_no_hea			= Aucune pièce jointe
+
+add_signature			= Ajouter une signature
+send_text				= Envoyer
+
+result_error			= Impossible d envoyer l e-Mail
+result_success			= Votre e-Mail a été envoyé
+nav_continue			= Continuer
+nav_back				= Retour

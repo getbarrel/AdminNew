@@ -1,0 +1,85 @@
+<?
+include($_SERVER["DOCUMENT_ROOT"]."/class/layout.class");
+
+$P = new msLayOut("");
+
+$mdb = new Database;
+$idb = new Database;
+$today = date('Y-m-d H:i:s');
+//배송중 상태로 4일경과시 배송완료로 상태값 변경 프로세서
+//$sql = "select count(*) as total from shop_order_status where DATE_ADD(regdate,INTERVAL 7 DAY)  <= '".$today."' and status = 'DI' ";
+
+//$db->query($sql);
+//$db->fetch();
+$sql = "select oid,od_ix,pid from shop_order_detail where DATE_ADD(di_date,INTERVAL ".$layout_config[mall_dc_interval]." DAY)  <= '".$today."' and status = '".ORDER_STATUS_DELIVERY_ING."' and order_from = 'self' "; //제휴사 주문때문에 자체주문만 처리하도록 수정 12.10.19 bgh
+
+$mdb->query($sql);
+
+for($i=0;$i<$mdb->total;$i++){
+	$mdb->fetch($i);
+	$sql = "update shop_order_detail set status = '".ORDER_STATUS_DELIVERY_COMPLETE."', dc_date = NOW() where od_ix = '".$mdb->dt[od_ix]."'";
+	$idb->query($sql);
+	
+	//없어서 추가 2012-09-24 홍진영
+	$idb->query("update ".TBL_SHOP_RESERVE_INFO." set state = '".RESERVE_STATUS_COMPLETE."' WHERE oid='".$mdb->dt[oid]."' and state = '".RESERVE_STATUS_READY."' and pid = '".$mdb->dt[pid]."' ");
+
+	$sql = "insert into shop_order_status(oid,pid, status,status_message,regdate) values ('".$mdb->dt[oid]."','".$mdb->dt[pid]."','".ORDER_STATUS_DELIVERY_COMPLETE."','".$layout_config[mall_dc_interval]."일경과 자동변경',NOW())";
+	$idb->query($sql);
+	$sql = "update shop_reserve_info set state = ".RESERVE_STATUS_COMPLETE." where pid = '".$mdb->dt[pid]."' and oid = '".$mdb->dt[oid]."' and state = '".RESERVE_STATUS_READY."' ";
+	$idb->query($sql);
+}
+	
+//주문접수 후 7일간 입금이 안될수 자동 주문취소 프로세서
+//$sql = "select count(*) as total from shop_order_status where  DATE_ADD(regdate,INTERVAL 7 DAY)  <= '".$today."' and status = 'IR' ";
+//$db->query($sql);
+//$db->fetch();
+
+$sql = "select od_ix, oid, pid from shop_order_detail where DATE_ADD(regdate,INTERVAL ".$layout_config[mall_cc_interval]." DAY)  <= '".$today."' and status = '".ORDER_STATUS_INCOM_READY."' order by regdate desc ";
+$mdb->query($sql);
+	for($i=0;$i<$mdb->total;$i++){
+		$mdb->fetch($i);
+		
+		$sql = "update shop_order_detail set status = '".ORDER_STATUS_CANCEL_COMPLETE."' where od_ix = '".$mdb->dt[od_ix]."' ";
+		//echo $sql."<br>";
+		
+		$idb->query($sql);
+		//$sql = "update shop_order set status = '".ORDER_STATUS_CANCEL_COMPLETE."' where oid = '".$mdb->dt[oid]."'";
+		//echo $sql."<br>";
+		//$idb->query($sql);
+		$sql = "insert into shop_order_status(oid,status,status_message,regdate) values ('".$mdb->dt[oid]."','".ORDER_STATUS_CANCEL_COMPLETE."','".$layout_config[mall_cc_interval]."일경과 system 자동취소',NOW())";
+		//echo $sql."<br>";
+		$idb->query($sql);
+		
+		$sql = "update shop_reserve_info set state = ".RESERVE_STATUS_ORDER_CANCEL." where oid = '".$mdb->dt[oid]."'";
+		$idb->query($sql);
+		
+		//$db->query("update ".TBL_SHOP_RESERVE_INFO." set state = '".RESERVE_STATUS_ORDER_CANCEL."' WHERE oid='".$mdb->dt[oid]."' and pid = '".$mdb->dt[pid]."' and state = '".RESERVE_STATUS_READY."' ");
+		//echo $sql."<br>";
+		//exit;
+	}
+
+//주문접수후 2일경과후 입금이 안될시 문자메세지 발송
+/*$sql = "select count(*) as total from shop_order_status where  DATE_ADD(regdate,INTERVAL 2 DAY)  <= '".$today."' and status = 'IR' ";
+$db->query($sql);
+$db->fetch();
+$cominfo = getcominfo();
+$sdb = new Database;
+$s = new SMS();
+$s->send_phone = $cominfo[com_phone];
+$s->send_name = $cominfo[com_name];
+$s->admin_mode = true;
+$sql = "select oid from shop_order_status where DATE_ADD(regdate,INTERVAL 2 DAY)  <= '".$today."' and status = 'IR' ";
+$mdb->query($sql);
+	for($i=0;$i<$db->dt[total];$i++){
+		$mdb->fetch($i);
+		
+		$sql = "select bmobile,bname from shop_order where oid = '".$mdb->dt[oid]."'";
+		$idb->query($sql);
+		$idb->fetch();
+		$s->dest_phone = str_replace("-","",$idb->dt[bmobile]);
+		$s->dest_name = "$db->dt[bname]";
+		$s->msg_body =$sms_contents;
+		
+		$s->sendbyone($cominfo);
+	}*/
+?>

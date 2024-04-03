@@ -1,0 +1,1157 @@
+<?
+include("../class/layout.class");
+
+
+$db = new Database;
+$db->query("SELECT * FROM ".TBL_SHOP_POPUP." where popup_ix= '$popup_ix'");
+$db->fetch();
+
+if($db->total){
+	$popup_ix = $db->dt[popup_ix];
+	$popup_title = $db->dt[popup_title];
+	$popup_text = $db->dt[popup_text];
+	$popup_width = $db->dt[popup_width];
+	if($db->dt[popup_today] == 1){
+		$popup_height = $db->dt[popup_height] - 30;
+	}else{
+		$popup_height = $db->dt[popup_height];
+	}
+	$popup_top = $db->dt[popup_top];
+	$popup_left = $db->dt[popup_left];
+	$popup_use_sdate = $db->dt[popup_use_sdate];
+	$popup_use_edate = $db->dt[popup_use_edate];
+	$popup_today = $db->dt[popup_today];
+	$disp = $db->dt[disp];
+	$popup_type = $db->dt[popup_type];
+	$act = "update";
+
+	$sDate = date("Y/m/d", mktime(0, 0, 0, substr($db->dt[popup_use_sdate],4,2)  , substr($db->dt[popup_use_sdate],6,2), substr($db->dt[popup_use_sdate],0,4)));
+	$eDate = date("Y/m/d",mktime(0, 0, 0, substr($db->dt[popup_use_edate],4,2)  , substr($db->dt[popup_use_edate],6,2), substr($db->dt[popup_use_edate],0,4)));
+
+	$startDate = $popup_use_sdate;
+	$endDate = $popup_use_edate;
+
+}else{
+	$act = "insert";
+	$popup_use_sdate = "";
+	$popup_use_edate = "";
+	$disp = "1";
+
+	$next10day = mktime(0, 0, 0, date("m")  , date("d")+10, date("Y"));
+
+//	$sDate = date("Y/m/d");
+	$sDate = date("Y/m/d");
+	$eDate = date("Y/m/d",$next10day);
+
+	$startDate = date("Ymd");
+	$endDate = date("Ymd",$next10day);
+}
+
+
+$Script = "
+<link rel='stylesheet' href='../colorpicker/farbtastic.css' type='text/css'>
+<script type='text/javascript' src='/js/ui/jquery-ui-1.8.9.custom.js'></script>
+<script type='text/javascript' src='/js/ui/jquery.ui.core.js'></script>
+<script type='text/javascript' src='/js/ui/jquery.ui.widget.js'></script>
+<script type='text/javascript' src='/js/ui/jquery.ui.mouse.js'></script>
+<script type='text/javascript' src='../colorpicker/farbtastic.js'></script>
+<script type='text/javascript' src='../js/ms_productSearch.js'></script>
+<Script Language='JavaScript'>
+
+function ChangeDisplaySubType(obj, group_code, selected_value){
+	obj.parent().parent().find('div[class^=goods_display_type_area]').hide();
+	$('DIV#goods_auto_area_'+group_code+' DIV#goods_display_sub_area_'+selected_value).show();
+}
+	
+function setcolorpicker(div_id,input_id){
+	
+	$('#'+div_id).farbtastic('#'+input_id);		//색상표선택
+	$('#'+div_id).css('display','');
+
+}
+
+function department_del(dp_ix){
+	$('#department_row_'+dp_ix).remove();
+}
+
+function person_del(code){
+	$('#row_'+code).remove();
+}
+
+
+function SubmitX(frm){
+
+	for(i=0;i < frm.elements.length;i++){
+		if(!CheckForm(frm.elements[i])){
+			return false;
+		}
+	}
+	//alert(iView.document.body.innerHTML);
+	doToggleText(frm);
+	//frm.content.value = iView.document.body.innerHTML;
+	frm.content.value = document.getElementById('iView').contentWindow.document.body.innerHTML; //kbk
+	return true;
+}
+
+
+
+
+function init(){
+	var frm = document.INPUT_FORM;
+	Content_Input();
+	Init(frm);
+	onLoad('$sDate','$eDate');
+}
+</Script>";
+
+if($pid){
+	$db->query("select mem_ix, pname from ".TBL_SHOP_CART." where id = '".$pid."' and mem_ix != '' ");
+	$mem_ixs = $db->fetchall("object");
+	//$aaa = $db->getrows();
+
+	for($i=0;$i < count($mem_ixs);$i++){
+		$code[$i] = $mem_ixs[$i][mem_ix];
+		if($i == 0){
+			$pname = $mem_ixs[$i][pname];
+		}
+	}
+	//print_r($code);
+	//$msg = $db->dt[pname].($db->dt[option_text] ? '-'.strip_tags($db->dt[option_text]) : '' ).'이 배송지연되고 있습니다.';
+	$text = "'<b>".$pname."</b>' (를)을 장바구니에 담은 고객 목록입니다.";
+	$style_class = 'point_color';
+	//echo $msg;
+}else{
+	//$text = "- 찾으실 아이디 또는 이름을 입력하세요.";
+}
+
+
+
+$Contents = "
+<table width='100%' border='0' align='left'>
+ <tr>
+	<td align='left' colspan=6 > ".GetTitleNavigation("팝업관리", "전시관리 > 팝업관리 ")."</td>
+</tr>";
+if($pid){
+$Contents .= "
+ <tr>
+	<td align='left' colspan=6 class='".$style_class."' style='height:30px;padding:10px;'> ".$text."</td>
+</tr>";
+}
+$Contents .= "
+  <tr>
+    <td>
+      <div id='TG_INPUT' style='position: relative; display: block;'>
+        <form name='INPUT_FORM' method='post' onSubmit=\"return SubmitX(this)\" action='popup.act.php'><input type='hidden' name=act value='$act'><input type='hidden' name=popup_ix value='$popup_ix'>
+        <table border='0' width='100%' cellspacing='1' cellpadding='0'>
+          <tr>
+            <td bgcolor='#6783A8'>
+              <table border='0' cellspacing='0' cellpadding='0' width='100%'>
+                <tr>
+                  <td bgcolor='#ffffff'>
+                    <table cellpadding=3 cellspacing=0 width='100%' class='input_table_box'>
+                        <tr>
+							<td class='input_box_title' nowrap style='width:200px;'> <b>팝업명 <img src='".$required3_path."'></b></td>
+							<td class='input_box_item' ><input type='text' class='textbox' name='popup_title' value='".$db->dt[popup_title]."' maxlength='50' style='width:90%' validation='true' title='제목'></td>
+							<td class='input_box_title' nowrap>팝업 코드(시스템코드)</td>
+							<td class='input_box_item' ><input type='text' class='textbox' name='' id='' value='' style='width:70%'  /></td>
+                        </tr>
+						<tr>
+							<td class='input_box_title' nowrap>카테고리 설정</td>
+							<td colspan='3' class='search_box_item' style='padding:10px;'><a name='goods_display_type_".($i+1)."'></a>
+								<div style='padding-bottom:10px;'>
+									<input type='radio' class='textbox' name='' id='' size=50 value='' style='border:0px;' /><label for=''>메인</label>
+									<input type='radio' class='textbox' name='' id='' size=50 value='' style='border:0px;' /><label for=''>카테고리별</label>
+									<br>
+								</div>
+								<div style='padding:0px 0px;' id=''>
+									<div class='goods_display_type_area'  id='goods_display_sub_area_B' >
+										<table   border='0'  cellpadding=0 cellspacing=0 >								
+											<tr>
+												<td width='300'>
+													<table  border='0' cellpadding=0 cellspacing=0 align='center'>
+														<tr align='left'>
+															<td width='100'>
+																<input type=text class=textbox name='search_text'  id='search_text' style='width:150px;margin-bottom:2px;' value='' />  
+															</td>
+															<td align='center'>
+																<img src='../images/btn_select_brand.gif'  style='cursor:pointer;' /> 
+																<img src='../images/icon/pop_all.gif' alt='전체선택' title='전체선택'  style='cursor:pointer;'/>
+															</td>
+															</tr>
+														<tr>
+															<td colspan='2' >
+																<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='search_result'>
+																</div-->
+																<select name='' style=' width:320px;height:148px;font-size:12px;background:#fff;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' class='search_result' id=''  multiple>											
+																</select>
+															</td>
+														</tr>
+													</table>
+												</td>
+												<td align='center' width=80>
+													<div class='float01 email_btns01'>
+														<ul>
+															<li>
+																<a href='#'><img src='../images/icon/pop_plus_btn.gif' alt='추가' title='추가' /></a>
+															</li>
+															<li>
+																<a href='#'><img src='../images/icon/pop_del_btn.gif' alt='삭제' title='삭제' /></a>
+															</li>
+														</ul>
+													</div>
+												</td>
+												<td width='300' style='vertical-align:bottom;'>
+													<table width='100%' border='0' align='center'>
+														<tr>
+															<td colspan='2' >
+																<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='selected_result'>
+																</div-->
+																<select name='' style='width:300px;height:148px;font-size:12px;background:#fff;padding:5px;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' id='' validation=false title='브랜드' multiple>
+																";
+																//$vip_array = get_vip_member('4');
+																$sql = "SELECT b.b_ix, b.brand_name FROM shop_brand b, shop_main_brand_relation mbr where b.b_ix = mbr.b_ix and mbr.mg_ix = '".$mg_ix."' and mbr.group_code = '".($i+1)."' ";
+																$db->query($sql);
+																$selected_brands = $db->fetchall();
+																
+
+																for($j = 0; $j < count($selected_brands); $j++){
+																	$Contents .="<option value='".$selected_brands[$j][b_ix]."' ondblclick=\"$(this).remove();\" selected>".$selected_brands[$j][brand_name]."</option>";
+																}
+																$Contents .="
+																</select>
+															</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+							</td>
+						</tr>
+					   <tr>
+						<td class='input_box_title' nowrap>노출회원 설정</td>
+						<td colspan='3' class='search_box_item' style='padding:10px;'><a name='goods_display_type_".($i+1)."'></a>
+							<div style='padding-bottom:10px;'>
+							    <input type='radio' class='textbox' name='' id='' size=50 value='' style='border:0px;' /><label for=''>전체</label>
+							    <input type='radio' class='textbox' name='' id='' size=50 value='' style='border:0px;' /><label for=''>개별</label>
+							    <select name='' id='' >
+									<option value='' >그룹별</option>
+									<option value='' >개인별</option>
+								</select>
+								<br>
+							</div>
+						    <div style='padding:0px 0px;' id=''>
+								<div class='goods_display_type_area'  id='goods_display_sub_area_B' >
+									<table   border='0'  cellpadding=0 cellspacing=0 >								
+										<tr>
+											<td width='300'>
+												<table  border='0' cellpadding=0 cellspacing=0 align='center'>
+													<tr align='left'>
+														<td width='100'>
+															<input type=text class=textbox name='search_text'  id='search_text' style='width:150px;margin-bottom:2px;' value='' />  
+														</td>
+														<td align='center'>
+															<img src='../images/btn_select_brand.gif'  style='cursor:pointer;' /> 
+															<img src='../images/icon/pop_all.gif' alt='전체선택' title='전체선택'  style='cursor:pointer;'/>
+														</td>
+														</tr>
+													<tr>
+														<td colspan='2' >
+															<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='search_result'>
+															</div-->
+															<select name='' style=' width:320px;height:148px;font-size:12px;background:#fff;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' class='search_result' id=''  multiple>											
+															</select>
+														</td>
+													</tr>
+												</table>
+											</td>
+											<td align='center' width=80>
+												<div class='float01 email_btns01'>
+													<ul>
+														<li>
+															<a href='#'><img src='../images/icon/pop_plus_btn.gif' alt='추가' title='추가' /></a>
+														</li>
+														<li>
+															<a href='#'><img src='../images/icon/pop_del_btn.gif' alt='삭제' title='삭제' /></a>
+														</li>
+													</ul>
+												</div>
+											</td>
+											<td width='300' style='vertical-align:bottom;'>
+												<table width='100%' border='0' align='center'>
+													<tr>
+														<td colspan='2' >
+															<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='selected_result'>
+															</div-->
+															<select name='' style='width:300px;height:148px;font-size:12px;background:#fff;padding:5px;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' id='' validation=false title='브랜드' multiple>
+															";
+															//$vip_array = get_vip_member('4');
+															$sql = "SELECT b.b_ix, b.brand_name FROM shop_brand b, shop_main_brand_relation mbr where b.b_ix = mbr.b_ix and mbr.mg_ix = '".$mg_ix."' and mbr.group_code = '".($i+1)."' ";
+															$db->query($sql);
+															$selected_brands = $db->fetchall();
+															
+
+															for($j = 0; $j < count($selected_brands); $j++){
+																$Contents .="<option value='".$selected_brands[$j][b_ix]."' ondblclick=\"$(this).remove();\" selected>".$selected_brands[$j][brand_name]."</option>";
+															}
+															$Contents .="
+															</select>
+														</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						  </td>
+					  </tr>
+                      <tr>
+						  <td class='input_box_title' nowrap> <b>사용기간 <img src='".$required3_path."'></b></td>
+						  <td class='input_box_item' colspan='3'>
+							<table cellpadding=0 cellspacing=2 border=0 bgcolor=#ffffff width=100%>
+								<col width=35>
+								<col width=10>
+								<col width=35>
+								<col width=20>
+								<col width=35>
+								<col width=10>
+								<col width=35>
+								<col width=300>
+								<col width=*>
+								<tr>
+									<td nowrap>
+									<input type='text' name='mg_use_sdate' class='textbox' value='".$mg_use_sdate."' style='height:18px;width:70px;text-align:center;' id='start_datepicker'>
+									</td>
+									<td align=center>일</td>
+									<td nowrap>
+									<SELECT name=mg_use_stime>";
+					for($i=0;$i < 24;$i++){
+	$Contents .= "<option value='".$i."' ".($mg_use_stime == $i ? "selected":"").">".$i."</option>";
+					}
+	$Contents .= "
+					</SELECT> 시
+					<SELECT name=mg_use_smin>";
+					for($i=0;$i < 60;$i++){
+	$Contents .= "<option value='".$i."' ".($mg_use_smin == $i ? "selected":"").">".$i."</option>";
+					}
+	$Contents .= "
+					</SELECT> 분
+									</td>
+									<td align=center> ~ </td>
+									<td nowrap>
+									<input type='text' name='mg_use_edate' class='textbox' value='".$mg_use_edate."' style='height:18px;width:70px;text-align:center;' id='end_datepicker'>
+									</td>
+									<td align=center>일</td>
+									<td nowrap>
+									<SELECT name=mg_use_etime>";
+					for($i=0;$i < 24;$i++){
+	$Contents .= "<option value='".$i."' ".($mg_use_etime == $i ? "selected":"").">".$i."</option>";
+					}
+	$Contents .= "
+					</SELECT> 시
+					<SELECT name=mg_use_emin>";
+					for($i=0;$i < 60;$i++){
+	$Contents .= "<option value='".$i."' ".($mg_use_emin == $i ? "selected":"").">".$i."</option>";
+					}
+	$Contents .= "
+					</SELECT> 분
+									</td>
+									<td style='padding:0px 10px'>
+										<a href=\"javascript:select_date('$today','$today',1);\"><img src='../images/".$admininfo[language]."/btn_today.gif'></a>
+										<a href=\"javascript:select_date('$today','$voneweeklater',1);\"><img src='../images/".$admininfo[language]."/btn_1week.gif'></a>
+										<a href=\"javascript:select_date('$today','$v15later',1);\"><img src='../images/".$admininfo[language]."/btn_15days.gif'></a>
+										<a href=\"javascript:select_date('$today','$vonemonthlater',1);\"><img src='../images/".$admininfo[language]."/btn_1month.gif'></a>
+										<a href=\"javascript:select_date('$today','$v2monthlater',1);\"><img src='../images/".$admininfo[language]."/btn_2months.gif'></a>
+										<a href=\"javascript:select_date('$today','$v3monthlater',1);\"><img src='../images/".$admininfo[language]."/btn_3months.gif'></a>
+									</td>
+									<td><input type=checkbox name='priod_dupe_check' id='priod_dupe_check' value='1'><label for='priod_dupe_check'>날짜중복체크함</label></td>
+								</tr>
+							</table>
+						</td> 
+					</tr>
+					<tr>
+						<td class='input_box_title' nowrap> <b>노출 유무 <img src='".$required3_path."'></b></td>
+						<td class='input_box_item'>
+						   <input type='hidden' name='pop' value='1'> <input type='radio' name='disp' id='disp_1' value='1' ".CompareReturnValue("1",$disp,"checked")."> <label for='disp_1' >표시</label> <input type='radio' name='disp' id='disp_0' value='0' ".CompareReturnValue("0",$disp,"checked")."><label for='disp_0' >표시하지 않음</label>
+						</td>
+						<td class='input_box_title' nowrap> <b>오늘하루보기 사용 <img src='".$required3_path."'></b></td>
+						<td class='input_box_item'>
+						<input type='radio' name='popup_today' id='today_1' value='1' ".CompareReturnValue("1",$popup_today,"checked")." validation='true' title='오늘하루보기'> <label for='today_1' >사용</label> <input type='radio' name='popup_today' id='today_0' value='0' ".CompareReturnValue("0",$popup_today,"checked")." validation='true' title='오늘하루보기'><label for='today_0' >미사용</label>
+						</td>
+					</tr>
+					<tr>
+						<td class='input_box_title' nowrap> <b>팝업Type 선택 <img src='".$required3_path."'></b></td>
+                        <td class='input_box_item'>
+                        <input type='hidden' name='pop' value='1'> <input type='radio' name='popup_type' id='popup_type_1' value='L' ".CompareReturnValue("L",$popup_type,"checked")."> <label for='popup_type_1' validation='true' title='팝업Type선택'>레이어</label> <input type='radio' name='popup_type' id='popup_type_0' value='W' ".CompareReturnValue("W",$popup_type,"checked")." validation='true' title='팝업Type선택'><label for='popup_type_0' >윈도우창</label> </td> 
+						<td class='input_box_title' nowrap> <b>팝업 템플릿 사용 여부<img src='".$required3_path."'></b></td>
+						<td class='input_box_item'>
+						<input type='radio' name='use_popup_templet' id='user_appoint' value='1'  validation='true' title='팝업 템플릿 사용'> <label for='user_appoint' >사용자 지정</label> <input type='radio' name='use_popup_templet' id='templet_appoint' value='0' validation='true' title='팝업 템플릿 사용'><label for='templet_appoint' style='color:red;'>템플릿 사용</label>
+						</td>
+					</tr>
+                    <tr>
+                      	<td class='input_box_title' nowrap> <b>사이즈 <img src='".$required3_path."'></b></td>
+                        <td class='input_box_item' colspan='3'>
+                        <input type='hidden' name='pop' value='1'>
+                        	<table cellpadding=0>
+                        	<tr>
+                        		<td width=90>가로(넓이) : </td><td width=80><input type='text' class='textbox'  name='popup_width' value='$popup_width' size=10 validation='true' title='가로(넓이)'></td><td width=20> px </td>
+                        		<td width=100 style='padding-left:20px'>세로(높이) : </td><td width=80><input type='text' class='textbox' name='popup_height' value='$popup_height' size=10 validation='true' title='세로(넓이)'></td><td width=20>  px </td>
+                        	</tr>
+                        	</table>
+						</td>
+					</tr>
+					<tr>
+                      	<td class='input_box_title' nowrap> <b>팝업창 위치 <img src='".$required3_path."'></b></td>
+                        <td class='input_box_item' colspan='3'>
+                        <input type='hidden' name='pop' value='1'>
+                        	<table cellpadding=0>
+                        	<tr>
+                        		<td width=90>상단부터(top) : </td><td width=80><input type='text' class='textbox' name='popup_top' value='$popup_top' size=10 validation='true' title='상단'> </td><td width=20>px </td>
+                        		<td width=100 style='padding-left:20px'>좌측부터(left) : </td><td width=80><input type='text' class='textbox' name='popup_left' value='$popup_left' size=10 validation='true' title='좌측'></td><td width=20>  px </td>
+                        	</tr>
+                        	</table>
+						</td>
+                    </tr>
+					<tr>
+						<td class='input_box_title' nowrap rowspan='2'>
+							<table cellpadding='0' cellspacing='0' border='0' width='100%' height='100%'>
+								<tr>
+									<td class='input_box_title' nowrap rowspan='2'> <b>전시 타입 <img src='".$required3_path."'></b></td>
+									<td style='border-left:1px solid #ccc;border-bottom:1px solid #ccc;padding-left:10px;'>고정형</td>
+								</tr>
+								<tr>
+									<td style='border-left:1px solid #ccc;padding-left:10px;'>슬라이드 형</td>
+								</tr>
+							</table>
+						</td>
+						<td colspan='3' class='popup_types'>
+							<div>
+								<ul>
+									<li>
+										<label for='pop_type01'><img src='../images/popup/pop_type01.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type01' id='pop_type01' /> <span>type-1</span>
+									</li>
+									<li>
+										<label for='pop_type02'><img src='../images/popup/pop_type02.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type02' id='pop_type02' /> <span>type-2</span>
+									</li>
+									<li>
+										<label for='pop_type03'><img src='../images/popup/pop_type03.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type03' id='pop_type03' /> <span>type-3</span>
+									</li>
+									<li>
+										<label for='pop_type04'><img src='../images/popup/pop_type04.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type04' id='pop_type04' /> <span>type-4</span>
+									</li>
+									<li>
+										<label for='pop_type05'><img src='../images/popup/pop_type05.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type05' id='pop_type05' /> <span>type-5</span>
+									</li>
+									<li>
+										<label for='pop_type06'><img src='../images/popup/pop_type06.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type06' id='pop_type06' /> <span>type-6</span>
+									</li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan='3' class='popup_types'>
+							<div>
+								<ul>
+									<li>
+										<label for='pop_type07'><img src='../images/popup/pop_type07.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type07' id='pop_type07' /> <span>type-7</span>
+									</li>
+									<li>
+										<label for='pop_type08'><img src='../images/popup/pop_type08.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type08' id='pop_type08' /> <span>type-8</span>
+									</li>
+									<li>
+										<label for='pop_type09'><img src='../images/popup/pop_type09.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type09' id='pop_type09' /> <span>type-9</span>
+									</li>
+									<li>
+										<label for='pop_type10'><img src='../images/popup/pop_type10.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type10' id='pop_type10' /> <span>type-10</span>
+									</li>
+									<li>
+										<label for='pop_type11'><img src='../images/popup/pop_type11.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type11' id='pop_type11' /> <span>type-11</span>
+									</li>
+									<li>
+										<label for='pop_type12'><img src='../images/popup/pop_type12.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type12' id='pop_type12' /> <span>type-12</span>
+									</li>
+									<li>
+										<label for='pop_type13'><img src='../images/popup/pop_type13.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type13' id='pop_type13' /> <span>type-13</span>
+									</li>
+									<li>
+										<label for='pop_type14'><img src='../images/popup/pop_type14.png' align='absmiddle' /></label>
+										<input type='radio' name='pop_type' value='type14' id='pop_type14' /> <span>type-14</span>
+									</li>
+								</ul>
+							</div>
+						</td>
+					  </tr>
+					  <tr>
+						<td class='input_box_title' nowrap>팝업 설정</td>
+						<td colspan='3' class='show_popup_type'>
+							<table cellpadding='0' border='0' cellspacing='0' width='100%'>
+								<tr>
+									<td>
+										<!--<img src='../images/popup/show_type02.gif' align='absmiddle' />-->
+										<div class='custom_popup' style='background:#3eaab1;'>
+											<dl>
+												<dt>
+													<div><img src='../images/popup/b_382_400.gif' align='absmiddle' /></div>
+												</dt>
+												<dd>
+													<ul>
+														<li><input type='checkbox' name='' id='close_today' value='' /></li>
+														<li><label for='close_today'>이 창을 1일간 열지 않습니다.</label></li>&nbsp;&nbsp;&nbsp;
+														<li><img src='../images/popup/btn_popup_close.png' align='absmiddle' /></li>
+													</ul>
+												</dd>
+											</dl>
+										</div>
+									</td>
+									<td>
+										<div id='colorpicker10' style='float: left;'>
+											<div class='farbtastic'>
+												<div class='color' style='background-color: rgb(255, 0, 0);'></div>
+												<div class='wheel'></div>
+												<div class='overlay'></div>
+												<div class='h-marker marker' style='left: 97px; top: 13px;'></div>
+												<div class='sl-marker marker' style='left: 96px; top: 54px;'></div>
+											</div>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</td>
+					  </tr>
+					  <tr>	
+						<td class='input_box_title' nowrap>전시 타입명</td>
+						<td colspan='3' class='search_box_item' >
+							<div class='type_name'>
+								<input type='radio' name='type_name' id='name_img' value='img' /> 
+								<label for='name_img'>이미지</label> <input type='file' name='' id='' style='border:1px solid #ccc;' />
+								<input type='radio' name='type_name' id='name_txt' value='txt' /> 
+								<label for='name_txt'>텍스트</label> <input type='text' name='' id='' />
+							</div>
+						</td>
+					  </tr>
+					  <tr>
+						<td class='input_box_title' nowrap>전시 타입</td>
+						<td colspan='3' class='popup_goods'>
+							<div>
+								<ul>
+									<li style='margin-left:10px;'>
+										<label for='a_type'><img src='../images/popup/popup_goods01.png' align='absmiddle' /></label>
+										<input type='radio' name='goods_type' id='a_type' value='a_type' /> <span>A-type</span>
+										<select id=''>
+											<option value='' selected='selected'>1</option>
+											<option value=''>2</option>
+										</select>
+									</li>
+									<li>
+										<label for='b_type'><img src='../images/popup/popup_goods02.png' align='absmiddle' /></label>
+										<input type='radio' name='goods_type' id='b_type' value='b_type' /> <span>B-type</span>
+										<select id=''>
+											<option value='' selected='selected'>1</option>
+											<option value=''>2</option>
+										</select>
+									</li>
+									<li>
+										<label for='c_type'><img src='../images/popup/popup_goods03.png' align='absmiddle' /></label>
+										<input type='radio' name='goods_type' id='c_type' value='c_type' /> <span>C-type</span>
+										<select id=''>
+											<option value='' selected='selected'>1</option>
+											<option value=''>2</option>
+										</select>
+									</li>
+									<li>
+										<label for='d_type'><img src='../images/popup/popup_goods04.png' align='absmiddle' /></label>
+										<input type='radio' name='goods_type' id='d_type' value='d_type' /> <span>D-type</span>
+										<select id=''>
+											<option value='' selected='selected'>1</option>
+											<option value=''>2</option>
+										</select>
+									</li>
+								</ul>
+								<div class='add_type_box'>
+									<p class='add_type' style='padding:15px 0 0 10px;'><a href=\"#display_type_area_".($i+1)."\" onclick=\"$('#add_type_choice_".($i+1)."').slideToggle();\">
+										<img src='/admin/images/protype_select.gif' alt='전시타입선택' title='전시타입선택' /></a>
+									</p>
+									<div class='add_type_choice' id='add_type_choice_".($i+1)."' style='display:none;'>
+										".DisplayTemplet($i+1)."										 
+									</div>
+								</div>
+							</div>
+						</td>
+					  </tr>
+					  <tr>
+						<td class='input_box_title' nowrap>전시 갯수</td>
+						<td class='search_box_item' colspan=3>
+							<input type='text' class='textbox numeric' name='product_cnt[".($i+1)."]' id='product_cnt_".($i+1)."' size=10 value='".$gdb->dt[product_cnt]."'> 전시타입을 선택하시면 상품 노출갯수가 자동으로 선택됩니다. 
+						</td>
+					  </tr>
+					  <tr>
+						<td class='input_box_title' nowrap>전시상품</td>
+						<td colspan='3' class='search_box_item' style='padding:10px;'><a name='goods_display_type_".($i+1)."'></a>
+							<div style='padding-bottom:10px;'>
+							  <input type='radio' class='textbox' name='goods_display_type[".($i+1)."]' id='use_".($i+1)."_m' size=50 value='M' style='border:0px;' ".(($gdb->dt[goods_display_type] == "M" || $gdb->dt[goods_display_type] == "") ? "checked":"")." onclick=\"$('#goods_manual_area_".($i+1)."').show();$('#goods_auto_area_".($i+1)."').hide();$('#display_auto_sub_type_".($i+1)."').hide();\"><label for='use_".($i+1)."_m'>수동등록</label>
+							  <input type='radio' class='textbox' name='goods_display_type[".($i+1)."]' id='use_".($i+1)."_a' size=50 value='A' style='border:0px;' ".($gdb->dt[goods_display_type] == "A" ? "checked":"")." onclick=\"$('#goods_manual_area_".($i+1)."').hide();$('#goods_auto_area_".($i+1)."').show();$('#display_auto_sub_type_".($i+1)."').show();\"><label for='use_".($i+1)."_a'>자동등록</label>
+							  <select name='display_auto_sub_type[".($i+1)."]' id='display_auto_sub_type_".($i+1)."' onchange='ChangeDisplaySubType($(this), ".($i+1)." , this.value);'  ".($gdb->dt[goods_display_type] == "A" ? "style='display:inline;'":"style='display:none;'")." >
+								<option value='C' ".(($gdb->dt[display_auto_sub_type] == "C" || $gdb->dt[display_auto_sub_type] == "") ? "selected":"").">상품카테고리</option>
+								<option value='B' ".(($gdb->dt[display_auto_sub_type] == "B" || $gdb->dt[display_auto_sub_type] == "") ? "selected":"").">브랜드</option>
+								<option value='S' ".(($gdb->dt[display_auto_sub_type] == "S" || $gdb->dt[display_auto_sub_type] == "") ? "selected":"").">셀러</option>
+								<!--option value='P' ".(($gdb->dt[display_auto_sub_type] == "P" || $gdb->dt[display_auto_sub_type] == "") ? "selected":"").">개인화</option-->
+							  </select>
+							   
+							  <br>
+							</div>
+							<div id='goods_manual_area_".($i+1)."' style='".(($gdb->dt[goods_display_type] == "M" || $gdb->dt[goods_display_type] == "") ? "display:block;":"display:none;")."'>
+								<div style='width:100%;padding:5px;' id='group_product_area_".($i+1)."' >
+									".relationEventGroupProductList($gdb->dt[mg_ix],($gdb->dt[group_code] ? $gdb->dt[group_code]:($i+1)), "clipart")."</div>
+								<div style='width:100%;float:left;'>
+									<span class=small>상품 이미지를 드레그앤드롭으로 노출 순서를 좌.우로 조정 할 수 있습니다. <br />더블클릭으로 상품별 개별 삭제가 가능합니다.".getTransDiscription(md5($_SERVER["PHP_SELF"]),'B')." </span>
+								</div>
+								<div style='display:block;float:left;margin-top:10px;'>
+									 <a href=\"#goods_display_type_".($i+1)."\" onclick=\"ms_productSearch.show_productSearchBox(event,".($i+1).",'productList_".($i+1)."');\"><img src='../images/".$admininfo["language"]."/btn_goods_search_add.gif' border=0 align=absmiddle></a>
+								</div>
+					        </div>
+						    <div style='padding:0px 0px;".($gdb->dt[goods_display_type] == "A" ? "display:block;":"display:none;")."' id='goods_auto_area_".($i+1)."'>
+								<div class='goods_display_type_area'  id='goods_display_sub_area_C' style='".(($gdb->dt[display_auto_sub_type] == "C" || $gdb->dt[display_auto_sub_type] == "") ? "display:block;":"display:none;")."'>
+									<table border=0 cellpadding=0 cellspacing=0 width='100%' style='margin-top:5px;padding:5px 10px 5px 10px;border:1px solid silver' >
+										<col width=100%>
+										<tr>
+											<td style='padding-top:5px;'>";
+
+											$Contents .= PrintCategoryRelation(($i+1),$mg_ix);
+
+					$Contents .= "	</td>
+										</tr>
+										<tr>
+											<td style='padding-bottom:5px;'>카테고리 선택하기를 클릭해서 자동 노출하고자 하는 카테고리를 지정 하실 수 있습니다.</td>
+										</tr>
+									</table><br>
+									<a href=\"javascript:PoPWindow3('category_select.php?mmode=pop&group_code=".($i+1)."',660,300,'category_select')\"'>
+										<img src='../images/".$admininfo["language"]."/btn_select_category.gif' border=0 align=absmiddle>
+									</a> 
+								</div>
+								<div class='goods_display_type_area'  id='goods_display_sub_area_B' style='".(($gdb->dt[display_auto_sub_type] == "B") ? "display:block;":"display:none;")."'>
+									<table   border='0'  cellpadding=0 cellspacing=0 >								
+										<tr>
+											<td width='300'>
+												<table  border='0' cellpadding=0 cellspacing=0 align='center'>
+													<tr align='left'>
+														<td width='100'>
+															<input type=text class=textbox name='search_text'  id='search_text' style='width:150px;margin-bottom:2px;' value='' onkeyup=\"SearchInfo('B',$('DIV#goods_auto_area_".($i+1)." DIV#goods_display_sub_area_B input#search_text'), ".($i+1).");\">  
+														</td>
+														<td align='center'>
+															<img src='../images/btn_select_brand.gif' onclick=\"SearchInfo('B',$('DIV#goods_auto_area_".($i+1)." DIV#goods_display_sub_area_B input#search_text'), ".($i+1).");\"  style='cursor:pointer;'> 
+															<img src='../images/icon/pop_all.gif' alt='전체선택' title='전체선택' onclick=\"SelectedAll($('DIV#goods_display_sub_area_B #search_result_".($i+1)." option'),'selected')\" style='cursor:pointer;'/>
+														</td>
+														</tr>
+													<tr>
+														<td colspan='2' >
+															<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='search_result'>
+															</div-->
+															<select name='search_result[".($i+1)."]' style=' width:320px;height:148px;font-size:12px;background:#fff;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' class='search_result' id='search_result_".($i+1)."'  multiple>											
+															</select>
+														</td>
+													</tr>
+													</table>
+												</td>
+												<td align='center' width=80>
+													<div class='float01 email_btns01'>
+														<ul>
+															<li>
+																<a href=\"javascript:MoveSelectBox('B','ADD',".($i+1).");\"><img src='../images/icon/pop_plus_btn.gif' alt='추가' title='추가' /></a>
+															</li>
+															<li>
+																<a href=\"javascript:MoveSelectBox('B','REMOVE',".($i+1).");\"><img src='../images/icon/pop_del_btn.gif' alt='삭제' title='삭제' /></a>
+															</li>
+														</ul>
+													</div>
+												</td>
+												<td width='300' style='vertical-align:bottom;'>
+													<table width='100%' border='0' align='center'>
+														<tr>
+															<td colspan='2' >
+																<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='selected_result'>
+																</div-->
+																<select name=\"selected_result[".($i+1)."][brand][]\" style='width:300px;height:148px;font-size:12px;background:#fff;padding:5px;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' id='selected_result_".($i+1)."' validation=false title='브랜드' multiple>
+																";
+																//$vip_array = get_vip_member('4');
+																$sql = "SELECT b.b_ix, b.brand_name FROM shop_brand b, shop_main_brand_relation mbr where b.b_ix = mbr.b_ix and mbr.mg_ix = '".$mg_ix."' and mbr.group_code = '".($i+1)."' ";
+																$db->query($sql);
+																$selected_brands = $db->fetchall();
+																
+
+																for($j = 0; $j < count($selected_brands); $j++){
+																	$Contents .="<option value='".$selected_brands[$j][b_ix]."' ondblclick=\"$(this).remove();\" selected>".$selected_brands[$j][brand_name]."</option>";
+																}
+																$Contents .="
+																</select>
+															</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</div>
+									<div class='goods_display_type_area'  id='goods_display_sub_area_S' style='".(($gdb->dt[display_auto_sub_type] == "S") ? "display:block;":"display:none;")."'>
+										<table   border='0'  cellpadding=0 cellspacing=0 >								
+											<tr>
+												<td width='300'>
+													<table  border='0' cellpadding=0 cellspacing=0 align='center'>
+														<tr align='left'>
+															<td width='100'>
+																<input type=text class=textbox name='search_text'  id='search_text' style='width:150px;margin-bottom:2px;' value='' onkeyup=\"SearchInfo('S',$('DIV#goods_auto_area_".($i+1)." DIV#goods_display_sub_area_S input#search_text'), ".($i+1).");\"> 
+																<!--onclick=ShowModalWindow('./charger_search.php?company_id=3444fde7c7d641abc19d5a26f35a12cc&target=4&amp;code=',600,530,'charger_search')-->
+															</td>
+															<td align='center'>
+																<img src='../images/btn_select_seller.gif' onclick=\"SearchInfo('S',$('DIV#goods_auto_area_".($i+1)." DIV#goods_display_sub_area_S input#search_text'), ".($i+1).");\"  style='cursor:pointer;'> 
+																<img src='../images/icon/pop_all.gif' alt='전체선택' title='전체선택' onclick=\"SelectedAll($('DIV#goods_display_sub_area_S #search_result_".($i+1)." option'),'selected')\" style='cursor:pointer;'/>
+															</td>
+														</tr>
+														<tr>
+															<td colspan='2' >
+																<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='search_result'>
+																</div-->
+																<select name='search_result[".($i+1)."]' style=' width:320px;height:148px;font-size:12px;background:#fff;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' class='search_result' id='search_result_".($i+1)."'  multiple>											
+																</select>
+															</td>
+														</tr>
+													</table>
+												</td>
+												<td align='center' width=80>
+													<div class='float01 email_btns01'>
+														<ul>
+															<li>
+																<a href=\"javascript:MoveSelectBox('S','ADD',".($i+1).");\"><img src='../images/icon/pop_plus_btn.gif' alt='추가' title='추가' /></a>
+															</li>
+															<li>
+																<a href=\"javascript:MoveSelectBox('S','REMOVE',".($i+1).");\"><img src='../images/icon/pop_del_btn.gif' alt='삭제' title='삭제' /></a>
+															</li>
+														</ul>
+													</div>
+												</td>
+												<td width='300' style='vertical-align:bottom;'>
+													<table width='100%' border='0' align='center'>
+														<tr>
+															<td colspan='2' >
+																<!--div style=' width:320px;height:148px;font-size:12px;background:#fff;border:1px solid silver;' id='selected_result'>
+																</div-->
+																<select name=\"selected_result[".($i+1)."][seller][]\" style='width:300px;height:148px;font-size:12px;background:#fff;padding:5px;border-radius:0px;box-shadow:inset 0px 0px 0px 0px #e6e6e6;' id='selected_result_".($i+1)."' validation=false title='브랜드' multiple>
+																";
+																//$vip_array = get_vip_member('4');
+																$sql = "SELECT ccd.company_id, ccd.com_name 
+																			FROM common_company_detail ccd, shop_main_seller_relation mcr 
+																			where ccd.company_id = mcr.company_id and mcr.mg_ix = '".$mg_ix."' and group_code = '".($i+1)."'  ";
+																$db->query($sql);
+																$selected_sellers = $db->fetchall();
+																
+
+																for($j = 0; $j < count($selected_sellers); $j++){
+																	$Contents .="<option value='".$selected_sellers[$j][company_id]."' ondblclick=\"$(this).remove();\" selected>".$selected_sellers[$j][com_name]."</option>";
+																}
+																$Contents .="
+																</select>
+															</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+										<!--a href=\"javascript:ShowModalWindow('../code_search.php?search_type=brand&group_code=".($i+1)."',600,600,'code_search')\" style='cursor:pointer;'><img src='/admin/images/btn_select_seller.gif' alt='셀러선택' title='셀러선택' align='absmiddle' /></a--> 
+									</div>
+									<div   id='goods_display_sub_area_P' style='display:none;margin-top:10px;padding:5px 10px 5px 10px;border:1px solid silver;line-height:140%;' >
+										<b>개인화 서비스</b><br>
+										<input type='radio' name='personal_service' id='personal_service_1' value=''><label for='personal_service_1'>방문한 키워드와 동일한 키워드로 방문한 고객들이 많이 본 상품을 노출합니다.</label><br>
+										<input type='radio' name='personal_service' id='personal_service_2' value=''><label for='personal_service_2'>방문한 키워드와 동일한 키워드로 방문한 고객들이 많이 구매한 상품을 노출합니다.</label><br>
+
+										<!--a href='#'><img src='/admin/images/btn_personalization.gif' alt='개인화' title='개인화' align='absmiddle' /></a-->
+								</div>
+								<div style='padding:10px 0px 5px 0px;'>
+									선택한 카테고리 내의 상품을
+									<select name='display_auto_type[".($i+1)."]'>
+										<option value='order_cnt' ".($display_auto_type == "order_cnt" ? "selected":"").">구매수순</option>
+										<option value='view_cnt' ".($display_auto_type == "view_cnt" ? "selected":"").">클릭수순</option>
+										<option value='sellprice' ".($display_auto_type == "sellprice" ? "selected":"").">최저가순</option>
+										<option value='regdate' ".($display_auto_type == "regdate" ? "selected":"").">최근등록순</option>
+										<option value='wish_cnt' ".($display_auto_type == "wish_cnt" ? "selected":"").">찜한순</option>
+										<option value='after_score' ".($display_auto_type == "after_score" ? "selected":"").">후기순위</option>
+									</select>
+									으로 노출 하며 최근 <input type='text' class='textbox' name='display_auto_priod[".($i+1)."]' id='display_auto_priod_".($i+1)."' size=10 value='".$auto_priod."'> 일 기준으로 합니다.
+								</div>
+							</div>
+						  </td>
+						</tr>
+                        <tr bgcolor='#F8F9FA' style='display:none;'><!--팝업 띄우는 에디터 부분 디스플레이 NONE으로 숨겨둠 2014-04-03 양원석-->
+                        <td colspan=4>
+							 <table width='100%' border='0' cellspacing='0' cellpadding='0' height='25'>
+								<tr>
+								  <td height='30' colspan='3' style='padding:10px;'>
+										  <table id='tblCtrls' width='100%' border='0' cellspacing='1' cellpadding='0' align='center'>
+											<tr>
+											  <td bgcolor='F5F6F5' colspan='2' >
+												 <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+												  <tr>
+													<td width='18%' height='56'>
+															<table width='100%' height='56' border='0' align='center' cellpadding='0' cellspacing='0'>
+														<tr align='center' valign='bottom'>
+														  <td height='26'><a href='javascript:doBold();' onMouseOver=\"MM_swapImage('editImage1','','../webedit/image/wtool1_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool1.gif' name='editImage1' width='19' height='18' border='0' id='editImage1'></a></td>
+														  <td><a href='javascript:doItalic();' onMouseOver=\"MM_swapImage('editImage2','','../webedit/image/wtool2_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool2.gif' name='editImage2' width='19' height='18' border='0' id='editImage2'></a></td>
+														  <td><a href='javascript:doUnderline();' onMouseOver=\"MM_swapImage('editImage3','','../webedit/image/wtool3_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool3.gif' name='editImage3' width='19' height='18' border='0' id='editImage3'></a></td>
+														</tr>
+														<tr>
+														  <td height='3' colspan='3'></td>
+														</tr>
+														<tr align='center' valign='top'>
+														  <td height='27'><a href='javascript:doLeft();' onMouseOver=\"MM_swapImage('editImage8','','../webedit/image/wtool8_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool8.gif' name='editImage8' width='19' height='18' border='0' id='editImage8'></a></td>
+														  <td><a href='javascript:doCenter();' onMouseOver=\"MM_swapImage('editImage9','','../webedit/image/wtool9_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool9.gif' name='editImage9' width='19' height='18' border='0' id='editImage9'></a></td>
+														  <td><a href='javascript:doRight();' onMouseOver=\"MM_swapImage('editImage10','','../webedit/image/wtool10_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool10.gif' name='editImage10' width='19' height='18' border='0' id='editImage10'></a></td>
+														</tr>
+													  </table>
+														 </td>
+													<td width='2'><img src='../webedit/image/bar.gif' width='2' height='39' align='absmiddle'></td>
+													<td width='19%'>
+															<table width='100%' border='0' cellspacing='0' cellpadding='0'>
+														<tr>
+														  <td width='100%' height='27' align='center' valign='bottom'><a href='javascript:doFont();' onMouseOver=\"MM_swapImage('editImage4','','../webedit/image/wtool4_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool4.gif' name='editImage4' width='84' height='22' border='0' id='editImage4'></a></td>
+														</tr>
+														<tr>
+														  <td height='2'></td>
+														</tr>
+														<tr>
+														  <td height='27' align='center' valign='top'><a href='javascript:doSize();' onMouseOver=\"MM_swapImage('editImage11','','../webedit/image/wtool11_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool11.gif' name='editImage11' width='84' height='22' border='0' id='editImage11'></a></td>
+														</tr>
+													  </table>
+														 </td>
+													<td width='2'><img src='../webedit/image/bar.gif' width='2' height='39' align='absmiddle'></td>
+													<td width='20%'>
+															<table width='100%' border='0' cellspacing='0' cellpadding='0'>
+														<tr>
+														  <td height='27' align='center' valign='bottom'><a href='javascript:doForcol();' onMouseOver=\"MM_swapImage('editImage5','','../webedit/image/wtool5_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool5.gif' name='editImage5' width='95' height='22' border='0' id='editImage5'></a></td>
+														</tr>
+														<tr>
+														  <td height='2'></td>
+														</tr>
+														<tr>
+														  <td height='27' align='center' valign='top'><a href='javascript:doBgcol();' onMouseOver=\"MM_swapImage('editImage12','','../webedit/image/wtool12_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool12.gif' name='editImage12' width='95' height='22' border='0' id='editImage12'></a></td>
+														</tr>
+													  </table>
+														 </td>
+													<td width='2'><img src='../webedit/image/bar.gif' width='2' height='39' align='absmiddle'></td>
+													<td width='18%'>
+															<table width='100%' border='0' cellspacing='0' cellpadding='0'>
+														<tr>
+														  <td height='27' align='center' valign='bottom'><a href='javascript:doImage();' onMouseOver=\"MM_swapImage('editImage6','','../webedit/image/wtool6_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool6.gif' name='editImage6' width='73' height='22' border='0' id='editImage6'></a></td>
+														</tr>
+														<tr>
+														  <td height='2'></td>
+														</tr>
+														<tr>
+														  <td height='27' align='center' valign='top'><a href='javascript:doTable();' onMouseOver=\"MM_swapImage('editImage13','','../webedit/image/wtool13_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool13.gif' name='editImage13' width='73' height='22' border='0' id='editImage13'></a></td>
+														</tr>
+													  </table>
+														 </td>
+													<td width='2'><img src='../webedit/image/bar.gif' width='2' height='39' align='absmiddle'></td>
+													<td width='25%'>
+															<table width='100%' border='0' cellspacing='0' cellpadding='0'>
+														<tr>
+														  <td height='27' align='center' valign='bottom'><a href='javascript:doLink();' onMouseOver=\"MM_swapImage('editImage7','','../webedit/image/wtool7_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool7.gif' name='editImage7' width='74' height='22' border='0' id='editImage7'></a></td>
+														</tr>
+														<tr>
+														  <td height='2'></td>
+														</tr>
+														<tr>
+														  <td height='27' align='center' valign='top'><a href='javascript:doMultilink();' onMouseOver=\"MM_swapImage('editImage14','','../webedit/image/wtool14_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/wtool14.gif' name='editImage14' width='111' height='22' border='0' id='editImage14'></a></td>
+														</tr>
+													  </table>
+														 </td>
+												  </tr>
+												</table>
+												 </td>
+											</tr>
+											</table>
+											<table width='100%' border='0' cellspacing='1' cellpadding='0' align='center'>
+											<tr>
+												<td colspan='3' >
+												  <input type='hidden' name='content' value=''>
+												  <input type='hidden' name='text' value=''>
+												  <iframe align='right' id='iView' frameborder=0 style='width: 100%; height:310px;border:1px solid silver' scrolling='YES' hspace='0' vspace='0'></iframe>
+												  <textarea name='popup_text'  style='display:none'>".$popup_text."</textarea>
+												  <!-- html편집기 메뉴 종료 -->
+												</td>
+											</tr>
+											<tr>
+											<td width='120' height='25' align='center' ></td>
+											<td colspan='2' align='right'>&nbsp;
+											<a href='javascript:doToggleText();' onMouseOver=\"MM_swapImage('editImage15','','../webedit/image/bt_html_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/bt_html.gif' name='editImage15' width='93' height='23' border='0' id='editImage15'></a>
+											<a href='javascript:doToggleHtml();' onMouseOver=\"MM_swapImage('editImage16','','../webedit/image/bt_source_1.gif',1)\" onMouseOut='MM_swapImgRestore()'><img src='../webedit/image/bt_source.gif' name='editImage16' width='93' height='23' border='0' id='editImage16'></a>
+											</td>
+										</tr>
+									  </table>
+								  </td>
+								</tr>
+								<tr>
+								  <td bgcolor='D0D0D0' height='1' colspan='4'></td>
+								</tr>
+								<tr><td colspan=3 align=right style='padding:10px;'>";
+								if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"C") || checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
+								$Contents .= "<input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 align=absmiddle> ";
+								}
+								$Contents .= "<a href='popup.list.php'><img src='../images/".$admininfo["language"]."/b_cancel.gif' border=0 align=absmiddle></a>";
+								$Contents .= "
+									</td>
+								</tr>
+							  </table>
+                        </td>
+                        </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        </form>
+      </div>
+    </td>
+  </tr>";
+ /*
+ $help_text = "
+<table cellpadding=1 cellspacing=0 class='small' >
+	<col width=8>
+	<col width=*>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >팝업은 팝업의 사이즈 및 팝업창 위치 사용기간 등을 설정하실수 있습니다 </td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >등록된 <u>팝업는 </u> 사용으로 되어 있는 팝업만 메인에서 자동으로 노출됩니다.  </td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >작업을 하실때는 표시여부를 <u>표시하지 않음</u>으로 설정한후 작업이 완료되면 다시 표시로 변경하시면 메인에 노출되게 됩니다</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >작업하신 파일을 노출하기전 미리 확인하시길 원하시면 <b>팝업 미리보기</b> 버튼을 클릭하시면 확인하실수 있습니다</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' ><u>기간이 만료된 팝업</u>는 <u>자동으로 노출이 종료</u>됩니다</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' ><b>일반 팝업 태그참고</b></td></tr>
+	<tr><td valign=top></td><td class='small' >&lt;A href=\"javascript:opener.document.location.href='링크하고자 하는 페이지 URL';self.close(); \" &gt;  ---> 링크페이지로 이동후 팝업 닫힘 스크립트</td></tr>
+	<tr><td valign=top></td><td class='small' >&lt;A onclick=\"self.close();\" href=\"링크하고자 하는 페이지 URL'\" target=\"_blank\" &gt;  ---> 새창으로 페이지 연후 팝업 닫힘 스크립트</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' ><b>레이어 팝업 태그참고</b></td></tr>
+	<tr><td valign=top></td><td class='small' >&lt;A href=\"javascript:parent.document.location.href='링크하고자 하는 페이지 URL'; \" &gt;  ---> 링크페이지로 이동 스크립트</td></tr>
+	<tr><td valign=top></td><td class='small' >&lt;A onclick=\"closeWin();\" href=\"링크하고자 하는 페이지 URL'\" target=\"_blank\" &gt;  ---> 새창으로 페이지 연후 팝업 닫힘 스크립트</td></tr>
+</table>
+";*/
+$help_text = getTransDiscription(md5($_SERVER["PHP_SELF"]),'A');
+
+$help_text = HelpBox("팝업 관리", $help_text);
+$Contents .= "
+  <tr>
+    <td align='left'>
+
+  $help_text
+
+    </td>
+  </tr>
+</table>
+
+<form name='lyrstat'><input type='hidden' name='opend' value=''></form>
+<Script Language='JavaScript'>
+init()
+</Script>";
+
+
+
+if($_GET["mmode"] == "pop"){
+	$P = new ManagePopLayOut();
+}else{
+	$P = new LayOut();
+}
+$Script = "<script language='javascript' src='tglib_event.js'></script>\n<script language='javascript' src='popup.write.js'></script>\n<script language='JavaScript' src='../webedit/webedit.js'></script>\n<script language='javascript' src='../include/DateSelect.js'></script>\n$Script";
+
+$P->addScript = $Script;
+$P->Navigation = "프로모션/전시 > 팝업관리 > 팝업추가";
+$P->title = "팝업추가";
+$P->NaviTitle = "팝업추가";
+$P->OnloadFunction = "Init(document.INPUT_FORM);MM_preloadImages('../webedit/image/wtool1_1.gif','../webedit/image/wtool2_1.gif','../webedit/image/wtool3_1.gif','../webedit/image/wtool4_1.gif','../webedit/image/wtool5_1.gif','../webedit/image/wtool6_1.gif','../webedit/image/wtool7_1.gif','../webedit/image/wtool8_1.gif','../webedit/image/wtool9_1.gif','../webedit/image/wtool11_1.gif','../webedit/image/wtool13_1.gif','../webedit/image/wtool10_1.gif','../webedit/image/wtool12_1.gif','../webedit/image/wtool14_1.gif','../webedit/image/bt_html_1.gif','../webedit/image/bt_source_1.gif')";//showSubMenuLayer('storeleft');
+$P->strLeftMenu = display_menu();
+$P->strContents = $Contents;
+echo $P->PrintLayOut();
+
+function DisplayTemplet($group_code){
+	global $db ,$admininfo;
+
+	$sql = "select * 
+				from shop_display_templetinfo dt 
+				where disp = 1
+				order by dt_ix asc 
+				 ";
+
+	//echo $sql."<br><br>";
+	$db->query($sql);
+
+
+
+
+	if ($db->total == 0){
+		$mString .= " ";
+	}else{
+		$i=0;
+		$mString .= "<ul>";
+		for($i=0;$i<$db->total;$i++){
+			$db->fetch($i);
+			//$parent_cname = GetParentCategory($db->dt[cid],$db->dt[depth]);
+			$mString .= "	<li  >
+									<div onclick=\"CopyDisplayType($(this), 'display_type_area_".($group_code)."', ".($group_code).");\"  style='display:inline-block;text-align:center;width:138px;margin:0px 0 0 0px;'>
+										<img src='../images/".$_SESSION["admininfo"]["language"]."/P_type_".$db->dt[dt_ix].".png' align=center ><br>
+										<div class='control_view' style='padding-top:3px;display:none;'>
+										<input type='hidden' class='textbox' name='display_type[".($group_code)."][type][]' id='display_type_".($group_code)."_0' value='".$db->dt[dt_ix]."'  style='border:0px;' disabled=true><label for='display_type_".($group_code)."_0'>".$db->dt[dt_name]."(".$db->dt[dt_goods_num]."EA)</label>
+										<select name='display_type[".($group_code)."][set_cnt][]' class=set_cnt dt_goods_num='".$db->dt[dt_goods_num]."' disabled>";
+										for($j=0;$j < 10;$j++){
+											$mString .= "<option value='".($j+1)."' ".(($j+1) == 0  ? "selected":"").">".($j+1)."</option>";
+										}
+										$mString .= "				
+										</select>
+										</div>
+									</div>
+									</li>
+											";
+			}
+			$mString .= "</ul>";
+		
+		
+	}
+	//$mString .= "<tr align=center bgcolor=silver height=1><td colspan=5></td></tr>";
+
+
+	return $mString;
+}
+
+function relationEventGroupProductList($mg_ix, $group_code, $disp_type=""){
+	global $start,$page, $orderby, $admin_config, $erpid;
+
+	$max = 105;
+
+	if ($page == ''){
+		$start = 0;
+		$page  = 1;
+	}else{
+		$start = ($page - 1) * $max;
+	}
+
+	$db = new Database;
+
+	$sql = "SELECT COUNT(*) FROM ".TBL_SHOP_PRODUCT." p, ".TBL_SHOP_MAIN_PRODUCT_RELATION." erp where p.id = erp.pid and mg_ix = '$mg_ix' and group_code = '$group_code' and p.disp = 1";
+	$db->query($sql);
+	$db->fetch();
+	$total = $db->dt[0];
+
+	$sql = "SELECT p.id, p.pcode, p.shotinfo, p.pname, p.sellprice,  p.reserve, mpr_ix, erp.vieworder, erp.group_code, p.brand_name
+					FROM ".TBL_SHOP_PRODUCT." p, ".TBL_SHOP_MAIN_PRODUCT_RELATION." erp
+					where p.id = erp.pid and mg_ix != '' and mg_ix = '$mg_ix' and group_code = '$group_code' and p.disp = 1
+					order by erp.vieworder asc limit $start,$max";
+	$db->query($sql);
+
+	if ($db->total == 0){
+		if($disp_type == "clipart"){
+			$mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>';
+		}
+	}else{
+		$i=0;
+		if($disp_type == "clipart"){
+			$mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
+			$mString .= '<script>'."\n";
+			$mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
+			for($i=0;$i<$db->total;$i++){
+				$db->fetch($i);
+				$imgPath = PrintImage($admin_config['mall_data_root'].'/images/product', $db->dt['id'], 'c');
+				$mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.$imgPath.'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'");'."\n";
+			}
+			$mString .= '</script>'."\n";
+		}
+	}
+	return $mString;
+}
+
+function PrintCategoryRelation($group_code,$mg_ix){
+	global $db ,$admininfo;
+
+	$sql = "select c.cid,c.cname,c.depth, r.mcr_ix, r.regdate  
+				from shop_main_category_relation r, ".TBL_SHOP_CATEGORY_INFO." c 
+				where group_code = '".$group_code."' 
+				and c.cid = r.cid and mg_ix='".$mg_ix."'";
+
+	//echo $sql."<br><br>";
+	$db->query($sql);
+
+
+
+
+	if ($db->total == 0){
+		$mString .= "<table cellpadding=0 cellspacing=0 id='objCategory_".($group_code)."' >
+								<col width=5>
+								<col width=*>
+								<col width=100>
+							  </table>";
+	}else{
+		$i=0;
+		$mString = "<table width=100% border=0 cellpadding=0 cellspacing=0 id='objCategory_".($group_code)."'>";
+		for($i=0;$i<$db->total;$i++){
+			$db->fetch($i);
+			$parent_cname = GetParentCategory($db->dt[cid],$db->dt[depth]);
+			$mString .= "<tr>
+				<td class='table_td_white small ' width='5' height='25'><input type='text' name='category[".$group_code."][]' id='_category' value='".$db->dt[cid]."' style='display:none'></td>
+				<!--td class='table_td_white small' width='50'><input type='radio' name='basic[".$group_code."]' value='".$db->dt[cid]."' ".($db->dt[basic] == 1 ? "checked":"")."></td-->
+				<td class='table_td_white small ' width='*'>".($parent_cname != "" ? $parent_cname." > ":"").$db->dt[cname]."</td>
+				<td class='table_td_white' width='100' align=right><img src='../images/".$admininfo["language"]."/btc_del.gif' border=0 align='absmiddle' onClick='category_del(".$group_code.",this.parentNode.parentNode)' style='cursor:pointer;' /></td>
+				</tr>";
+		}
+		$mString .= "</table>";
+	}
+	//$mString .= "<tr align=center bgcolor=silver height=1><td colspan=5></td></tr>";
+
+
+	return $mString;
+}
+
+
+
+
+
+
+/*
+function SelectDiv($selectdiv)
+{
+	$divname = array ("공지구분선택","메인이벤트","쇼핑이벤트","아카데미이벤트","커뮤니티이벤트","이벤트/기획전","  ");
+
+	return "<input type=hidden name=div value='2'>";
+
+	$pos = 0;
+	$strDiv = "<Select name='div'>\n";
+//	$strDiv = $strDiv."<option value=0>공지구분선택</option>\n";
+	while(hasMoreElements(&$divname))
+	{
+	       	if( $pos == $selectdiv )
+	       	{
+	        	$strDiv = $strDiv."<option value='".($pos)."' Selected>".$divname[$pos]."</option>\n";
+	       	}else{
+	       		$strDiv = $strDiv."<option value='".($pos)."'>".$divname[$pos]."</option>\n";
+		}
+	       	$pos++;
+	}
+
+	$strDiv = $strDiv."</Select>\n";
+
+	return $strDiv;
+
+//	$strDiv = $strDiv."<option value=1>전체공지</option>\n";
+//	$strDiv = $strDiv."<option value=2>쇼핑공지</option>\n";
+//	$strDiv = $strDiv."<option value=3>아카데미공지</option>\n";
+//	$strDiv = $strDiv."<option value=4>커뮤니티공지</option>\n";
+}
+*/
+
+?>

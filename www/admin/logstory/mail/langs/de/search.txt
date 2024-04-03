@@ -1,0 +1,12 @@
+
+; ***************************************** ;
+; Search				                    ;
+; ***************************************** ;
+
+sch_information_text			= Geben Sie das Wort oder den Begriff ein, nach dem Sie suchen möchten. <br> Es werden nur Nachrichten in <b>lokalen Ordnern</b> sowie <b>bereits gelesene Nachrichten </b>durchsucht.
+sch_button_text				= Suchen &gt;&gt;
+sch_subject_hea				= Betreff
+sch_from_hea				= Von
+sch_date_hea				= Empfangen
+sch_folder_hea				= Ordner
+sch_no_results				= Keine Treffer gefunden

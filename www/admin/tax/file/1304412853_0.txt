@@ -1,0 +1,4 @@
+도메인 추가 시 작업 순서
+ 1. vi /etc/named.conf 에서 마지막 줄 zone 추가
+ 2. /var/named/chroot/var/named/ 에 zone 파일 생성
+ 3. /etc/init.d/named restart

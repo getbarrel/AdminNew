@@ -1,0 +1,7 @@
+; ***************************************** ;
+; Bad Login		                    ;
+; ***************************************** ;
+
+bdl_title			= Falha na autenticação
+bdl_msg				= Não foi possível autenticar o usuário/senha informado<br><br>Por favor verifique seus dados e tente novamente
+bdl_back			= Voltar

@@ -1,0 +1,21 @@
+; ***************************************** ;
+; Preferences		                    ;
+; ***************************************** ;
+
+prf_title 			= Preferenze
+prf_general_title		= Informazioni personali
+prf_name			= None
+prf_reply_to			= Indirizzo per risposte
+prf_time_zone			= Fuso orario
+prf_trash_title			= Cestino
+prf_save_to_trash		= Sposta i messaggi <b>cancellati</b> nella cartella "<b><!--%UM_TRASH_EXTENDED%--></b>"
+prf_save_only_read		= Salva solo i messaggi <b>letti</b> nella cartella "<b><!--%UM_TRASH_EXTENDED%--></b>"
+prf_empty_on_exit		= <b>Svuota</b> il cestino all'uscita
+prf_sent_title			= Spedisci messaggi
+prf_save_sent			= Salva i messaggi <b>spediti</b> nella cartella "<b><!--%UM_SENT_EXTENDED%--></b>"
+prf_messages_title		= Messaggi
+prf_page_limit			= Messaggi visualizzati per pagina
+prf_signature_title		= Firma
+prf_signature			= Firma personalizzata
+prf_auto_add_sign		= Aggiungi firma automaticamente
+prf_save_button			= Salva

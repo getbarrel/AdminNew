@@ -1,0 +1,33 @@
+; ***************************************** ;
+; Advanced Editor		            ;
+; ***************************************** ;
+
+adv_warning_text_mode		= Veuillez décocher l option "<!--%view_source%-->" pour utiliser la barre des outils
+adv_type_path			= Tapez une adresse URL:
+
+
+format_paragraph			= Paragraphe
+format_h1				= En-tête 1 <H1>
+format_h2				= En-tête 2 <H2>
+format_h3				= En-tête 3 <H3>
+format_h4				= En-tête 4 <H4>
+format_h5				= En-tête 5 <H5>
+format_h6				= En-tête 6 <H6>
+format_pre				= Formaté <PRE>
+format_clear_all			= Nettoyer le formatage
+
+format_font				= Police
+format_size				= Taille
+
+format_color			= Couleur
+format_back				= Retour
+color_red				= Rouge
+color_blue				= Bleu
+color_green				= Vert
+color_black				= Noir
+color_yellow			= Jaune
+color_white				= Blanc
+
+view_source				= Voir source HTML
+text_mode				= Mode texte
+clear_format			= Supprimer le formatage

@@ -1,0 +1,26 @@
+; ***************************************** ;
+; Address Book 			            ;
+; ***************************************** ;
+
+### edit/display
+
+adr_title					= Contatti
+adr_name					= Nome
+adr_email					= E-mail
+adr_street					= Indirizzo
+adr_city					= Città
+adr_state					= Provincia
+adr_work					= Lavoro
+adr_back					= Indietro
+adr_save					= Salva
+
+###list
+adr_name_hea					= Nome
+adr_email_hea					= E-Mail
+adr_edit_hea					= Modifica
+adr_expo_hea					= Esporta
+adr_dele_hea					= Cancella
+adr_new_entry					= Inserisci
+adr_export					= Esporta
+
+

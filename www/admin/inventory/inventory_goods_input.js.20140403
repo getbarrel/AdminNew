@@ -1,0 +1,290 @@
+
+function newCopyOptions(target){
+	var option_target_obj = $('#inventory_goods_items_input');
+	var option_obj = $('table[id^=inventory_goods_items_input]:first');
+    var total_rows = $('.inventory_goods_items_input').length;
+	//alert(total_rows);
+	var newRow = $('table[id^=inventory_goods_items_input]:first').clone(true).appendTo("#inventory_basic_item_input_table");
+	//var newRow = option_obj.find('table[id^='+target+']:first').clone(true).wrapAll("<table/>").parent();
+//alert(newRow.html());
+	//newRow.find("table[id^=options_input]").attr("idx",""+(total_rows)+"");
+	newRow.find("input[id^=gi_ix]").attr("name","goods_items["+(total_rows)+"][gi_ix]");
+	newRow.find("input[id^=item_name]").attr("name","goods_items["+(total_rows)+"][item_name]");
+	newRow.find("input[id^=unit]").attr("name","goods_items["+(total_rows)+"][unit]");
+	//newRow.find("input[id^=unit]").combobox("destroy").empty();
+	//newRow.find("input[id^=unit]").combobox();
+
+	newRow.find("input[id^=input_price]").attr("name","goods_items["+(total_rows)+"][input_price]");
+	newRow.find("input[id^=output_price]").attr("name","goods_items["+(total_rows)+"][output_price]");
+	newRow.find("input[id^=item_sell_ing_cnt]").attr("name","goods_items["+(total_rows)+"][item_sell_ing_cnt]");
+	newRow.find("input[id^=item_stock]").attr("name","goods_items["+(total_rows)+"][item_stock]");
+	newRow.find("input[id^=item_safestock]").attr("name","goods_items["+(total_rows)+"][item_safestock]");	
+	newRow.find("input[id^=is_use]").attr("name","goods_items["+(total_rows)+"][is_use]");
+	newRow.find("input[id^=item_code]").attr("name","goods_items["+(total_rows)+"][item_code]");
+	newRow.find("input[id^=item_barcode]").attr("name","goods_items["+(total_rows)+"][item_barcode]");
+	newRow.find("img[id^=btn_gi_ix ]").css("display","inline");
+	
+
+
+	newRow.find("input[id^=gi_ix]").val("");
+	newRow.find("input[id^=item_name ]").val("");
+	newRow.find("input[id^=unit ]").val("");
+	newRow.find("input[id^=input_price ]").val("");
+	newRow.find("input[id^=output_price]").val("");
+	newRow.find("input[id^=item_sell_ing_cnt ]").val("");
+	newRow.find("input[id^=item_stock ]").val("");
+	newRow.find("input[id^=item_safestock ]").val("");
+	newRow.find("input[id^=item_barcode]").val("");
+	newRow.find("input[id^=is_use ]").val("");
+	newRow.find("input[id^=item_code ]").val("");
+
+}
+
+function copyOptions(obj){
+
+var objs=$("."+obj);
+//alert(objs.length);
+//var objs = document.getElmentById(obj);
+//alert(obj);
+if(objs.length > 0 ){
+	var obj_table = objs[0].cloneNode(true);
+	var target_obj = objs[objs.length-1];	
+	var select_idx = objs.length-1; //objs.length;
+}else{
+	var obj_table = objs[0].cloneNode(true);
+	var target_obj = objs;
+	var select_idx = 0;//1;
+}
+
+obj_table_text = obj_table.outerHTML;
+obj_table_text = obj_table.outerHTML.replace(/options_item_input_0/g,"options_item_input_"+(parseInt(select_idx)+1));
+obj_table_text = obj_table_text.replace(/options_item_option_div_0/g,"options_item_option_div_"+(parseInt(select_idx)+1));
+obj_table_text = obj_table_text.replace(/options_input_status_area_0/g,"options_input_status_area_"+(parseInt(select_idx)+1));
+obj_table_text = obj_table_text.replace(/options_item_option_code_0/g,"options_item_option_code_"+(parseInt(select_idx)+1));
+obj_table_text = obj_table_text.replace(/option_name_area_0/g,"options_input_status_area_"+(parseInt(select_idx)+1));
+obj_table_text = obj_table_text.replace(/options_basic_item_input_table_0/g,"options_basic_item_input_table_"+(parseInt(select_idx)+1));
+
+
+obj_table_text = obj_table_text.replace(/ idx=\"0\"/g," idx="+(parseInt(select_idx)+1));
+obj_table_text = obj_table_text.replace(/options\[0\]/g,"options["+(parseInt(select_idx)+1)+"]");
+
+var child_txt = "$('."+obj+"[idx="+(parseInt(select_idx)+1)+"]')[0]";
+var parent_txt = "$('."+obj+"[idx="+(parseInt(select_idx)+1)+"]')";
+
+obj_table_text = obj_table_text.replace("<!-- 옵션 삭제 -->"," <img src='../images/i_close.gif' align=absmiddle style='cursor:pointer;' ondblclick=\"if($('."+obj+"').length > 1){"+parent_txt+".remove();/*this.parentNode.parentNode.parentNode.removeNode(true);*/}else{alert(language_data['goods_input.js']['W'][language]);}\" title='더블클릭시 해당 테이블이 삭제 됩니다.'>");
+
+target_obj.insertAdjacentHTML("afterEnd",obj_table_text);
+
+}
+
+
+function showMessage(_id, message){
+	try{
+		document.getElementById(_id).innerHTML = message;	
+	}catch(e){}
+	//document.getElementById(_id).innerHTML = "";
+}
+
+function clearInputBox(obj_id){
+	//alert(document.getElementById(obj_id).getElementsByTagName('INPUT').length);
+	var _objs = document.getElementById(obj_id).getElementsByTagName('INPUT');
+	for(i=0;i < _objs.length;i++){
+		//alert(_objs[i].outerHTML);
+		_objs[i].value='';
+	}
+}
+
+
+function InventoryGoodsInput(frm,act)
+{
+	frm.act.value = act;
+
+	if(!CheckFormValue(frm)){
+		return false;	
+	}
+
+/*
+	var categorys=document.getElementsByName('category[]');
+
+	if(categorys.length < 1){
+		alert(language_data['goods_input.js']['E'][language]);//'카테고리를 선택해주세요'
+		return false;
+	}
+*/
+
+	var inventory_item_names = $("input[inputid=inventory_item_name]");
+	var inventory_item_names_str = "|";
+	
+
+	for(j=0;j < inventory_item_names.length;j++){
+			if(inventory_item_names[j].value){
+				inventory_item_names_str += inventory_item_names[j].value+"|";				
+			}
+	}
+	//alert(inventory_item_names_str);
+	for(j=0;j < inventory_item_names.length;j++){
+			if(inventory_item_names[inventory_item_names.length-j-1].value && substr_count(inventory_item_names_str, "|"+inventory_item_names[inventory_item_names.length-j-1].value+"|") > 1){
+				alert('중복되는 단품규격이 있습니다. 수정후 다시 시도해주세요');
+				inventory_item_names[inventory_item_names.length-j-1].focus();
+				return false;
+			}
+	}
+
+	frm.submit();	
+}
+
+function filterNum(str) {
+re = /^$|,/g;
+
+// "$" and "," 입력 제거
+
+return str.replace(re, "");
+}
+
+function substr_count( haystack, needle, offset, length ) {
+    // Count the number of substring occurrences
+    // 
+    // +    discuss at: http://kevin.vanzonneveld.net/techblog/article/javascript_equivalent_for_phps_substr_count/
+    // +       version: 810.819
+    // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   bugfixed by: Onno Marsman
+    // *     example 1: substr_count('Kevin van Zonneveld', 'e');
+    // *     returns 1: 3
+    // *     example 2: substr_count('Kevin van Zonneveld', 'K', 1);
+    // *     returns 2: 0
+    // *     example 3: substr_count('Kevin van Zonneveld', 'Z', 0, 10);
+    // *     returns 3: false
+
+    var pos = 0, cnt = 0;
+
+    haystack += '';
+    needle += '';
+    if(isNaN(offset)) offset = 0;
+    if(isNaN(length)) length = 0;
+    offset--;
+
+    while( (offset = haystack.indexOf(needle, offset+1)) != -1 ){
+        if(length > 0 && (offset+needle.length) > length){
+            return false;
+        } else{
+            cnt++;
+        }
+    }
+
+    return cnt;
+}
+
+
+function getBarcode(code_div, this_obj){
+		$.ajax({ 
+			type: 'GET', 
+			data: {'act': 'get_barcode','code_div':code_div},
+			url: './inventory_goods_input.act.php',  
+			dataType: 'html', 
+			async: true, 
+			beforeSend: function(){ 
+				
+			},  
+			success: function(data){ 
+				//alert(data);
+				if(code_div == "barcode"){
+					$(this_obj).parent().find("#barcode").val(data);
+				}else{
+					$(this_obj).parent().find("#item_barcode").val(data);
+				}
+			} 
+		}); 
+}
+
+function ChangeUnit(obj){
+	//alert($("#"+obj.id+" option:selected").text());
+	var selected_text = $("#"+obj.id+" option:selected").text();
+	$("#unit_text").text(selected_text);
+	$("#unit").val($("#"+obj.id+" option:selected").val());//.attr("selected", "selected");
+	$("#change_amount").val(1);
+	//$("#unit").
+}
+
+function AddUnit(tbName){
+
+	var tbody = $('#' + tbName + ' tbody');  
+   var total_rows = tbody.find('tr[depth^=1]').length;  
+   var rows = tbody.find('tr[depth^=1]').length;  
+  
+   if($.browser.msie){
+      var newRow = tbody.find('tr[depth^=1]:last').clone(true).appendTo(tbody);  
+   }else{
+	 // var newRow = tbody.find('tr[depth^=1]:last').clone(true).insertAfter(tbody);  
+	  var newRow = tbody.find('tr[depth^=1]:last').clone(true).appendTo(tbody);  
+   }
+
+	newRow.find("div[id^=unit_text]").css('display','none');  
+	newRow.find("select[id^=unit]").css('display','inline');  
+
+	newRow.find("select[id^=unit]").attr("name","goods_unit["+(total_rows)+"][unit]");
+	newRow.find("input[id^=b_unit]").attr("name","goods_unit["+(total_rows)+"][b_unit]");
+	newRow.find("input[id^=b_unit]").val('');
+	newRow.find("input[id^=unit_gid]").attr("name","goods_unit["+(total_rows)+"][gid]");
+	newRow.find("input[id^=change_amount]").attr("name","goods_unit["+(total_rows)+"][change_amount]");
+	newRow.find("input[id^=buying_price]").attr("name","goods_unit["+(total_rows)+"][buying_price]");
+	newRow.find("input[id^=wholesale_price]").attr("name","goods_unit["+(total_rows)+"][wholesale_price]");
+	newRow.find("input[id^=sellprice]").attr("name","goods_unit["+(total_rows)+"][sellprice]");
+	newRow.find("input[id^=barcode]").attr("name","goods_unit["+(total_rows)+"][barcode]");
+	newRow.find("input[id^=safestock]").attr("name","goods_unit["+(total_rows)+"][safestock]");
+	newRow.find("input[id^=available_stock]").attr("name","goods_unit["+(total_rows)+"][available_stock]");
+	
+   
+	//alert(newRow.html());  
+	return newRow;
+}
+
+
+function valueCheck(this_, obj_name){
+	//alert(this_.id);
+	//alert($(this_).val());
+	
+		$.post("inventory_goods_input.act.php", {
+		  value: $("#"+this_.id).val(),
+		  act: "value_check_jquery",
+		  value_name:this_.id
+		}, function(data){
+			  //alert(this_.id);
+			
+			if(data == "300") {
+				$("#"+this_.id+"_check_text").css("color","#00B050").html('사용 가능한 '+obj_name+' 입니다.');
+				$("#"+this_.id+"_flag").val('1');
+				$("#"+this_.id).attr("dup_check",'true');
+				//alert($("#"+this_.id).attr("dup_check"));
+			} else if(data == "130") {
+				$("#"+this_.id+"_check_text").css("color","#FF5A00").html(''+obj_name+'는 6자이상 입력해 주세요.');//16자 이하로 
+				$("#"+this_.id+"_flag").val('0');
+				$("#"+this_.id).attr("dup_check",'false');
+				return false;
+			} else if(data == "120") {
+				$("#"+this_.id+"_check_text").css("color","#FF5A00").html('이미 사용중인 '+obj_name+' 입니다.');
+				$("#"+this_.id+"_flag").val('0');
+				$("#"+this_.id).attr("dup_check",'false');
+				return false;
+			} else if(data == "110") {
+				$("#"+this_.id+"_check_text").css("color","#FF5A00").html('첫글자는 영문으로, 다음은 영문(소문자)과 숫자의 조합만 가능합니다.');
+				$("#"+this_.id+"_flag").val('0');
+				$("#"+this_.id).attr("dup_check",'false');
+				return false;
+			} else {
+				$("#"+this_.id+"_check_text").css("color","#FF5A00").html('이미 사용중인 '+obj_name+' 입니다.');
+				//$("#"+this_.id+"_check_text").html(data);
+				$("#"+this_.id+"_flag").val('0');
+				$("#"+this_.id).attr("dup_check",'false');
+				return false;
+			}
+			
+		});
+}
+
+$(document).ready(function() {
+	//$('#basic_unit').combobox();
+	//$('.combobox').combobox();
+
+});
+
+

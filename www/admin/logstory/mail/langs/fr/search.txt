@@ -1,0 +1,12 @@
+
+; ***************************************** ;
+; Search				              ;
+; ***************************************** ;
+
+sch_information_text			= Entrez le mot ou la phrase que vous désirez trouver.<br> La recherche sera uniquement effectuée sur les messages des <b>dossiers locaux</b> ou sur les <b>messages lus<b>.
+sch_button_text				= Rechercher &gt;&gt;
+sch_subject_hea				= Objet
+sch_from_hea				= De
+sch_date_hea				= Date
+sch_folder_hea				= Dossier
+sch_no_results				= Aucun message trouvé

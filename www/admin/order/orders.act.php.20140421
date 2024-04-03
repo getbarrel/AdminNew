@@ -1,0 +1,1566 @@
+<?
+include("../class/layout.class");
+include($_SERVER["DOCUMENT_ROOT"]."/include/email.send.php");
+
+include("../sellertool/sellertool.lib.php");
+
+if($act!="part_cancel"){//부분취소!
+	include("../openapi/openapi.lib.php");
+}
+//inventoryOutputHistory,InventoryInputHistory 함수는 inventory.lib.php 으로!
+include("../inventory/inventory.lib.php");
+include("../../include/cash_manage.lib.php");
+
+//-- 리셀러 인센티브 관련 START--
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/logstory/class/sharedmemory.class");
+$shmop = new Shared("reseller_rule");
+$shmop->filepath = $_SERVER["DOCUMENT_ROOT"].$_SESSION["layout_config"]["mall_data_root"]."/_shared/";
+$shmop->SetFilePath();
+$reseller_data = $shmop->getObjectForKey("reseller_rule");
+$reseller_data = unserialize(urldecode($reseller_data));
+//-- 리셀러 인센티브 관련 END--
+
+$db = new Database;
+$db2 = new Database;
+$mdb = new Database;
+$oid = $_REQUEST['oid'];
+$act = $_REQUEST['act'];
+
+if ($act == "orderinfo_update"){
+
+	print_r($deliveryinfo);
+	exit;
+	/*
+	$bname = trim($bname);
+	$bmail = trim($bmail);
+	$btel  = trim($btel);
+	$rname = trim($rname);
+	$rmail = trim($rmail);
+	$rtel  = trim($rtel);
+	$zip   = "$zipcode1-$zipcode2";
+	$addr  = trim($addr);
+	$bank  = trim($bank);
+	$bmobile = trim($bmobile);
+	$rmobile = trim($rmobile);
+
+	if($admininfo[admin_level] == 9){
+		$sql = "UPDATE ".TBL_SHOP_ORDER." SET
+						bname='$bname', mem_group ='$mem_group', bmail='$bmail', btel='$btel', bmobile = '$bmobile',
+						rname='$rname', rmail='$rmail', rtel='$rtel', rmobile = '$rmobile', zip='$zip', addr='$addr',bank_input_date='$bank_input_date'
+						WHERE oid='$oid'";
+		$db->query($sql);
+	}else{
+		$sql = "UPDATE ".TBL_SHOP_ORDER." SET
+						bname='$bname', mem_group ='$mem_group', bmail='$bmail', btel='$btel', bmobile = '$bmobile',
+						rname='$rname', rmail='$rmail', rtel='$rtel', rmobile = '$rmobile', zip='$zip', addr='$addr',bank_input_date='$bank_input_date'
+						WHERE oid='$oid'";
+		$db->query($sql);
+	}
+	*/
+	echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('주문정보가 정상적으로 수정되었습니다.');parent.location.reload();location.href='about:blank';</script>");
+}
+
+
+/**
+ * 오더에디트에서 수정시
+ */
+if ($act == "update")
+{
+	$bname = trim($bname);
+	$bmail = trim($bmail);
+	$btel  = trim($btel);
+	$rname = trim($rname);
+	$rmail = trim($rmail);
+	$rtel  = trim($rtel);
+	$zip   = "$zipcode1-$zipcode2";
+	$addr  = trim($addr);
+	$bank  = trim($bank);
+	$bmobile = trim($bmobile);
+	$rmobile = trim($rmobile);
+	$where_in_oid=" AND od_ix IN ( ";
+	for($i=0;$i < count($od_ix);$i++){
+		if($i==0) $where_in_oid.="'".$od_ix[$i]."'";
+		else $where_in_oid.=",'".$od_ix[$i]."'";
+	}
+	$where_in_oid.=" ) ";
+
+//******************************************************************************* 마스터 관리자 일때  START ********************************************************************************//
+	if($admininfo[admin_level] == 9){
+
+		//입금완료
+		if($status == ORDER_STATUS_INCOM_COMPLETE){
+
+			$ic_date_str = " , ic_date = NOW() ";
+
+			$db->query("select oid, uid, rmobile, bank_input_date,status from ".TBL_SHOP_ORDER."  WHERE oid='".$oid."'");
+			$db->fetch();
+			$order = $db->dt;
+			
+			if($order[status]==ORDER_STATUS_INCOM_READY){
+
+				$db->query("update ".TBL_SHOP_ORDER." set status ='".ORDER_STATUS_INCOM_COMPLETE."' WHERE oid='".$oid."'");
+				
+				$db->query("select expect_product_price, expect_delivery_price from shop_order_price WHERE oid='".$oid."' and payment_status='G' ");
+				$db->fetch();
+
+				$expect_product_price = $db->dt[expect_product_price];
+				$expect_delivery_price = $db->dt[expect_delivery_price];
+
+				table_order_price_data_creation($oid,'','','G','P',0,$expect_product_price,"관리자 입금완료",0,0,0);
+				if($expect_delivery_price > 0){
+					table_order_price_data_creation($oid,'','','G','D',0,$expect_delivery_price,"관리자 입금완료",0,0,0);
+				}
+			}
+
+			if($order[bank_input_date] == ""){
+				$db->query("update ".TBL_SHOP_ORDER." set bank_input_date = '".date("Ymd")."' WHERE oid='".$oid."'");
+				$db->fetch();
+			}
+
+			$sql = "select oid, hotcon_event_id, hotcon_pcode, status, pcnt from ".TBL_SHOP_ORDER_DETAIL." od WHERE oid='".$oid."'";
+			//echo $sql;
+			$db->query($sql);
+			for($i=0;$i < $db->total;$i++){
+
+				$db->fetch($i);
+				//echo $db->dt[hotcon_pcode];
+				if($db->dt[hotcon_event_id] && $db->dt[hotcon_pcode]){
+
+					if($db->dt[status] != $status){
+						CallHotCon($order[uid], $order[oid], $db->dt[pid], $db->dt[hotcon_event_id], $db->dt[hotcon_pcode], $db->dt[pcnt], $order[rmobile]);
+					}
+				}
+			}
+		}
+
+		//배송중
+		if ($status == ORDER_STATUS_DELIVERY_ING){
+
+			$db->query("select * from ".TBL_SHOP_ORDER."  WHERE oid='".$oid."'");
+			$order = $db->fetch();
+
+			$db->query("select *,pid as id from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid' $where_in_oid");
+			$order_details = $db->fetchall();
+
+			if($order_details[0][order_from] == 'self'){
+				$mail_info[mem_name] = $order[bname];
+				$mail_info[mem_mail] = $order[bmail];
+				$mail_info[mem_id] = $order[bname];
+				$mail_info[mem_mobile] = $order[bmobile];
+
+				sendMessageByStep('good_send_sucess', $mail_info);
+			}
+
+		//입금완료
+		}else if($status == ORDER_STATUS_INCOM_COMPLETE){
+			$db->query("select * from ".TBL_SHOP_ORDER."  WHERE oid='".$oid."'");
+			$order = $db->fetch();
+
+			$db->query("select * ,pid as id from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid' $where_in_oid");
+			$order_details = $db->fetchall();
+
+			if($order_details[0][order_from] == 'self'){
+				$mail_info[mem_name] = $order[bname];
+				$mail_info[mem_mail] = $order[bmail];
+				$mail_info[mem_id] = $order[bname];
+				$mail_info[mem_mobile] = $order[bmobile];
+
+				sendMessageByStep('payment_bank_apply', $mail_info);
+			}
+
+		//취소완료
+		}else if ($status == ORDER_STATUS_CANCEL_COMPLETE){// 취소일경우
+
+			$db->query("select * from ".TBL_SHOP_ORDER."  WHERE oid='".$oid."'");
+			$order = $db->fetch();
+			
+			if($order[status]==ORDER_STATUS_INCOM_READY){//입금 예정에 취소인 경우에 입금전 취소완료로!20130705-hjy
+				$status = ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE;
+			}
+			
+			if($status == ORDER_STATUS_CANCEL_COMPLETE && $order[status]!=ORDER_STATUS_DEFERRED_PAYMENT){
+				$refund_status_str = " , refund_status = 'FA'  ";
+			}
+
+			$db->query("select *,pid as id from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid' $where_in_oid");
+			$order_details = $db->fetchall();
+
+			if($order_details[0][order_from] == 'self'){
+				$mail_info[mem_name] = $order[bname];
+				$mail_info[mem_mail] = $order[bmail];
+				$mail_info[mem_id] = $order[bname];
+				$mail_info[mem_mobile] = $order[bmobile];
+
+				sendMessageByStep('order_cancel', $mail_info);
+			}
+
+			echo("<script language='javascript' src='../_language/language.php'></script><script>alert(language_data['orders.act.php']['A'][language]);</script>");//카드결제일 경우 [승인취소] 작업도 해주세요.
+
+		// 환불완료일때
+		}else if ($status == ORDER_STATUS_REFUND_COMPLETE){
+			
+
+			//echo("<script language='javascript' src='../_language/language.php'></script><script>alert(language_data['orders.act.php']['A'][language]);</script>");//카드결제일 경우 [승인취소] 작업도 해주세요.
+		}
+
+        if($status == ORDER_STATUS_DELIVERY_ING){
+            //해당 주문번호의 품목 전부 배송인지 체크
+            $check_flag = checkDlvIsAll($oid, count($od_ix));
+            if(!empty($check_flag)){
+                if($check_flag == TRUE){
+                    $dlv_kind = 'all';
+                }else{
+                    $dlv_kind = 'part';
+                }
+            }else{
+                $dlv_kind = NULL;
+            }
+        }
+
+        //hidden으로 TRUE값이며 오더에디트 form에만 있음
+		if ($product_status_change){// 상품상태 변경 체크시 각각의 상품에 대한 상태 변경이 된다
+
+			if($deliverycode){
+				$deliverycode_string = " , delivery_method='$delivery_method', invoice_no='$deliverycode', quick = '$quick' " ;
+			}
+
+			$udb = new Database;
+			$db->debug = true;
+			$udb->debug = true;
+            $send_sellertool = true;
+
+			for($i=0;$i < count($od_ix);$i++){
+				$db->query("select od.*,o.status as order_status from ".TBL_SHOP_ORDER." o ,".TBL_SHOP_ORDER_DETAIL." od where o.oid=od.oid and od.od_ix ='".$od_ix[$i]."' ");
+				$db->fetch();
+				$order_detail_info = $db->dt;
+				$pid = $db->dt[pid];
+				$oid = $db->dt[oid];
+				$order_status = $db->dt[order_status];
+				$ptprice = $db->dt[ptprice];
+				$pcnt = $db->dt[pcnt];
+				$select_option_id = $db->dt[option1];
+				$di_date = $db->dt[di_date];
+				$stock_use_yn = $db->dt[stock_use_yn];
+
+                $db_update = TRUE; //db업데이트 여부(제휴사 상태변경 실패시 false)
+
+				 //배송준비중 처리(제휴사)
+                if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_READY){
+					$udb->query("SELECT max(delivery_box_no)+1 as next_delivery_box_no  FROM ".TBL_SHOP_ORDER." WHERE date_format(date, '%Y%m%d') = '".date("Ymd")."' ");
+					$udb->fetch();
+					$delivery_box_no = $udb->dt[next_delivery_box_no];
+					$udb->query("UPDATE ".TBL_SHOP_ORDER." SET delivery_box_no = '".$delivery_box_no."' WHERE oid='".$oid."' and delivery_box_no = '0' ");
+
+                    //결제완료 상태인경우 제휴사 배송준비중 처리 가능
+                    if($order_detail_info[status] == "IC"){
+
+                        //자사주문
+                        if($order_detail_info[order_from] == 'self'){
+                            //nothing
+
+                        /**
+                         * 제휴사 배송준비중 처리
+                         */
+                        }else{
+							if(SELLER_TOOL_USE){
+								$subDb = new Database;
+								$sql = "select * from sellertool_order_info where order_id = '".$oid."' and order_detail_ix = '".$order_detail_info[od_ix]."'";
+								$subDb->query($sql);
+								if($subDb->total){
+									$sub_info = $subDb->fetch();
+									$result = sendOrdRepackaging($order_detail_info[order_from], $sub_info[target_ordNo], $sub_info[ordPrdSeq], $sub_info[addPrdYn], $sub_info[addPrdNo], $sub_info[dlvNo]);
+
+									if(!empty($result)){
+										if($result->resultCode ==  '0'){
+											$db_update = TRUE;
+										}else{
+											$db_update = FALSE;
+										}
+										$status_message = "제휴사(".$order_detail_info[order_from].")-".$result->message;
+									}else{
+										$db_update = FALSE;
+										$status_message = "제휴사(".$order_detail_info[order_from].")-배송준비중 처리 실패";
+									}
+									//로그남기기
+									$subDb->sequences = "".TBL_SHOP_ORDER_STATUS."_SEQ";
+									$subDb->query("insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ) values ('','$oid','".$pid."','$status','$status_message','$admin_message','".$admininfo[company_id]."','$quick','$deliverycode',NOW())");
+								}
+							}
+                        }
+                    }
+                //배송완료 처리(자사)
+                }else if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_COMPLETE){	//xuefeng1(배송완료 마일리지 적립)
+
+					$dc_date_str = " , dc_date = NOW() ";
+
+
+					//----------------------------------------리셀러 배송완료시 인센티브 적용 START---------------------------------------------//
+					if($reseller_data[rsl_use] == "y"){
+
+						$db->query("select uid as flowin_code from shop_order where oid ='".$oid."' ");
+						$db->fetch();
+
+						$flowin_code = $db->dt[flowin_code];
+
+						$db->query("select rsl_code from reseller_flowin_detail where flowin_code ='".$flowin_code."' ");
+						$db->fetch();
+
+						$rsl_code = $db->dt[rsl_code];
+
+						if($db->total){//유입회원이라면
+
+							$db->query("select count(*) as first_order from reseller_incentive where flowin_code='".$flowin_code."' and incentive_type = '2'");
+							$db->fetch();
+							$first_order = $db->dt[first_order]; //첫구매여부
+
+
+							$db2->query("SELECT id FROM reseller_dropmember where rsl_code='".$rsl_code."'");
+
+
+							if(!$db2->total){//탈퇴한 리셀러가 아니라면
+
+								$db2->query("SELECT * FROM reseller_policy where rsl_code='".$rsl_code."'");
+								$db2->fetch();
+
+								$new_incentive_type = $db2->dt[new_incentive_type];
+								$new_incentive_after = $db2->dt[new_incentive_after];
+								$incentive_type = $db2->dt[incentive_type];
+								$incentive_rate = $db2->dt[incentive_rate];
+
+								//첫구매시
+								if($first_order == 0 ){
+									//신규회원 유도 첫구매시 설정했을때
+									if($new_incentive_type == '3'){
+										$db->sequences = "RESELLER_INCENTIVE_SEQ";
+										$db->query("insert into reseller_incentive (incentive_ix,rsl_code, flowin_code, regdate, incentive, incentive_type, oid, od_ix, incentive_rate) values ('','".$rsl_code."','".$flowin_code."',NOW(),'".$new_incentive_after."','2','".$oid."','".$od_ix[$i]."','0')");
+									}
+								//첫구매가 아니라면
+								}elseif($first_order != 0){
+									//매출액 인센티브 사용할때
+									if($incentive_type == '2'){
+										$incentive = $ptprice * $incentive_rate / 100;
+										$db->sequences = "RESELLER_INCENTIVE_SEQ";
+										$db->query("insert into reseller_incentive (incentive_ix,rsl_code, flowin_code, regdate, incentive, incentive_type, oid, od_ix, incentive_rate) values ('','".$rsl_code."','".$flowin_code."',NOW(),'".$incentive."','2','".$oid."','".$od_ix[$i]."','".$incentive_rate."')");
+									}
+								}
+							}
+						}
+					}
+					//-----------------------------------------------리셀러 배송완료시 인센티브 적용 END---------------------------------------//
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_AIR_TRANSPORT_ING){
+					if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_detail_info[stock_use_yn] == "Y"){
+						 //해외 물류는 항공 배송중에서 재고차감
+						 if($order_detail_info[product_type]=='1' || $order_detail_info[product_type]=='2'){ //해외 물류는 항공 배송중에서 재고차감
+							//inventoryOutputHistory($order_detail_info, '항공배송중 출고');
+						 }
+					}
+                //배송중 처리
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_ING){
+
+                    //*************************************************************** 제휴사 배송중(발송) 처리 START ***************************************************************//
+                    /**
+                     * {bool}send_sellertool = 전체배송인경우 배송처리후 false처리하여 루프내에서 한번만 처리되도록한다. true인경우 부분배송으로 간주하여 상품별로 배송처리
+                     * default값 true
+                     */
+                    if($order_detail_info[status] == "DR" && $send_sellertool == TRUE){//배송준비중일때 가능하도록
+                        //자사주문
+                        if($order_detail_info[order_from] == 'self'){
+                            //nothing
+
+                        /**
+                         * 제휴사 배송중 처리
+                         */
+                        }else{
+							if(SELLER_TOOL_USE){
+								$send_date = date('YmdHi');
+								$dlvMthdCd = $_POST['dlvMthdCd'];
+								$dlvMthdCd = '01'; //택배
+								$dlv_com_code = $_POST['quick'];
+								$invcNo = $_POST['invcNo'];
+
+								$subDb = new Database;
+								$sql = "select * from sellertool_order_info where order_id = '".$oid."' and order_detail_ix = '".$order_detail_info[od_ix]."'";
+								$subDb->query($sql);
+								if($subDb->total){
+									$sub_info = $subDb->fetch();
+
+									if($dlv_kind == 'all'){
+										//배송업체 코드 변환
+										$dlvEtprsCd = getLinkedDlvCode($order_detail_info[order_from], $dlv_com_code);
+
+										$result = sendOrdReqDelivery($order_detail_info[order_from], $send_date, $dlvMthdCd, $dlvEtprsCd, $invcNo, $sub_info[dlvNo]);
+
+										if(!empty($result)){
+											if($result->resultCode ==  '0'){
+												$db_update = TRUE;
+											}else{
+												$db_update = FALSE;
+											}
+											$send_sellertool = FALSE;//주문상품 전체배송처리이므로 더이상 제휴사에 배송처리 안하도록
+
+											$status_message = "제휴사(".$order_detail_info[order_from].")-".$result->message;
+
+										}else{
+											$db_update = FALSE;
+											$status_message = "제휴사(".$order_detail_info[order_from].")-배송처리 실패";
+										}
+										//로그남기기
+										$subDb->sequences = "SHOP_ORDER_STATUS_SEQ";
+										$subDb->query("insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ) values ('','$oid','".$pid."','$status','$status_message','$admin_message','".$admininfo[company_id]."','$quick','$deliverycode',NOW())");
+
+
+									}else if($dlv_kind == 'part'){
+										//배송업체 코드 변환
+										$dlvEtprsCd = getLinkedDlvCode($order_detail_info[order_from], $dlv_com_code);
+
+										$result = sendOrdReqPartDelivery($order_detail_info[order_from], $send_date, $dlvMthdCd, $dlvEtprsCd, $invcNo, $sub_info[dlvNo], $sub_info[target_ordNo], $sub_info[ordPrdSeq]);
+
+										if(!empty($result)){
+											if($result->resultCode ==  '0'){
+												$db_update = TRUE;
+											}else{
+												$db_update = FALSE;
+											}
+											$status_message = "제휴사(".$order_detail_info[order_from].") 부분발송-".$result->message;
+
+										}else{
+											$db_update = FALSE;
+											$status_message = "제휴사(".$order_detail_info[order_from].") 부분발송-처리 실패";
+										}
+										//로그남기기
+										$subDb->sequences = "SHOP_ORDER_STATUS_SEQ";
+										$subDb->query("insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ) values ('','$oid','".$pid."','$status','$status_message','$admin_message','".$admininfo[company_id]."','$quick','$deliverycode',NOW())");
+									}
+								}
+							}
+                        }
+
+                    }
+                    //*************************************************************** 제휴사 배송중(부분 발송) 처리 END *****************************************************************//
+
+                    //재고 빼는 부분
+					$di_date_str = " , di_date = NOW() ";
+
+					/////////////////////////////////////////////////////////////////////////////////////////////////////재고관리 사용할때 출고 리스트에 재고 정보 남기기////////////////////////////////////////////////////////////////////////////////////////
+
+					if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_detail_info[stock_use_yn] == "Y" ){
+						if($order_detail_info[product_type]!='1' && $order_detail_info[product_type]!='2' ){ //해외 물류는 항공 배송중에서 재고차감
+
+							$sql = "select g.gid, gu.unit, g.standard, g.pi_ix , g.ps_ix
+							from inventory_goods g , inventory_goods_unit gu 
+							where g.gid = gu.gid and gu.gu_ix = '".$order_detail_info[pcode]."'";
+							// 출고가격을 어떻게 처리 할지? 
+							// 한꺼번에 여러개를 묶음으로 처리하는데 출고가 ... 
+							$db->query($sql);
+							$db->fetch();
+							$single_item_info = $db->dt;
+
+							$sql = "select g.pi_ix, 	pi.company_id, pi.place_name, ps.ps_ix, ps.section_name
+									from inventory_goods g 
+									left join inventory_goods_unit gu on g.gid =gu.gid 
+									left join inventory_place_info pi on pi.pi_ix = g.pi_ix and pi.pi_ix = '".$single_item_info[pi_ix]."'
+									left join inventory_place_section ps on pi.pi_ix = ps.pi_ix and  ps.pi_ix = g.pi_ix and ps.section_type = 'D'
+									left join inventory_product_stockinfo ips on gu.gid = ips.gid and gu.unit = ips.unit and ips.pi_ix = ps.pi_ix and ips.ps_ix = ps.ps_ix
+									where gu.gu_ix = '".$order_detail_info[pcode]."' 
+									";
+							$db->query($sql);
+							$db->fetch();
+							$warehouse_info = $db->dt;
+							
+							$sql = "select g.gid, gu.unit, g.standard, 
+							'".$order_detail_info[pcnt]."' as amount ,
+							'".$order_detail_info[psprice]."' as price ,
+							'".$order_detail_info[ptprice]."' as ptprice ,
+							'".$order_detail_info[use_coupon]."' as use_coupon ,
+							'".$warehouse_info[company_id]."' as company_id,
+							'".$warehouse_info[pi_ix]."' as pi_ix,
+							'".$warehouse_info[ps_ix]."' as ps_ix  
+							from inventory_goods g , inventory_goods_unit gu 
+							where g.gid = gu.gid and gu.gu_ix = '".$order_detail_info[pcode]."'";
+							// 출고가격을 어떻게 처리 할지? 
+							// 한꺼번에 여러개를 묶음으로 처리하는데 출고가 ... 
+							$db->query($sql);
+							$delivery_iteminfo = $db->fetchall();
+
+							$item_info[pi_ix] = $warehouse_info[pi_ix];
+							$item_info[ps_ix] = $warehouse_info[ps_ix];
+							$item_info[company_id] = $warehouse_info[company_id];
+							$item_info[h_div] = "2"; // 2: 출고
+							$item_info[vdate] = date("Ymd");
+							//$item_info[ci_ix] = $_POST["ci_ix"];
+							$item_info[oid] = $oid;
+							$item_info[msg] = "상품판매 - 출고";//$_POST["etc"];
+							$item_info[h_type] = '01';//01; 상품매출
+							$item_info[charger_name] = $_SESSION[admininfo]["charger"];
+							$item_info[charger_ix] = $_SESSION[admininfo]["charger_ix"];
+							$item_info[detail] = $delivery_iteminfo;
+							
+							UpdateGoodsItemStockInfo($item_info, $db);
+
+							//inventoryOutputHistory($order_detail_info, '배송중 출고');
+						}
+					}
+
+					UpdateProductCnt_complete($order_detail_info);
+					//빠른 재고 관리 전용 주문진행 중 수량 차감 inventoryOutputHistory 함수 안에 있음 kbk 13/06/20
+					//WMS (판매진행재고), 빠른재고관리 (재고,판매진행재고) 업데이트 inventoryOutputHistory 함수 안에 있음 20130821 Hong 
+
+				}else if($db->dt[status] != $status && ($status == ORDER_STATUS_CANCEL_COMPLETE || $status == ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE)){	//xuefeng2(주문취소)
+					// 주문취소 완료시 적립금 적립 취소
+
+					UpdateSellingCnt($order_detail_info);//inventory.lib.php에
+					
+					//order_price 로 넣어야함
+					//$udb->query("update ".TBL_SHOP_ORDER." set order_cancel_price = order_cancel_price + ".$ptprice." where oid = '$oid' ");
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_RETURN_COMPLETE){	//xuefeng3(반품)
+
+					
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 시작 반품일경우 is_erp_seller 를 N dmfh 수정(연동시 사용)*/
+					
+					$sql = "select
+								is_erp_link_return
+							from
+								".TBL_SHOP_ORDER."
+							where
+								oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$is_erp_link_return = $db->dt[is_erp_link_return];
+					
+					if($is_erp_link_return == "N"){
+						$sql="update ".TBL_SHOP_ORDER." set is_erp_link = 'N' where oid='".$oid."'";
+						$db->query($sql);
+					}
+
+					change_erp_link ($status,$order_detail_info[od_ix]);
+
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 끝*/
+
+					//order_price 로 넣어야함
+					//$udb->query("update ".TBL_SHOP_ORDER." set order_return_price = order_return_price + ".$ptprice." where oid = '$oid' ");
+
+					/////////////////////////////////////////////////////////////////////////////////////////////////////재고관리 사용할때 출고 리스트에 재고 정보 남기기//////////////////////////////////////////////////////////////////////////////////////////
+
+					/* 교환 회수완료 또는 반품회수 완료시!!
+					if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_detail_info[stock_use_yn] == "Y"){
+						InventoryInputHistory($order_detail_info,"RC","반품완료후 입고");
+					}
+					UpdateProductCnt_cancel($order_detail_info);//빠른 재고 관리 전용 주문진행 중 수량 증가 InventoryInputHistory 함수 안에 kbk 13/06/20
+					*/
+
+				//----------------------------------------리셀러 환불완료 인센티브 취소 START---------------------------------------------//
+
+						$db->query("select uid as flowin_code from shop_order where oid ='".$oid."' ");
+						$db->fetch();
+
+						$flowin_code = $db->dt[flowin_code];
+
+						$db->query("select rsl_code from reseller_flowin_detail where flowin_code ='".$flowin_code."' ");
+						$db->fetch();
+
+						$rsl_code = $db->dt[rsl_code];
+
+
+						if($db->total){//유입회원이라면
+
+							$db2->query("SELECT id FROM reseller_dropmember where rsl_code='".$rsl_code."'");
+
+							if(!$db2->total){//탈퇴한 리셀러가 아니라면
+
+								$db2->query("SELECT * FROM reseller_incentive where od_ix='".$od_ix[$i]."'");
+								$db2->fetch();
+
+								$incentive = -$db2->dt[incentive];//뺴기
+								$incentive_rate = $db2->dt[incentive_rate];
+
+								$db->sequences = "RESELLER_INCENTIVE_SEQ";
+								$db->query("insert into reseller_incentive (incentive_ix,rsl_code, flowin_code, regdate, incentive, incentive_type, oid, od_ix, incentive_rate) values ('','".$rsl_code."','".$flowin_code."',NOW(),'".$incentive."','2','".$oid."','".$od_ix[$i]."','".$incentive_rate."')");
+							}
+						}
+
+				//------------------------------------------리셀러 환불완료 인센티브 취소 END---------------------------------------------//
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_SOLDOUT_CANCEL){
+				    //품절취소 = 제휴사 판매불가 처리
+				}else{
+					$dc_date_str = "";
+				}
+
+                /**
+                 * 상태변경 db입력부분(마스터)
+                 *
+                 */
+                if($db_update){
+
+					if($status== ORDER_STATUS_DELIVERY_ING){
+						if($order_detail_info[status] == ORDER_STATUS_AIR_TRANSPORT_ING) $deliverycode_string= "";
+						if($order_detail_info[status] == ORDER_STATUS_AIR_TRANSPORT_ING) $quick= "";
+						if($order_detail_info[status] == ORDER_STATUS_AIR_TRANSPORT_ING) $deliverycode= "";
+					}
+
+
+					$status_message=trim($status_message);
+					if($status_message!="") {
+						$admin_message_str = " ,admin_message = '$status_message'";
+					}
+    				$admin_message = $admininfo[charger]."(".$admininfo[charger_id].")";
+	
+					//if($status != ORDER_STATUS_INCOM_READY || $status != ORDER_STATUS_INCOM_COMPLETE){
+						$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+    					$db->query("insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ) values ('','$oid','".$pid."','$status','$status_message','$admin_message','".$admininfo[company_id]."','$quick','$deliverycode',NOW())");
+    				//}
+					
+					if($status == ORDER_STATUS_REFUND_COMPLETE){
+						$db->query("UPDATE ".TBL_SHOP_ORDER_DETAIL." SET refund_status = '$status' , fc_date=NOW() WHERE od_ix ='".$od_ix[$i]."' ");
+					}else{
+						$db->query("UPDATE ".TBL_SHOP_ORDER_DETAIL." SET status = '$status' $ic_date_str $refund_status_str $deliverycode_string $admin_message_str $dc_date_str $di_date_str WHERE od_ix ='".$od_ix[$i]."' ");
+					}
+                }
+
+				///////////적립금 관련 시작//////////////
+				if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_COMPLETE){	//xuefeng1(배송완료 마일리지 적립)	test완료07-09
+
+					//////////////// 마일리지 적립 시작///////////////////////
+					$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$uid = $db->dt[uid];
+					InsertReserveInfo($uid,$oid,$order_detail_info[od_ix],$id,$reserve,'1','1',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+					//////////////// 마일리지 적립 끝///////////////////////
+
+				}else if($db->dt[status] != $status && ($status == ORDER_STATUS_CANCEL_COMPLETE || $status == ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE)){	//xuefeng2(주문취소)
+									// 주문취소 완료시 적립금 적립 취소
+					
+					//////////////// 마일리지 적립 시작///////////////////////
+					$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$uid = $db->dt[uid];
+					InsertReserveInfo($uid,$oid,$order_detail_info[od_ix],$id,$reserve,'9','2',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉	적립대기->적립취소
+					//////////////// 마일리지 적립 끝///////////////////////
+					
+					//후불 외상시 미수금 처리
+					if($order[status]==ORDER_STATUS_DEFERRED_PAYMENT){
+						$noaccept_data="";
+						$noaccept_data[oid]=$oid;
+						$noaccept_data[msg]="<br/>-".date('Ymd')." ".$order_detail_info[pname]." 취소";
+						$noaccept_data[order_cancel_price]=$order_detail_info[ptprice]-$order_detail_info[member_sale_price]-$order_detail_info[use_coupon];
+						setNoacceptOrderCancel($noaccept_data);
+					}
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_RETURN_COMPLETE){	//xuefeng3(반품완료)
+					
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 시작 반품일경우 is_erp_seller 를 N dmfh 수정(연동시 사용)*/
+					//$sql="update ".TBL_SHOP_ORDER_DETAIL." set is_erp_seller = 'N' where od_ix='".$order_detail_info[od_ix]."'";
+					//$db->query($sql);
+					$sql = "select
+								is_erp_link_return
+							from
+								".TBL_SHOP_ORDER."
+							where
+								oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$is_erp_link_return = $db->dt[is_erp_link_return];
+					
+					if($is_erp_link_return == "N"){
+						$sql="update ".TBL_SHOP_ORDER." set is_erp_link = 'N' where oid='".$oid."'";
+						$db->query($sql);
+					}
+
+					change_erp_link ($status,$order_detail_info[od_ix]);
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 끝*/
+
+					//////////////// 마일리지 적립 시작///////////////////////		반품일경우 반품 마일리지 확인필요
+					$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$uid = $db->dt[uid];
+					InsertReserveInfo($uid,$oid,$order_detail_info[od_ix],$id,$reserve,'9','3',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+					//////////////// 마일리지 적립 끝///////////////////////
+
+
+				}
+				///////////적립금 관련 끝//////////////
+
+
+
+			}
+
+			if($status == ORDER_STATUS_CANCEL_COMPLETE || $status == ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE){
+				if($order_status!=ORDER_STATUS_DEFERRED_PAYMENT){
+					$sql = "select
+							sum(case when oid='$oid' then 1 else 0 end) as whole_total ,
+							sum(case when company_id ='".$admininfo[company_id]."' then 1 else 0 end) as admin_total ,
+							sum(case when company_id != '".$admininfo[company_id]."' then 1 else 0 end) as etc_total ,
+							sum(case when status = '$status' then 1 else 0 end) as status_total
+							from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid'";
+					$db->query($sql);
+					$db->fetch();
+					$whole_total = $db->dt[whole_total];
+					$status_total = $db->dt[status_total];
+
+					if(count($od_ix) == $whole_total || $whole_total == $status_total){
+						$udb->query("UPDATE ".TBL_SHOP_ORDER." SET status = '$status'  WHERE oid ='".$oid."' ");
+
+						if($status == ORDER_STATUS_CANCEL_COMPLETE){
+							//전체 취소일때 사용한 적립금 돌려주기
+							$db->query("SELECT sum(case when payment_status = 'G'  then reserve else -reserve end) as reserve   from shop_order_price where oid = '$oid' ");
+							$db->fetch();
+							$reserve = $db->dt[reserve];
+							$msg="전체취소완료로 인한 적립금 환불";
+							if($reserve > 0){
+								table_order_price_data_creation($oid,'','','F','',0,0,$msg,$reserve,0,0);
+							}
+						}
+					}
+				}
+			}
+		}
+//******************************************************************************* 마스터 관리자  END ********************************************************************************//
+
+//******************************************************************************* 셀러 일때  START ***************************************************************************************//
+	}else if($admininfo[admin_level] == 8){
+
+
+			if($deliverycode){
+				$deliverycode_string = " , delivery_method='$delivery_method', invoice_no='$deliverycode', quick = '$quick' " ;
+			}
+
+			$udb = new Database;
+
+			for($i=0;$i < count($od_ix);$i++){
+
+				$db->query("select * from ".TBL_SHOP_ORDER_DETAIL." where  od_ix ='".$od_ix[$i]."' ");
+				$db->fetch();
+				$order_detail_info = $db->dt;
+				$pid = $db->dt[pid];
+				$ptprice = $db->dt[ptprice];
+				$pcnt = $db->dt[pcnt];
+				$select_option_id = $db->dt[option1];
+				$stock_use_yn = $db->dt[stock_use_yn];
+				$di_date = $db->dt[di_date];
+
+                //배송완료
+				if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_COMPLETE){//xuefeng10 (배송완료)
+					
+					$dc_date_str = " , dc_date = NOW() ";
+
+					//----------------------------------------리셀러 배송완료시 인센티브 적용 START---------------------------------------------//
+					if($reseller_data[rsl_use] == "y"){
+
+						$db->query("select uid as flowin_code from shop_order where oid ='".$oid."' ");
+						$db->fetch();
+
+						$flowin_code = $db->dt[flowin_code];
+
+						$db->query("select rsl_code from reseller_flowin_detail where flowin_code ='".$flowin_code."' ");
+						$db->fetch();
+
+						$rsl_code = $db->dt[rsl_code];
+
+						if($db->total){//유입회원이라면
+
+							$db->query("select count(*) as first_order from reseller_incentive where flowin_code='".$flowin_code."' and incentive_type = '2'");
+							$db->fetch();
+							$first_order = $db->dt[first_order]; //첫구매여부
+
+
+							$db2->query("SELECT id FROM reseller_dropmember where rsl_code='".$rsl_code."'");
+
+
+							if(!$db2->total){//탈퇴한 리셀러가 아니라면
+
+								$db2->query("SELECT * FROM reseller_policy where rsl_code='".$rsl_code."'");
+								$db2->fetch();
+
+								$new_incentive_type = $db2->dt[new_incentive_type];
+								$new_incentive_after = $db2->dt[new_incentive_after];
+								$incentive_type = $db2->dt[incentive_type];
+								$incentive_rate = $db2->dt[incentive_rate];
+
+								//첫구매시
+								if($first_order == 0 ){
+									//신규회원 유도 첫구매시 설정했을때
+									if($new_incentive_type == '3'){
+										$db->sequences = "RESELLER_INCENTIVE_SEQ";
+										$db->query("insert into reseller_incentive (incentive_ix,rsl_code, flowin_code, regdate, incentive, incentive_type, oid, od_ix, incentive_rate) values ('','".$rsl_code."','".$flowin_code."',NOW(),'".$new_incentive_after."','2','".$oid."','".$od_ix[$i]."','0')");
+									}
+								//첫구매가 아니라면
+								}elseif($first_order != 0){
+									//매출액 인센티브 사용할때
+									if($incentive_type == '2'){
+										$incentive = $ptprice * $incentive_rate / 100;
+										$db->sequences = "RESELLER_INCENTIVE_SEQ";
+										$db->query("insert into reseller_incentive (incentive_ix,rsl_code, flowin_code, regdate, incentive, incentive_type, oid, od_ix, incentive_rate) values ('','".$rsl_code."','".$flowin_code."',NOW(),'".$incentive."','2','".$oid."','".$od_ix[$i]."','".$incentive_rate."')");
+									}
+								}
+							}
+						}
+					}
+					//-----------------------------------------------리셀러 배송완료시 인센티브 적용 END---------------------------------------//
+					
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_AIR_TRANSPORT_ING){
+					if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_detail_info[stock_use_yn] == "Y"){
+						if($order_detail_info[product_type]=='1' || $order_detail_info[product_type]=='2'){ //해외 물류는 항공 배송중에서 재고차감
+							//inventoryOutputHistory($order_detail_info, '항공배송중 출고');
+						}
+					}
+                //배송중
+                }else if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_ING){
+					$di_date_str = " , di_date = NOW() ";
+
+					/////////////////////////////////////////////////////////////////////////////////////////////////////재고관리 사용할때 출고 리스트에 재고 정보 남기기////////////////////////////////////////////////////////////////////////////////////////
+
+					if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_detail_info[stock_use_yn] == "Y" ){
+						if($order_detail_info[product_type]!='1' && $order_detail_info[product_type]!='2' ){ //해외 물류는 항공 배송중에서 재고차감
+
+							$sql = "select g.gid, gu.unit, g.standard, g.pi_ix , g.ps_ix
+							from inventory_goods g , inventory_goods_unit gu 
+							where g.gid = gu.gid and gu.gu_ix = '".$order_detail_info[pcode]."'";
+							// 출고가격을 어떻게 처리 할지? 
+							// 한꺼번에 여러개를 묶음으로 처리하는데 출고가 ... 
+							$db->query($sql);
+							$db->fetch();
+							$single_item_info = $db->dt;
+
+							$sql = "select g.pi_ix, 	pi.company_id, pi.place_name, ps.ps_ix, ps.section_name
+									from inventory_goods g 
+									left join inventory_goods_unit gu on g.gid =gu.gid 
+									left join inventory_place_info pi on pi.pi_ix = g.pi_ix and pi.pi_ix = '".$single_item_info[pi_ix]."'
+									left join inventory_place_section ps on pi.pi_ix = ps.pi_ix and  ps.pi_ix = g.pi_ix and ps.section_type = 'D'
+									left join inventory_product_stockinfo ips on gu.gid = ips.gid and gu.unit = ips.unit and ips.pi_ix = ps.pi_ix and ips.ps_ix = ps.ps_ix
+									where gu.gu_ix = '".$order_detail_info[pcode]."' 
+									";
+							$db->query($sql);
+							$db->fetch();
+							$warehouse_info = $db->dt;
+
+							$sql = "select g.gid, gu.unit, g.standard,
+							'".$order_detail_info[pcnt]."' as amount ,
+							'".$order_detail_info[psprice]."' as price ,
+							'".$order_detail_info[ptprice]."' as ptprice ,
+							'".$order_detail_info[use_coupon]."' as use_coupon ,
+							'".$warehouse_info[company_id]."' as company_id,
+							'".$warehouse_info[pi_ix]."' as pi_ix,
+							'".$warehouse_info[ps_ix]."' as ps_ix  
+							from inventory_goods g , inventory_goods_unit gu 
+							where g.gid = gu.gid and gu.gu_ix = '".$order_detail_info[pcode]."'";
+							// 출고가격을 어떻게 처리 할지? 
+							// 한꺼번에 여러개를 묶음으로 처리하는데 출고가 ... 
+							$db->query($sql);
+							$delivery_iteminfo = $db->fetchall();
+
+							$item_info[pi_ix] = $warehouse_info[pi_ix];
+							$item_info[ps_ix] = $warehouse_info[ps_ix];
+							$item_info[company_id] = $warehouse_info[company_id];
+							$item_info[h_div] = "2"; // 2: 출고
+							$item_info[vdate] = date("Ymd");
+							//$item_info[ci_ix] = $_POST["ci_ix"];
+							$item_info[oid] = $oid;
+							$item_info[msg] = "상품판매 - 출고";//$_POST["etc"];
+							$item_info[h_type] = '01';//01; 상품매출
+							$item_info[charger_name] = $_SESSION[admininfo]["charger"];
+							$item_info[charger_ix] = $_SESSION[admininfo]["charger_ix"];
+							$item_info[detail] = $delivery_iteminfo;
+							
+							UpdateGoodsItemStockInfo($item_info, $db);
+
+							//inventoryOutputHistory($order_detail_info, '배송중 출고');
+						}
+					}
+						
+					UpdateProductCnt_complete($order_detail_info);
+					//빠른 재고 관리 전용 주문진행 중 수량 차감 inventoryOutputHistory 함수 안에 있음 kbk 13/06/20
+					//WMS (판매진행재고), 빠른재고관리 (재고,판매진행재고) 업데이트 inventoryOutputHistory 함수 안에 있음 20130821 Hong 
+					
+                //주문취소 완료
+				}else if($db->dt[status] != $status && ($status == ORDER_STATUS_CANCEL_COMPLETE || $status == ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE)){	//xuefeng11(주문취소완료)
+					// 주문취소 완료시 적립금 적립 취소
+
+					//order_price 로 넣어야함
+					//$udb->query("update ".TBL_SHOP_ORDER." set order_cancel_price = order_cancel_price + ".$ptprice." where oid = '$oid' ");
+
+					UpdateSellingCnt($order_detail_info);
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_RETURN_COMPLETE){	//xuefeng12(반품완료)
+
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 시작 반품일경우 is_erp_seller 를 N dmfh 수정(연동시 사용)*/
+					//$sql="update ".TBL_SHOP_ORDER_DETAIL." set is_erp_seller = 'N' where od_ix='".$order_detail_info[od_ix]."'";
+					//$db->query($sql);
+
+					$sql = "select
+								is_erp_link_return
+							from
+								".TBL_SHOP_ORDER."
+							where
+								oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$is_erp_link_return = $db->dt[is_erp_link_return];
+					
+					if($is_erp_link_return == "N"){
+						$sql="update ".TBL_SHOP_ORDER." set is_erp_link = 'N' where oid='".$oid."'";
+						$db->query($sql);
+					}
+
+					change_erp_link ($status,$order_detail_info[od_ix]);
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 끝*/
+
+
+					// 주문취소 완료시 적립금 적립 취소
+					
+					//order_price 로 넣어야함
+					//$udb->query("update ".TBL_SHOP_ORDER." set order_return_price = order_return_price + ".$ptprice." where oid = '$oid' ");
+					
+					/* 교환 회수완료 또는 반품회수 완료시!!
+					if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_detail_info[stock_use_yn] == "Y"){
+						InventoryInputHistory($order_detail_info,"RC","반품완료후 입고");
+					}
+					UpdateProductCnt_cancel($order_detail_info);//빠른 재고 관리 전용 주문진행 중 수량 증가 InventoryInputHistory 함수 안에 kbk 13/06/20
+					*/
+
+					//----------------------------------------리셀러 환불완료 인센티브 취소 START---------------------------------------------//
+
+						$db->query("select uid as flowin_code from shop_order where oid ='".$oid."' ");
+						$db->fetch();
+
+						$flowin_code = $db->dt[flowin_code];
+
+						$db->query("select rsl_code from reseller_flowin_detail where flowin_code ='".$flowin_code."' ");
+						$db->fetch();
+
+						$rsl_code = $db->dt[rsl_code];
+
+
+						if($db->total){//유입회원이라면
+
+							$db2->query("SELECT id FROM reseller_dropmember where rsl_code='".$rsl_code."'");
+
+							if(!$db2->total){//탈퇴한 리셀러가 아니라면
+
+								$db2->query("SELECT * FROM reseller_incentive where od_ix='".$od_ix[$i]."'");
+								$db2->fetch();
+
+								$incentive = -$db2->dt[incentive];//뺴기
+								$incentive_rate = $db2->dt[incentive_rate];
+
+								$db->sequences = "RESELLER_INCENTIVE_SEQ";
+								$db->query("insert into reseller_incentive (incentive_ix,rsl_code, flowin_code, regdate, incentive, incentive_type, oid, od_ix, incentive_rate) values ('','".$rsl_code."','".$flowin_code."',NOW(),'".$incentive."','2','".$oid."','".$od_ix[$i]."','".$incentive_rate."')");
+							}
+						}
+
+					//------------------------------------------리셀러 환불완료 인센티브 취소 END---------------------------------------------//
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_SOLDOUT_CANCEL){
+				    //품절취소 = 제휴사 판매불가 처리
+                }else{
+					$dc_date_str = "";
+				}
+
+                /**
+                 * 상태변경 db입력 부분(셀러)
+                 */
+
+				if($status== ORDER_STATUS_DELIVERY_ING){
+						if($order_detail_info[status] == ORDER_STATUS_AIR_TRANSPORT_ING) $deliverycode_string= "";
+						if($order_detail_info[status] == ORDER_STATUS_AIR_TRANSPORT_ING) $quick= "";
+						if($order_detail_info[status] == ORDER_STATUS_AIR_TRANSPORT_ING) $deliverycode= "";
+				}
+
+				$status_message=trim($status_message);
+				if($status_message!="") {
+					$admin_message_str = " ,admin_message = '$status_message'";
+				}
+				$admin_message = $admininfo[charger]."(".$admininfo[charger_id].")";
+
+				//if($status != ORDER_STATUS_INCOM_READY || $status != ORDER_STATUS_INCOM_COMPLETE){
+					$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+					$db->query("insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ) values ('','$oid','".$pid."','$status','$status_message','$admin_message','".$admininfo[company_id]."','$quick','$deliverycode',NOW())");
+				//}
+
+				$db->query("UPDATE ".TBL_SHOP_ORDER_DETAIL." SET status = '$status' $deliverycode_string $admin_message_str $dc_date_str $di_date_str WHERE od_ix ='".$od_ix[$i]."' ");
+				
+
+				//배송완료
+				if($db->dt[status] != $status && $status == ORDER_STATUS_DELIVERY_COMPLETE){//xuefeng10 (배송완료)
+					//////////////// 마일리지 적립 시작///////////////////////		반품일경우 반품 마일리지 확인필요
+					$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$uid = $db->dt[uid];
+					InsertReserveInfo($uid,$oid,$order_detail_info[od_ix],$id,$reserve,'1','1',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+					//////////////// 마일리지 적립 끝///////////////////////
+				}else if($db->dt[status] != $status && ($status == ORDER_STATUS_CANCEL_COMPLETE || $status == ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE)){	//xuefeng11(주문취소완료)
+					// 주문취소 완료시 적립금 적립 취소
+					//
+					//////////////// 마일리지 적립 시작///////////////////////		주문취소완료
+					$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$uid = $db->dt[uid];
+					InsertReserveInfo($uid,$oid,$order_detail_info[od_ix],$id,$reserve,'9','2',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+					//////////////// 마일리지 적립 끝///////////////////////
+
+					//후불 외상시 미수금 처리
+					if($order[status]==ORDER_STATUS_DEFERRED_PAYMENT){
+						$noaccept_data="";
+						$noaccept_data[oid]=$oid;
+						$noaccept_data[msg]="<br/>-".date('Ymd')." ".$order_detail_info[pname]." 취소";
+						$noaccept_data[order_cancel_price]=$order_detail_info[ptprice]-$order_detail_info[member_sale_price]-$order_detail_info[use_coupon];
+						setNoacceptOrderCancel($noaccept_data);
+					}
+
+				}else if($db->dt[status] != $status && $status == ORDER_STATUS_RETURN_COMPLETE){	//xuefeng12(반품완료)
+
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 시작 반품일경우 is_erp_seller 를 N dmfh 수정(연동시 사용)*/
+					//$sql="update ".TBL_SHOP_ORDER_DETAIL." set is_erp_seller = 'N' where od_ix='".$order_detail_info[od_ix]."'";
+					//$db->query($sql);
+					$sql = "select
+								is_erp_link_return
+							from
+								".TBL_SHOP_ORDER."
+							where
+								oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$is_erp_link_return = $db->dt[is_erp_link_return];
+					
+					if($is_erp_link_return == "N"){
+						$sql="update ".TBL_SHOP_ORDER." set is_erp_link = 'N' where oid='".$oid."'";
+						$db->query($sql);
+					}
+					change_erp_link ($status,$order_detail_info[od_ix]);
+					/* ERP 2차 연동을 위한 처리값 2013-10-20 이학봉 끝*/
+
+					// 주문취소 완료시 적립금 적립 취소
+					//
+					//////////////// 마일리지 적립 시작///////////////////////		반품완료
+					$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+					$db->query($sql);
+					$db->fetch();
+					$uid = $db->dt[uid];
+					InsertReserveInfo($uid,$oid,$order_detail_info[od_ix],$id,$reserve,'9','3',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+				}
+				//////////////// 마일리지 적립 끝///////////////////////
+			}
+
+            //취소완료
+			if($status == ORDER_STATUS_CANCEL_COMPLETE || $status == ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE){
+					$sql = "select
+					sum(case when oid='$oid' then 1 else 0 end) as whole_total ,
+					sum(case when company_id ='".$admininfo[company_id]."' then 1 else 0 end) as admin_total ,
+					sum(case when company_id != '".$admininfo[company_id]."' then 1 else 0 end) as etc_total ,
+					sum(case when status = '$status' then 1 else 0 end) as status_total
+					from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid'";
+					$db->query($sql);
+					$db->fetch();
+					$whole_total = $db->dt[whole_total];
+					$status_total = $db->dt[status_total];
+
+					if(count($od_ix) == $whole_total || $whole_total == $status_total){
+						$udb->query("UPDATE ".TBL_SHOP_ORDER." SET status = '$status'  WHERE oid ='".$oid."' ");
+
+						//이학봉 대리님 여기에다가 적립사용 ->  적립(-)완료로 넣어주시면 됩니다.
+					}
+			}
+
+
+	}
+//******************************************************************************* 셀러  END ***************************************************************************************//
+
+	echo("<script>parent.location.reload();location.href='about:blank';</script>");
+}
+
+
+if($act == "order_apply"){
+
+	$od_ix = str_replace('|',"','",$od_ix_str);
+
+	if($status==ORDER_STATUS_CANCEL_APPLY){//취소요청		//xuefeng 적립금 취소 요청 필요
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix in ('".$od_ix."') ";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+
+		for($i=0;$i < count($order_details);$i++){
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_CANCEL_APPLY."' , update_date = NOW() 
+			where  od_ix='".$order_details[$i][od_ix]."' ";
+			$db->query($sql);
+
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ,reason_code, c_type)
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_CANCEL_APPLY."','[".$order_select_status_div['A']['DR']['CA'][$reason_code][title]."]".$msg."-관리자에서 처리','".$admininfo[charger]."(".$admininfo[charger_id].")','".$admininfo[company_id]."','$delivery_company','$deliverycode',NOW(),'$reason_code','$c_type')";
+			//echo $sql."<br><br>";
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+		}
+	}elseif($status==ORDER_STATUS_CANCEL_COMPLETE){//취소완료	//xuefeng 적립금 취소 추가 필요
+
+		$sql="select od.*,o.status as order_status from ".TBL_SHOP_ORDER." o ,".TBL_SHOP_ORDER_DETAIL." od where o.oid=od.oid and od.od_ix in ('".$od_ix."') ";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		$arr_in_od_ix=array();	//부분취소 메일발송용
+		for($i=0;$i < count($order_details);$i++){
+
+			array_push($arr_in_od_ix,$order_details[$i][od_ix]);
+
+			if($order_details[$i][order_status]==ORDER_STATUS_DEFERRED_PAYMENT){//외상일때 환불 신청 X
+				$update_str ="";
+			}elseif($order_details[$i][order_status]==ORDER_STATUS_INCOM_READY){
+				$update_str ="";
+				$status=ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE;
+				$sql="update ".TBL_SHOP_ORDER." set status = '".ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE."' 
+				where  oid='".$order_details[$i][oid]."' ";
+				$db->query($sql);
+				
+			}else{
+				$update_str = " , refund_status='".ORDER_STATUS_REFUND_APPLY."'  , fa_date=NOW() ";
+			}
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".$status."'  , update_date = NOW() $update_str
+			where  od_ix='".$order_details[$i][od_ix]."' ";
+			$db->query($sql);
+
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ,reason_code, c_type)
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".$status."','[".$order_select_status_div['A']['DR']['CA'][$reason_code][title]."]".$msg."-관리자에서 처리','".$admininfo[charger]."(".$admininfo[charger_id].")','".$admininfo[company_id]."','$delivery_company','$deliverycode',NOW(),'$reason_code','$c_type')";
+			//echo $sql."<br><br>";
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+
+			//////////////// 마일리지 적립 시작///////////////////////
+			$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$order_details[$i][oid]."'";
+			$db->query($sql);
+			$db->fetch();
+			$uid = $db->dt[uid];
+			InsertReserveInfo($uid,$order_details[$i][oid],$order_details[$i][od_ix],$id,$reserve,'9','2',$etc,'mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉	적립대기->적립취소
+			//////////////// 마일리지 적립 끝///////////////////////
+			
+			//후불 외상시 미수금 처리
+			if($i==0){
+				$mdb->query("select * from ".TBL_SHOP_ORDER."  WHERE oid='".$order_details[0][oid]."' ");
+				$order = $mdb->fetch();
+			}
+
+			if($order[status]==ORDER_STATUS_DEFERRED_PAYMENT){
+				$noaccept_data="";
+				$noaccept_data[oid]=$order_details[$i][oid];
+				$noaccept_data[msg]="<br/>-".date('Ymd')." ".$order_details[$i][pname]." 취소";
+				$noaccept_data[order_cancel_price]=$order_details[$i][ptprice]-$order_details[$i][member_sale_price]-$order_details[$i][use_coupon];
+				setNoacceptOrderCancel($noaccept_data);
+			}
+
+		}
+
+		if(count($arr_in_od_ix)>0) {
+
+			//취소 메일 보내기 2012-07-24 홍진영
+			$sql = "select *,pid as id from ".TBL_SHOP_ORDER_DETAIL." WHERE od_ix IN ('".implode("','",$arr_in_od_ix)."') ";
+			$mdb->query($sql);
+			$order_details = $mdb->fetchall();
+
+			//print_r($order_details);
+			//exit;
+			$mdb->query("select * from ".TBL_SHOP_ORDER."  WHERE oid='".$order_details[0][oid]."' ");
+			$order = $mdb->fetch();
+
+			if($order_details[0][order_from] == 'self'){
+				$mail_info[mem_name] = $order[bname];
+				$mail_info[mem_mail] = $order[bmail];
+				$mail_info[mem_id] = $order[bname];
+				$mail_info[mem_mobile] = $order[bmobile];
+
+				sendMessageByStep('order_cancel', $mail_info);
+			}
+		}
+
+
+	}elseif($status==ORDER_STATUS_RETURN_APPLY){//반품요청
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix in ('".$od_ix."') ";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+
+		for($i=0;$i < count($order_details);$i++){
+			
+			$db->query("select * from common_company_detail where company_id='".$order_details[$i][company_id]."' ");
+			$seller_info = $db->fetch();
+			
+			if($payment_yn=='Y'){
+				$payment_date="NOW()";
+			}else{
+				$payment_date="''";
+			}
+			//반품정보 입력
+			$sql="insert into shop_order_detail_deliveryinfo(odd_ix,oid,od_ix,order_type,rname,rtel,rmobile,rmail,zip,addr1,addr2,msg,delivery_method,quick,invoice_no,send_yn,send_type,add_delivery_price,payment_method,payment_yn,payment_date,date,static_date) values('','".$order_details[$i][oid]."','".$order_details[$i][od_ix]."','3','".$seller_info[com_name]."','".$seller_info[cs_phone]."','".$seller_info[cs_phone]."','','".$return_zip1."-".$return_zip2."','$return_addr1','$return_addr2','','$delivery_method','$delivery_company','$deliverycode','$send_yn','$send_type','$add_delivery_price','$payment_method','$payment_yn',".$payment_date.",NOW(),'".date('Ymd')."')";
+			$db->query($sql);
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_RETURN_APPLY."' , update_date = NOW() 
+			where  od_ix='".$order_details[$i][od_ix]."' ";
+			$db->query($sql);
+
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ,reason_code, c_type)
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_RETURN_APPLY."','[".$order_select_status_div['A']['DC']['RA'][$reason_code][title]."]".$msg."-관리자에서 처리','".$admininfo[charger]."(".$admininfo[charger_id].")','".$admininfo[company_id]."','','',NOW(),'$reason_code','$c_type')";
+			//echo $sql."<br><br>";
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+
+			if($add_delivery_price > 0 && $payment_yn=='Y'){ //추가배송비 입금확인 되었을때!
+				table_order_price_data_creation($order_details[$i][oid],$order_details[$i][od_ix],$order_details[$i][company_id],'A','D',$add_delivery_price,$add_delivery_price,'추가배송비[관리자에서 반품신청]',0,0,0);
+			}elseif($add_delivery_price > 0 && $payment_yn=='N'){
+				table_order_price_data_creation($order_details[$i][oid],$order_details[$i][od_ix],$order_details[$i][company_id],'A','D',$add_delivery_price,0,$msg,$reserve,0,0);
+			}
+		}
+	}elseif($status==ORDER_STATUS_EXCHANGE_APPLY){//교환요청
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix in ('".$od_ix."') ";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+
+		for($i=0;$i < count($order_details);$i++){
+			
+			$db->query("select * from common_company_detail where company_id='".$order_details[$i][company_id]."' ");
+			$seller_info = $db->fetch();
+			
+			if($payment_yn=='Y'){
+				$payment_date="NOW()";
+			}else{
+				$payment_date="''";
+			}
+
+			//반품정보 입력
+			$sql="insert into shop_order_detail_deliveryinfo (odd_ix,oid,od_ix,order_type,rname,rtel,rmobile,rmail,zip,addr1,addr2,msg,delivery_method,quick,invoice_no,send_yn,send_type,add_delivery_price,payment_method,payment_yn,payment_date,date,static_date) values('','".$order_details[$i][oid]."','".$order_details[$i][od_ix]."','3','".$seller_info[com_name]."','".$seller_info[cs_phone]."','".$seller_info[cs_phone]."','','".$return_zip1."-".$return_zip2."','$return_addr1','$return_addr2','','$delivery_method','$delivery_company','$deliverycode','$send_yn','$send_type','$add_delivery_price','$payment_method','$payment_yn',".$payment_date.",NOW(),'".date('Ymd')."')";
+			$db->query($sql);
+			
+			$db->query("select * from shop_order where oid='".$order_details[$i][oid]."' ");
+			$order_info = $db->fetch();
+
+			//교환받을정보 입력
+			$sql="insert into shop_order_detail_deliveryinfo (odd_ix,oid,od_ix,order_type,rname,rtel,rmobile,rmail,zip,addr1,addr2,msg,delivery_method,quick,invoice_no,date,static_date) values('','".$order_details[$i][oid]."','".$order_details[$i][od_ix]."','2','".$order_info[rname]."','".$order_info[rtel]."','".$order_info[rmobile]."','".$order_info[rmail]."','".$zip1."-".$zip2."','$addr1','$addr2','','$delivery_method','$delivery_company','$deliverycode',NOW(),'".date('Ymd')."')";
+			$db->query($sql);
+			
+
+			$db->query("select odd_ix from shop_order_detail_deliveryinfo where odd_ix=LAST_INSERT_ID() ");
+			$db->fetch();
+			$odd_ix = $db->dt[odd_ix];
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_EXCHANGE_APPLY."' , update_date = NOW() 
+			where  od_ix='".$order_details[$i][od_ix]."' ";
+			$db->query($sql);
+
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, admin_message, company_id,quick,invoice_no, regdate ,reason_code, c_type)
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_EXCHANGE_APPLY."','[".$order_select_status_div['A']['DC']['EA'][$reason_code][title]."]".$msg."-관리자에서 처리','".$admininfo[charger]."(".$admininfo[charger_id].")','".$admininfo[company_id]."','','',NOW(),'$reason_code','$c_type')";
+			//echo $sql."<br><br>";
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+			
+			if($add_delivery_price > 0 && $payment_yn=='Y'){ //추가배송비 입금확인 되었을때!
+				table_order_price_data_creation($order_details[$i][oid],$order_details[$i][od_ix],$order_details[$i][company_id],'A','D',$add_delivery_price,$add_delivery_price,'추가배송비[관리자에서 교환신청]',0,0,0);
+			}elseif($add_delivery_price > 0 && $payment_yn=='N'){
+				table_order_price_data_creation($order_details[$i][oid],$order_details[$i][od_ix],$order_details[$i][company_id],'A','D',$add_delivery_price,0,$msg,$reserve,0,0);
+			}
+		}
+	}
+
+
+	echo("<script language='javascript' src='../js/message.js.php'></script>
+	<script language='javascript'>
+		show_alert('정상적으로 요청되었습니다.');
+		
+		if(top.window.dialogArguments) {//showModalDialog를 사용할 경우 부모창 새로 고침을 위해 수정 kbk 13/08/03
+			var opener=top.window.dialogArguments;
+			top.window.returnValue=true;
+		} else {
+			top.opener.document.location.reload();
+		}
+		top.window.close();
+	</script>");
+	exit;
+}
+
+if($act=="part_cancel"){//부분취소!
+	$refund_total_price = $_GET["refund_total_price"];
+	$pay_type = $_GET["pay_type"];
+	if($pay_type == "pg" && !empty($refund_total_price)){
+
+		if($method!=ORDER_METHOD_NOPAY && $method!=ORDER_METHOD_CASH && $method!=ORDER_METHOD_BANK && $method!=ORDER_METHOD_VBANK){
+			//TODO: call PG cancel process
+			include("./cancelService/cancel.php");
+			$cancel = new cancel();
+
+			$data["cancel_amount"] = $refund_total_price;
+			$data["oid"] = $_GET["oid"];
+			$data["cancel_msg"] = "부분취소 테스트요청"; //메시지 추가
+			$data["company_id"] = $_SESSION["admininfo"]["company_id"];
+			$result = $cancel->requestCancel($data);
+		}
+
+        if($result == "success" || $method==ORDER_METHOD_NOPAY || $method==ORDER_METHOD_CASH || $method==ORDER_METHOD_BANK || $method==ORDER_METHOD_VBANK){
+
+			//상품별로 status 남기기
+			$od_ix_str="";
+			$status_message ="부분취소 완료";
+
+			table_order_price_data_creation($oid,'','','F','P',$total_product_price,$refund_product_price,$status_message,$reserve_product_price,0,$save_product_price);
+			if($total_delivery_price){
+				table_order_price_data_creation($oid,'','','F','D',$total_delivery_price,$refund_delivery_price,$status_message,$reserve_delivery_price,0,$save_delivery_price);
+			}
+			/* 잠시 대기! 이슈많음
+			foreach($change_price as  $company_id => $change_delivery_price){
+				echo "UPDATE ".TBL_SHOP_ORDER_DELIVERY." SET delivery_price = delivery_price - ".$change_delivery_price." WHERE oid ='".$oid."' and company_id ='".$company_id."' ";
+				exit;
+				//$db->query("UPDATE ".TBL_SHOP_ORDER_DELIVERY." SET delivery_price = delivery_price - ".$change_delivery_price." WHERE oid ='".$oid."' and company_id ='".$company_id."' ");
+			}*/
+
+			for($j=0;$j < count($od_ix);$j++){
+				if($j==0){
+					$od_ix_str .= "'".$od_ix[$j]."'";
+				}else{
+					$od_ix_str .= ",'".$od_ix[$j]."'";
+				}
+			}
+			
+			if($reserve_product_price > 0){
+				//////////////// 마일리지 적립 시작///////////////////////		반품일경우 반품 마일리지 확인필요
+				$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+				$db->query($sql);
+				$db->fetch();
+				$uid = $db->dt[uid];
+				InsertReserveInfo($uid,$oid,'',$id,$reserve_product_price,'1','3','주문 환불금액 적립','mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+				//////////////// 마일리지 적립 끝///////////////////////
+			}
+
+			if($reserve_delivery_price > 0){
+				//////////////// 마일리지 적립 시작///////////////////////		반품일경우 반품 마일리지 확인필요
+				$sql = "select uid from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+				$db->query($sql);
+				$db->fetch();
+				$uid = $db->dt[uid];
+				InsertReserveInfo($uid,$oid,'',$id,$reserve_delivery_price,'1','3','배송비 환불금액 적용','mileage',$admininfo);	//마일리지,적립금 통합용 함수 2013-06-19 이학봉
+				//////////////// 마일리지 적립 끝///////////////////////
+			}
+
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix in (".$od_ix_str.") ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+			for($i=0;$i < count($order_details);$i++){
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message,admin_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_REFUND_COMPLETE."','$status_message','".$admininfo[charger]."(".$admininfo[charger_id].")','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+				
+				$db->query("UPDATE ".TBL_SHOP_ORDER_DETAIL." SET refund_status = '".ORDER_STATUS_REFUND_COMPLETE."' , fc_date=NOW() WHERE od_ix ='".$order_details[$i][od_ix]."' ");
+			}
+			
+			//세금계산서 환입프로세스
+
+			
+			//세금계산서 발행 되었는지 부터 확인후 처리하기!
+			$sql="select 
+					od.oid, od.surtax_yorn, sum(ifnull(od.ptprice,'0')-ifnull(od.use_coupon,'0')-ifnull(od.member_sale_price,'0')) as p_price
+				from
+					".TBL_SHOP_ORDER_DETAIL." od, ".TBL_SHOP_ORDER." o
+				where 
+					o.oid=od.oid 
+				and
+					od.od_ix in (".$od_ix_str.")
+				and
+					o.taxsheet_yn='Y'
+				and
+					o.tax_affairs_yn ='Y'
+				group by 
+					od.surtax_yorn ";
+			$db->query($sql);
+			$order = $db->fetchall();
+
+			if($db->total){
+
+				include_once("../lib/barobill.lib.php");
+
+				$db->query("SELECT com_name, com_number, com_business_status, com_ceo, com_business_category, com_addr1, com_addr2, tax_person_name, tax_person_mail FROM ".TBL_COMMON_COMPANY_DETAIL." WHERE com_type = 'A' ");
+				$buyer = $db->fetch();
+
+				for($i=0;$i < count($order);$i++){
+
+					$sql = "SELECT o.*, count(case when o.surtax_yorn = '".$order[$i][surtax_yorn]."' then '1' else '0' end) as pcnt,ccd.com_name,ccd.com_number,ccd.com_business_status, ccd.com_ceo, ccd.com_business_category,ccd.com_addr1, ccd.com_addr2,ccd.tax_person_name,ccd.tax_person_mail 
+					FROM
+					(
+						SELECT  o.uid as code ,od.pname,od.surtax_yorn
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+						WHERE o.oid=od.oid AND od.status <> '' AND od.od_ix in (".$od_ix_str.")
+					) o  left join common_user cu using(code) left join common_member_detail cmd using(code) left join common_company_detail ccd  on (cu.company_id=ccd.company_id) ";
+					$db->query($sql);
+					$seller = $db->fetch();
+					
+					if($order[$i][surtax_yorn]=='N'){//과세일때
+						$expect[total_price]=-($order[$i][p_price]+$total_delivery_price);
+						$expect[supply_price]=ceil($expect[total_price]/1.1);
+						$expect[tax_price]=$expect[total_price]-$expect[supply_price];
+					}else{
+						$expect[total_price]=-$order[$i][p_price];
+						$expect[supply_price]=-$order[$i][p_price];
+						$expect[tax_price]=0;
+					}
+
+					$real[supply_price]=$expect[supply_price];
+					$real[tax_price]=$expect[tax_price];
+					$real[total_price]=$expect[total_price];
+
+					$product[mon]=date("m");
+					$product[day]=date("d");
+
+					if($seller[pcnt]){
+						$product[product]="상품환불 : ".($seller[pcnt] > 1 ? $seller[pname]." 외 ".number_format($seller[pcnt]-1) : $seller[pname]);
+					}else{
+						$product[product]="배송비환불";
+					}
+					
+					//insert_tax_sales -> ../lib/barobill.lib.php 
+					//publish_type 1,매출 2,매입 3,위수탁
+					//tax_div 구분 1:구매자,2:판매자
+					//tax_type 1.세금계산서 2.계산서
+					//tax_per 1:과세 2:면세
+					$tax_info[publish_type]="1";
+					$tax_info[tax_div]="1";
+					
+					if($order[$i][surtax_yorn]=='N'){
+						$tax_info[tax_type]="1";
+						$tax_info[tax_per]="1";
+					}else{
+						$tax_info[tax_type]="2";
+						$tax_info[tax_per]="2";
+					}
+
+					$p_idx = insert_tax_sales($tax_info,$buyer,$seller,$expect,$real,$product);
+
+					if($p_idx){
+						if(!barobill_update($p_idx,$oid)){
+							echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('환불처리는 정상적으로 처리 되었으나 바로빌 환입계산서 발행은 실패하였습니다. 세금&계산서완료 페이지에서 재발행 해주세요.');parent.self.close();parent.opener.document.location.reload();</script>");
+							exit;
+						}
+					}
+				}
+			}
+
+			echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 처리 되었습니다.');parent.self.close();parent.opener.document.location.reload();</script>");
+			exit;
+        }else{
+			//echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('PG결제취소 실패.');parent.self.close();parent.opener.document.location.reload();</script>");
+            //PG결제취소 실패
+            exit;
+        }
+	}
+}
+
+/*
+if ($act == "delete"){
+	$db->query("DELETE FROM ".TBL_SHOP_ORDER." WHERE oid='$oid'");
+	$db->query("DELETE FROM ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid'");
+	$db->query("DELETE FROM ".TBL_SHOP_ORDER_STATUS." WHERE oid='$oid'");
+	$db->query("DELETE FROM shop_order_delivery WHERE oid='$oid'");//추가 kbk 12/11/22
+	$db->query("DELETE FROM shop_order_memo WHERE oid='$oid' ");
+	echo("<script>top.location.href = 'orders.list.php?page=$page';</script>");
+}
+*/
+
+
+if ($act == "send_mail"){
+	include($_SERVER["DOCUMENT_ROOT"]."/include/email.send.php");
+
+
+	$db->query("Select bmail, bname, uid FROM ".TBL_SHOP_ORDER." WHERE oid = '".$oid."'");
+	$db->fetch();
+
+	$mail_info[mem_name] = $db->dt[bname];
+	$mail_info[mem_mail] = $db->dt[bmail];
+	$mail_info[mem_id] = $db->dt[bname];
+	$email_card_contents_basic = "요청하신 견적서입니다";
+
+	copy("http://".$HTTP_HOST."../order/taxbill.php?mode=excel&oid=".$oid."&uid=".$db->dt[uid]."",$_SERVER["DOCUMENT_ROOT"]."".$admin_config[mall_data_root]."/templet/".$admin_config[mall_use_templete]."/taxbill.xls");
+
+	$subject = " ".$mail_info[mem_name]." 님, 요청하신 견적서 입니다..";
+	SendMail($mail_info, $subject,$email_card_contents_basic,$_SERVER["DOCUMENT_ROOT"]."".$admin_config[mall_data_root]."/templet/".$admin_config[mall_use_templete]."/taxbill.xls");
+
+
+	//echo $mail_info[mem_mail];
+	echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 메일이 발송되었습니다.');</script>");
+	echo("<script>self.close();</script>");
+}
+
+
+function EscrowAct(){
+	require("EscrowLib.php");
+
+
+
+	/*########################
+	            인스턴스 생성
+	########################*/
+
+	$escrow = new Escrow;
+
+
+
+	/*########################################
+	                  배송/반품 공통 정보 설정
+	########################################*/
+
+	$escrow->inipayhome = "/usr/local/INIpay41"; 	// 이니페이 지불시스템 설치 절대 경로(반드시 절대 경로로 입력하시기 바랍니다.)
+	$escrow->mid = "hanatest01";					// 상점 아이디
+	$escrow->EscrowType=$EscrowType;          		// 에스크로 타입
+	$escrow->hanatid = $hanatid;	         		// 하나은행 거래 아이디
+	$escrow->invno = $invno;				// 운송장 번호
+	$escrow->adminID = $adminID;				// 등록자 ID
+	$escrow->adminName = $adminName;			// 등록자 성명
+	$escrow->regdate = date("Ymd");				// 등록요청 일자
+	$escrow->regtime = date("His");				// 등록요청 시간
+}
+
+
+//전체배송인지 부분배송인지 판단하는 함수
+function checkDlvIsAll($oid,$count){
+    $db = new Database;
+    $sql = "select count(*) as cnt from shop_order_detail where oid = '".$oid."'";
+    if($db->total){
+        $result = $db->fetch();
+
+        if($result[cnt] == $count){
+            return TRUE;
+
+        }else{
+            return FALSE;
+        }
+    }
+    return NULL;
+}
+
+//배송업체코드 제휴사코드로 변환
+function getLinkedDlvCode($site_code, $origin_code){
+    $db = new Database;
+    if(!empty($site_code)){
+        $sql = "select * from sellertool_dlv_com_linked where site_code = '".$site_code."' and linked_code = '".$origin_code."'";
+        $db->query($sql);
+        if($db->total){
+            $result = $db->fetch();
+            $target_dlv_code = $result[dlv_com_code];
+
+        }else{
+            $target_dlv_code = NULL;
+
+        }
+        return $target_dlv_code;
+
+    }else{
+        return NULL;
+    }
+
+}
+
+?>

@@ -1,0 +1,27 @@
+; ***************************************** ;
+; Reading a message                         ;
+; ***************************************** ;
+
+next_mnu					= Nächste
+previous_mnu					= Vorherige
+back_mnu					= Zurück
+reply_mnu					= Antworten
+reply_all_mnu					= Allen antworten
+forward_mnu					= Weiterleiten
+headers_mnu					= Header
+move_mnu					= Verschieben nach
+delete_mnu					= Löschen
+
+from_hea					= Von:
+to_hea						= An:
+cc_hea						= CC:
+date_hea					= Erhalten:
+subject_hea					= Betreff:
+attach_hea					= Anlagen:
+
+attch_name_hea					= Name
+attch_force_hea					= Download
+attch_type_hea					= Typ
+attch_size_hea					= Größe
+
+catch_address					= Diesen Absender dem Adressbuch hinzufügen

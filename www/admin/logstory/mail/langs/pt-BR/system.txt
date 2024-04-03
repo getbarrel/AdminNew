@@ -1,0 +1,111 @@
+; ***************************************** ;
+; User-friendly names to system folders     ;
+; ***************************************** :
+
+inbox_extended					= Caixa de Entrada
+sent_extended					= Ítens Enviados
+trash_extended					= Lixeira
+
+; ***************************************** ;
+; Navigation texts                          ;
+; ***************************************** ;
+
+previous_text					= Anterior
+next_text					= Próxima
+
+; ***************************************** ;
+; POP3 Errors                               ;
+; ***************************************** ;
+
+error_permiss					= Você deve setar permissão de gravação no diretório temporário
+error_retrieving				= Não foi possível receber a mensagem, houveram modificações em sua caixa postal
+error_deleting					= Não foi possível excluir a mensagem
+error_connect					= Não foi possível conectar ao servidor
+error_other					= Ocorreram falhas no sistema, por favor contate o administrador
+
+; ***************************************** ;
+; Invalid name of mailbox                   ;
+; ***************************************** ;
+error_invalid_name				= Nome da pasta inválido - Utilize somente caracteres de A-Z, 0-9, .- e o espaço
+
+
+; ***************************************** ;
+; Validations when sending mails            ;
+; ***************************************** ;
+error_no_recipients				= É necessário especificar pelo menos um destinatário
+error_compose_invalid_mail1_s			= O seguinte email não aparenta ser válido
+error_compose_invalid_mail1_p			= Os seguintes emails não aparentam ser válidos
+error_compose_invalid_mail2_s			= Verifique-o antes de enviar a mensagem
+error_compose_invalid_mail2_p			= Verifique-os antes de enviar a mensagem
+
+
+; ***************************************** ;
+; Confirmation of delete                    ;
+; ***************************************** ;
+confirm_delete					= Tem certeza que deseja excluir esta mensagem ?
+
+; ***************************************** ;
+; Display a message counter                 ;
+; ***************************************** ;
+msg_count_p					= Você tem <b>%s</b> mensagens
+msg_count_s					= Você tem <b>1</b> mensagem
+msg_unread_p					= , <b>%s não lidas</b>
+msg_unread_s					= , <b>1 não lida</b>
+msg_no_unread					= , nenhuma não lida
+msg_boxname					= , na pasta "<b>%s</b>"
+
+; ***************************************** ;
+; If the message no have a subject or sender;
+; ***************************************** ;
+
+no_subject_text					= [Sem Assunto]
+no_sender_text					= [Desconhecido]
+no_recipient_text				= [Desconhecido]
+
+; ***************************************** ;
+; Messages from the address book management ;
+; ***************************************** ;
+addr_saved					= Endereço "<b>%s</b>" salvo com sucesso
+addr_added					= Endereço "<b>%s</b>" adicionado com sucesso
+addr_deleted					= Registro deletado com sucesso
+
+; ***************************************** ;
+; If the quota limit was exceeded           ;
+; ***************************************** ;
+
+quota_exceeded					= Não há espaço suficiente em sua caixa postal para completar a operação\rÉ necessário excluir algumas mensagens para continuar
+
+
+;******************************************************** ;
+; Date Format                                             ;
+; d = day, m = month, y = year, h = hour, i = minutes     ;
+; for a complete list, see http://www.php.net/date        ;
+;******************************************************** ;
+
+date_format 					= d/m/y H:i
+
+
+;******************************************************** ;
+; CharSet                                                 ;
+;                                                         ;
+;******************************************************** ;
+
+default_char_set				= iso-8859-1
+
+;******************************************************** ;
+; Reply & Forward configs.                                ;
+;                                                         ;
+;******************************************************** ;
+
+reply_prefix					= Re:
+forward_prefix					= Enc:
+
+reply_delimiter					= --------- Mensagem Original --------
+reply_from_hea					= De:
+reply_to_hea					= Para:
+reply_cc_hea					= Cópia:
+reply_date_hea					= Data:
+reply_subject_hea				= Assunto:
+
+
+; done

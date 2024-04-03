@@ -1,0 +1,125 @@
+@charset "euc-kr";
+@import url("./com.css");
+
+/* 날짜 */span.dt		{ color: #888888; }
+/* 추천 */span.vt		{ color: #ff8400; }
+/* 조회 */span.ht		{ color: #ff8400; }
+/* 영상 */span.mv		{ color: #ff8400; }
+/* 스크랩 */span.sc		{ color: #ff8400; }
+/* 태그 */span.tg		{ color: #4aa829; }
+/* 닉네임 */span.nk		{ color: #4aa829; }
+
+/* 제목_스크랩 */span.tt_sc	{ font-weight: bold; }
+
+
+body.POP		{ width: 100%; text-align: center; }
+
+
+div.pop		{ margin: 0px; padding: 0px; text-align: center; }
+div.spop	{ margin: 10px 20px; overflow-x: none; }
+
+p.title		{ font-weight: bold; color: #ffffff; background: #F66B88; font-size: 14px; text-align: left; padding: 10px; }
+p.stitle	{ padding: 5px; text-align: left; color: #ff5a00; }
+
+div.box			{ padding: 10px; text-align: left; line-height: 160%; border: solid 1px #c6c6c6; }
+
+
+div.bbs				{ margin: 0px; }
+div.bbs div.list	{ margin: 0px 0px 10px; }
+div.bbs div.btn		{ margin: 0px 5px 10px; }
+
+div.bbs table.img_list			{ width: 100%; table-layout: fixed; }
+div.bbs table.img_list th		{ padding: 7px 2px 5px; border-bottom: solid 1px #c6c6c6; text-align: left; vertical-align: middle; }
+div.bbs table.img_list td		{ padding: 7px 2px 5px; border-bottom: solid 1px #c6c6c6; text-align: center; vertical-align: middle; }
+div.bbs table.img_list img.sfrm	{ float: left; margin-right: 5px; }
+div.bbs table.img_list tr.tt td	{ padding: 7px 0px 5px; border-bottom: solid 3px #e0e0e0; text-align: center; vertical-align: middle; }
+div.bbs table.img_list img.icn	{ margin-top: 5px; }
+
+div.bbs col.box		{ width: 19px; }
+div.bbs col.no		{ width: 40px; }
+div.bbs col.from		{ width: 50px; }
+div.bbs col.album	{ width: 60px; }
+div.bbs col.hit		{ width: 40px; }
+div.bbs col.scrap	{ width: 40px; }
+div.bbs col.date		{ width: 60px; }
+
+div.bbs table.write			{ border-top: solid 1px #c6c6c6; width: 100%; table-layout: fixed; }
+div.bbs table.write col.th	{ width: 80px; }
+div.bbs table.write col.thb	{ width: 100px; }
+div.bbs table.write col.thbb{ width: 120px; }
+div.bbs table.write th		{ padding: 7px 5px 5px; border-bottom: solid 1px #c6c6c6; font-weight: bold; text-align: left; }
+div.bbs table.write td		{ padding: 7px 5px 4px; border-bottom: solid 1px #c6c6c6; text-align: left; }
+div.bbs table.write input	{ vertical-align: text-bottom; height: 16px; margin-top: -2px; }
+div.bbs table.write textarea{ vertical-align: text-bottom; margin-top: -2px; }
+div.bbs table.write img		{ vertical-align: text-bottom; margin-top: -1px; margin-bottom: 1px; }
+div.bbs table.write span.ex		{ font-size: 11px; margin-top: 2px; }
+div.bbs table.write span.ex_dn	{ display: block; font-size: 11px; margin-top: 5px; }
+div.bbs table.write td.movie	{ padding: 10px; text-align: center; }
+div.bbs table.write p.bar		{ font-size: 0px; text-align: left; margin: 10px; padding: 5px; height: 3px; width: 80%; background: #ff0000; }
+div.bbs table.write p.bar img	{ vertical-align: middle; height: 5px; background: #ffffff; }
+
+div.bbs table.btn		{ width: 100%; table-layout: fixed; }
+div.bbs table.btn td.lt	{ text-align: left; width: 30%; }
+div.bbs table.btn td.ct	{ text-align: center; width: 40%; }
+div.bbs table.btn td.rt	{ text-align: right; width: 30%; }
+div.bbs table.btn img	{ margin: 0px 5px; }
+
+div.menu table.btn		{ width: 100%; table-layout: fixed; }
+div.menu table.btn td.lt	{ text-align: left; width: 30%; }
+div.menu table.btn td.ct	{ text-align: center; width: 40%; }
+div.menu table.btn td.rt	{ text-align: right; width: 30%; }
+div.menu table.btn img	{ margin: 0px 0px; }
+
+div.btn table.btn		{ width: 100%; table-layout: fixed; }
+div.btn table.btn td.lt	{ text-align: left; width: 30%; }
+div.btn table.btn td.ct	{ text-align: center; width: 40%; }
+div.btn table.btn td.rt	{ text-align: right; width: 30%; }
+div.btn table.btn img	{ margin: 0px 5px; }
+
+div.page					{ }
+div.page table.page td		{ padding: 0px 8px; }
+div.page table.page td a	{ padding: 0px 2px; }
+
+div.spage					{ margin: 10px; }
+div.spage table.page 		{ width: 100%: table-laypout: fixed; }
+div.spage table.page td		{ padding: 0px 8px; }
+div.spage table.page td a	{ padding: 0px 2px; }
+
+div.stab						{ height: 24px;	margin: 0px 0px 10px; padding: 0px 10px; background: url(../images/stab_bg.gif) repeat-x bottom; }
+div.stab table.stab				{ width: 100%; }
+div.stab table.stab td.tab		{ width: 60%; }
+div.stab table.stab td.btn		{ width: 40%; text-align: right; vertical-align: middle; }
+table.stab table				{ float: left; margin-right: 2px; }
+table.stab table th.box_01		{ background: url(../images/stab_01.gif) no-repeat left bottom; width: 2px; height: 29px; }
+table.stab table td.box_02		{ background: url(../images/stab_02.gif) repeat-x bottom; padding: 0px 5px 3px; vertical-align: bottom; }
+table.stab table th.box_03		{ background: url(../images/stab_03.gif) no-repeat right bottom; width: 2px; height: 29px; }
+table.stab table.on				{ float: left; margin-right: 2px; }
+table.stab table.on th.box_01	{ background: url(../images/stab_01_on.gif) no-repeat left bottom; width: 2px; height: 29px; }
+table.stab table.on td.box_02	{ background: url(../images/stab_02_on.gif) repeat-x bottom; padding: 0px 5px 3px; vertical-align: bottom; font-weight: bold; }
+table.stab table.on th.box_03	{ background: url(../images/stab_03_on.gif) no-repeat right bottom; width: 2px; height: 29px; }
+
+.float_01{float:left;}
+.float_01 li{float:left;}
+.pop_dp_type01{}
+.pop_dp_type{width:400px;background:#3eaab1;}
+.pop_dp_type dl{}
+.pop_dp_type > dl > dt{line-height:0;font-size:0;padding:9px;}
+.pop_dp_type dt:after{content:"";clear:both;display:block;}
+.pop_dp_type > dl > dd{margin:0;padding:0;width:400px;height:30px;background:url(/admin/images/popup/popup_bottom_line.png) left top no-repeat;text-align:right;}
+.pop_dp_type dd ul{padding:9px 12px 0 0;text-align:right;}
+.pop_dp_type dd ul li{display:inline-block;zoom:1;*display:inline;color:#fff;}
+.popup_goods{position:relative;background:#fff;float:left;width:100%;margin-top:5px;}
+.popup_goods h3{height:12px;line-height:1;*line-height:1.2;font-size:12px;padding:15px 0 10px 11px;}
+.popup_goods ul{float:left;}
+.popup_goods ul li{float:left;width:85px;margin-left:8px;padding-bottom:20px;}
+.popup_goods ul li dl{text-align:center;}
+.popup_goods ul li dl dt{padding-bottom:5px;}
+.popup_goods .slide_box{overflow:hidden;width:365px;margin-left:9px;}
+.popup_goods .slide_box ul{width:2000px;}
+.btn_Slide{position:absolute;top:15px;right:9px;}
+.btn_Slide img{cursor:pointer;}
+.btn_Slide span{vertical-align:-2px;}
+
+.popup_goods.type_2 li{width:178px;}
+.popup_goods.type_2 dt{float:left;}
+.popup_goods.type_2 dd{float:left;width:84px;padding:3px 0 0 7px;text-align:left;}

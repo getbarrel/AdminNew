@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Menus                                     ;
+; ***************************************** ;
+
+messages_mnu				= Posta in arrivo
+compose_mnu				= Scrivi
+refresh_mnu				= Ricarica
+folders_mnu				= Cartelle
+search_mnu				= Cerca
+address_mnu				= Rubrica
+empty_trash_mnu				= Svuota il cestino
+prefs_mnu				= Preferenze
+logoff_mnu 				= Esci

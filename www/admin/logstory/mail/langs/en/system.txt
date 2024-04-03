@@ -1,0 +1,110 @@
+; ***************************************** ;
+; User-friendly names to system folders     ;
+; ***************************************** :
+
+inbox_extended					= Inbox
+sent_extended					= Outbox
+trash_extended					= Trash
+
+; ***************************************** ;
+; Navigation texts                          ;
+; ***************************************** ;
+
+previous_text					= Previous
+next_text					= Next
+
+; ***************************************** ;
+; POP3 Errors                               ;
+; ***************************************** ;
+
+error_permiss					= Temporary file could not be written.
+error_retrieving				= Due to changes in your Inbox this message cannot be downloaded.
+error_deleting					= Messages could not be deleted.
+error_connect					= Connection to POP-server failed.
+error_other					= An unexpected error occured. Please contact your adminstrator.
+
+; ***************************************** ;
+; Invalid name of mailbox                   ;
+; ***************************************** ;
+error_invalid_name				= Wrong entry - please use A-Z, 0-9, .- and space-character only
+
+
+; ***************************************** ;
+; Validations when sending mails            ;
+; ***************************************** ;
+error_no_recipients				= Please enter a valid e-mail-address
+error_compose_invalid_mail1_s			= Your e-mail seems to be invalid
+error_compose_invalid_mail1_p			= The following e-mails seem to be invalid
+error_compose_invalid_mail2_s			= It will be checked before sending
+error_compose_invalid_mail2_p			= They will be checked before sending
+
+
+; ***************************************** ;
+; Confirmation of delete                    ;
+; ***************************************** ;
+confirm_delete					= Do you really want to delete this message?
+
+; ***************************************** ;
+; Display a message counter                 ;
+; ***************************************** ;
+msg_count_p					= You have <b>%s</b> messages
+msg_count_s					= You have <b>1</b> message
+msg_unread_p					= , <b>%s unread</b>
+msg_unread_s					= , <b>1 unread</b></b>
+msg_no_unread					= , no unread 
+msg_boxname					= , in folder "<b>%s</b>"
+
+; ***************************************** ;
+; If the message no have a subject or sender;
+; ***************************************** ;
+
+no_subject_text					= [no subject]
+no_sender_text					= [unknown]
+no_recipient_text				= [no content]
+
+; ***************************************** ;
+; Messages from the address book management ;
+; ***************************************** ;
+addr_saved					= address "<b>%s</b>" successfully saved
+addr_added					= address "<b>%s</b>" successfully added
+addr_deleted					= address deleted
+
+; ***************************************** ;
+; If the quota limit was exceeded           ;
+; ***************************************** ;
+
+quota_exceeded					= Your quota limit is reached. Please delete old messages in your inbox and try it again!
+
+;******************************************************** ;
+; Date Format                                             ;
+; d = day, m = month, y = year, h = hour, i = minutes     ;
+; for a complete list, see http://www.php.net/date        ;
+;******************************************************** ;
+
+date_format 					= m-d-y H:i
+
+
+;******************************************************** ;
+; CharSet                                                 ;
+;                                                         ;
+;******************************************************** ;
+
+default_char_set				= iso-8859-1
+
+;******************************************************** ;
+; Reply & Forward configs.                                ;
+;                                                         ;
+;******************************************************** ;
+
+reply_prefix					= RE:
+forward_prefix					= FW:
+
+reply_delimiter					= ---------  Original message --------
+reply_from_hea					= From:
+reply_to_hea					= To:
+reply_cc_hea					= CC:
+reply_date_hea					= Date:
+reply_subject_hea				= Subject:
+
+
+; done

@@ -1,0 +1,58 @@
+<?php 
+
+	class ItemGoods{
+		var $update_date;
+		var $seller_code;
+
+		var $cid;
+		var $cname;
+		var $pid;
+		var $pname;		
+		var $pcode;
+		var $listrice;
+		var $sellprice;
+		var $shotinfo;
+		var $basicinfo;		
+		
+		var $bimg;
+		var $mimg;
+		var $simg;
+
+		var $sell_priod_sdate;
+		var $sell_priod_edate;
+		var $orgin;
+		var $delivery_price;
+		var $delivery_product_policy;
+		
+		var $brand;
+		var $brand_name;
+		var $maker;
+		var $surtax;
+		var $commission;
+	}
+
+/*
+	class ItemGoodsOption{
+		var $option_code;
+		var $option_name;
+		var $option_kind;
+		var $option_detail;
+	}
+	
+	class ItemGoodsOptionDetail{
+		var $option_detail_code;
+		var $option_div;
+		var $option_price;
+		var $option_stock;
+	}
+*/
+
+    class UserInfo{
+        var $id;
+        var $name;
+        var $code;
+        var $company_id;
+        var $mem_type;
+    }
+
+?>

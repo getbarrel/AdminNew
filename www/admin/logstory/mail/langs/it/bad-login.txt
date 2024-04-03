@@ -1,0 +1,7 @@
+; ***************************************** ;
+; Bad Login		                    ;
+; ***************************************** ;
+
+bdl_title			= Accesso fallito
+bdl_msg				= Il tuo nome e/o la password usata è sbagliata<br><br>Per favore verifica i tuoi dati e riprova!
+bdl_back			= Indietro

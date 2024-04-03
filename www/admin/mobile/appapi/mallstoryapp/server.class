@@ -1,0 +1,18 @@
+<?php 
+
+class ItemGoods
+{
+	var $cid;
+	var $pname;
+	var $pcode;
+	var $coprice;
+	var $wholesale_price;
+	var $listprice;
+	var $option;
+	var $basicimagefile;
+	var $basicinfo;
+	var $origin;
+	var $company;
+	var $company_id;
+
+}

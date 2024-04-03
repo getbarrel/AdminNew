@@ -1,0 +1,503 @@
+<?
+include("../class/layout.class");
+
+
+$db = new Database;
+/*
+$db->query("SELECT IFNULL(max(event_gift_num),0) as event_gift_num  FROM shop_gift_certificate ");
+$db->fetch();
+$max_event_gift_num = $db->dt[event_gift_num];
+*/
+//echo $max_event_gift_num;
+
+if($db->dbms_type == "oracle"){
+
+	//$db->query("SELECT gc_ix,gift_certificate_name,gift_prefix_code,gift_cupon_ix,gift_amount,create_cnt,to_char(gift_start_date,'YYYY-MM-DD') as gift_start_date, to_char(gift_end_date,'YYYY-MM-DD') as gift_end_date ,gift_type ,memo FROM shop_gift_certificate where gc_ix= '$gc_ix'");
+	$db->query("SELECT gc_ix,gift_certificate_name,gift_prefix_code,gift_amount,create_cnt,to_char(gift_start_date,'YYYY-MM-DD') as gift_start_date, to_char(gift_end_date,'YYYY-MM-DD') as gift_end_date ,gift_type ,memo FROM shop_gift_certificate where gc_ix= '$gc_ix'");
+}else{
+	$db->query("SELECT * FROM shop_gift_certificate where gc_ix= '$gc_ix'");
+}
+
+$db->fetch();
+
+if($db->total){
+	$gc_ix = $db->dt[gc_ix];
+	$gift_certificate_name = $db->dt[gift_certificate_name];
+	$gift_amount = $db->dt[gift_amount];
+	$gift_prefix_code = $db->dt[gift_prefix_code];
+	$gift_type = $db->dt[gift_type];
+	//$gift_cupon_ix = $db->dt[gift_cupon_ix];
+
+	$create_cnt = $db->dt[create_cnt];
+	$gift_start_date = $db->dt[gift_start_date];
+	$gift_end_date = $db->dt[gift_end_date];
+
+	$act = "update";
+
+	//$sDate = date("Y/m/d", mktime(0, 0, 0, substr($db->dt[gift_start_date],5,2)  , substr($db->dt[gift_start_date],8,2), substr($db->dt[gift_start_date],0,4)));
+	//$eDate = date("Y/m/d",mktime(0, 0, 0, substr($db->dt[gift_end_date],5,2)  , substr($db->dt[gift_end_date],8,2), substr($db->dt[gift_end_date],0,4)));
+
+	//$startDate = $start_date;
+	//$endDate = $end_date;
+
+}else{
+	$act = "insert";
+	$start_date = "";
+	$end_date = "";
+	$gift_type = "C";
+
+	$next10day = mktime(0, 0, 0, date("m")  , date("d")+10, date("Y"));
+
+//	$sDate = date("Y/m/d");
+	//$sDate = date("Y/m/d");
+	//$eDate = date("Y/m/d",$next10day);
+
+	$gift_start_date = date("Y-m-d");
+	$gift_end_date = date("Y-m-d",$next10day);
+}
+
+$Script = "
+<Script Language='JavaScript'>
+ 
+function SubmitX(frm){
+
+	if(!CheckFormValue(frm)){
+		return false;
+	}
+
+	/*
+	if(frm.event_gift.value.length < 1){
+		alert('상품권 타입을 선택해주세요');
+		frm.event_gift.focus();
+		return false;
+	}
+
+	if(frm.event_gift_num.value.length < 1){
+		alert('상품권 발행회차를 선택해주세요');
+		frm.event_gift_num.focus();
+		return false;
+	}
+	*/
+
+	return true;
+}
+
+function changeGiftType(){
+//alert($('#gift_type_r').attr('checked'));
+	if($('#gift_type_r').attr('checked')){
+		$('#gifttype_r').show();
+		$('#gifttype_c').hide();
+
+		$('.gift_prefix_code_area').show();
+		$('.gift_code_area').hide();
+		$('input[name=gift_prefix_code]').attr('title','Pre Fix');
+		$('input[name=gift_prefix_code]').attr('size','4');
+		$('input[name=gift_prefix_code]').attr('maxlength','4');
+		$('#gifttype_cnt').show();
+		$('input[name=gift_prefix_code]').attr('validation','true');
+		$('input[name=create_cnt]').attr('validation','true');
+		$('.appoint_publish_ix').attr('validation','false');
+	}else if($('#gift_type_c').attr('checked')){
+		$('#gifttype_c').show();
+		$('#gifttype_r').hide();
+
+		$('.gift_prefix_code_area').show();
+		$('.gift_code_area').hide();
+		$('input[name=gift_prefix_code]').attr('title','Pre Fix');
+		$('input[name=gift_prefix_code]').attr('size','4');
+		$('input[name=gift_prefix_code]').attr('maxlength','4');
+		$('#gifttype_cnt').show();
+		$('input[name=gift_prefix_code]').attr('validation','true');
+		$('input[name=create_cnt]').attr('validation','true');
+		$('.appoint_publish_ix').attr('validation','true');
+	}else if($('#gift_type_u').attr('checked')){
+		$('#gifttype_c').show();
+		$('#gifttype_r').hide();
+
+		$('.gift_code_area').show();
+		$('.gift_prefix_code_area').hide();
+		$('input[name=gift_prefix_code]').attr('title','Gift Code');
+		$('input[name=gift_prefix_code]').attr('size','20');
+		$('input[name=gift_prefix_code]').attr('maxlength','20');
+		$('#gifttype_cnt').hide();
+		$('input[name=gift_prefix_code]').attr('validation','false');
+		$('input[name=create_cnt]').attr('validation','false');
+		$('.appoint_publish_ix').attr('validation','true');
+	}
+}
+ 
+function copycupon(){
+	var tbody = $('#cupon_table tbody');  
+
+	var newRow = tbody.find('tr.cupon_tr:last').clone(true).appendTo(tbody);  
+	newRow.find('.appoint_publish_ix').val('');
+}
+
+function removecupon(this_obj){
+	if($('#cupon_table tbody').find('tr.cupon_tr').length > 1){
+		this_obj.parent().parent().remove();
+	}else{
+		this_obj.parent().parent().find('select').val('');
+	}
+}
+
+function change_gift_check(obj){
+	var bool=false;
+	var _index = $('select[name^=appoint_publish_ix]').index(obj);
+	$('select[name^=appoint_publish_ix]').each(function(i){
+		//if(($(this).attr('name')!=obj.attr('name')) && ($(this).val()==obj.val()) && (obj.val() !='')){
+		if((_index != i) && ($(this).val()==obj.val()) && (obj.val() !='')){
+			//alert($(this).attr('name')+' : '+obj.attr('name'));
+			bool = true;
+		}
+	})
+	
+	if(bool){
+		alert('같은 쿠폰은 선택할수 없습니다.');
+		obj.val('');
+	}
+}
+
+function filterNum(str) {
+	if(str){
+		return str.replace(/[^0-9a-zA-Z]/g, '');
+	}else{
+		return '';
+	}
+}
+
+function checkCreateAmount(obj){
+	if(obj.val() > 5000){
+		alert('오프라인 쿠폰의 1회 최대 발행은 5,000장 까지 입니다');
+		obj.val('5000');
+		return false;
+	} 
+}
+
+</Script>";
+
+
+
+$Contents = "
+<table width='100%' border='0' align='left'>
+ <tr>
+	<td align='left' colspan=6 > ".GetTitleNavigation("상품권등록하기", "마케팅관리 > 상품권등록하기 ")."</td>
+</tr>
+  <tr>
+    <td>
+      <div id='TG_INPUT' style='position: relative; display: block;'>
+        <form name='INPUT_FORM' method='post' onSubmit=\"return SubmitX(this)\" action='giftcertificate.act.php' target='iframe_act'><input type='hidden' name=act value='$act'><input type='hidden' name=gc_ix value='$gc_ix'>
+        <table border='0' width='100%' cellspacing='1' cellpadding='0'>
+          <tr>
+            <td bgcolor='#6783A8'>
+              <table border='0' cellspacing='0' cellpadding='0' width='100%'>
+                <tr>
+                  <td bgcolor='#ffffff'>
+                    <table border='0' cellpadding=2 cellspacing=0 width='100%' class='input_table_box'>
+						<col width='15%' />
+						<col width='*' />";
+						if($_SESSION["admin_config"][front_multiview] == "Y"){
+						$Contents .= "
+						<tr>
+							<td class='input_box_title' > 프론트 전시 구분</td>
+							<td class='input_box_item' style='padding-left:5px;' colspan=3>".GetDisplayDivision($mall_ix, "select")." </td>
+						</tr>";
+						}
+						$Contents .= "
+                      <tr height=27>
+                      	<td class='input_box_title' nowrap>상품권명 </td>
+                        <td class='input_box_item'>
+                        <input type='text' name='gift_certificate_name' class='textbox' value='$gift_certificate_name' validation='true' title='상품권명' style='width:400px;' >
+						</td>
+                      </tr>
+					  <tr height=27>
+                      	<td class='input_box_title'>상품권 구분 </td>
+                        <td class='input_box_item' >";
+		  foreach($_GIFT_TYPE as $key => $value){
+			$Contents .= "<input type='radio' name='gift_type' id='gift_type_".strtolower($key)."' class='gift_type' onclick=\"changeGiftType()\" value='".$key."' ".($gift_type == $key ? "checked":"")." validation=true title='상품권 구분' ".($act == "update" ? "disabled":"")."> <label for='gift_type_".strtolower($key)."' >".$value."</label> ";
+		  }
+$Contents .= "
+                        </td>
+                      </tr>
+					  <tr height=27>
+                      	<td class='input_box_title' nowrap>시리얼자릿수 </td>
+                        <td class='input_box_item'>
+							<span class ='gift_prefix_code_area'>Pre Fix : </span><span class ='gift_code_area'>Gift Code : </span>
+							<input type='text' name='gift_prefix_code' class='textbox' value='$gift_prefix_code' validation='true' title='Pre Fix' size='4' maxlength='4' onkeyup=\"this.value=filterNum(this.value)\"  ".($act == "update" ? "readonly":"").">
+							<span class ='gift_prefix_code_area'><input type='text' name='length' class='textbox number' value='12' size=2 maxlength=2 readonly> 자리 </span><span class ='gift_code_area'> ex > 2038Dn20Kdj1923cF (숫자&영문 20자리이내 , 대소문자구분 , 특수문자 X)
+  </span>
+						</div>
+						</td>
+                      </tr>
+					  <!--tr height=27>
+                      	<td class='input_box_title'>상품권발행회차 </td>
+                        <td class='input_box_item' >
+						<select name='event_gift_num'>
+							<option value=''>상품권발행회차</option>";
+
+				for($i=1;  $i <= ($max_event_gift_num+1);$i++){
+$Contents .= "
+							<option value='".$i."'>".$i."</option>";
+				}
+$Contents .= "
+						</select>
+                        (이벤트일때만 활성화 됩니다. 중복되는 회차가 없을경우 공백으로 두면은 자동으로 회차번호가 생성됩니다.)
+						</td>
+                      </tr-->
+             
+					  ";
+
+
+
+$vdate = date("Ymd", time());
+$today = date("Y/m/d", time());
+$vyesterday = date("Y/m/d", time()+84600);
+$voneweeklater = date("Y/m/d", time()+84600*7);
+$vtwoweeklater = date("Y/m/d", time()+84600*14);
+$vfourweeklater = date("Y/m/d", time()+84600*28);
+$vyesterday = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))+60*60*24);
+$voneweeklater = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))+60*60*24*7);
+$v15later = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))+60*60*24*15);
+$vfourweeklater = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))+60*60*24*28);
+$vonemonthlater = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2)+1,substr($vdate,6,2)+1,substr($vdate,0,4)));
+$v2monthlater = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2)+2,substr($vdate,6,2)+1,substr($vdate,0,4)));
+$v3monthlater = date("Y/m/d",mktime(0,0,0,substr($vdate,4,2)+3,substr($vdate,6,2)+1,substr($vdate,0,4)));
+
+
+$Contents .= "
+
+					  <tr height=27 id='gifttype_r'>
+                      	<td class='input_box_title'>적립금 지급금액 </td>
+                        <td class='input_box_item'  >
+                        <input type='text' name='gift_amount' class='textbox number' value='".$gift_amount."' size=10 ".($act == "update" ? "readonly":"")."> 원
+						</td>
+                      </tr>
+					  <tr height=27 id='gifttype_c'>
+                      	<td class='input_box_title'>지급 쿠폰 목록</td>
+                        <td class='input_box_item' style='padding:10px 10px;'>
+							<table cellpadding=0 cellspacing=2 border=0 bgcolor=#ffffff id='cupon_table'>
+								<tbody>";
+
+									if($act == "insert"){
+										$Contents .= "
+										<tr class='cupon_tr'>
+											<td nowrap>".giftCouponRuleSelectBox('',"appoint_publish_ix[]",($act == "update" ? "disabled validation=true title='지급쿠폰'  ":" validation=true title='지급쿠폰' "))."</td>
+											<td style='padding-left:10px;'>
+												<img src='../images/".$_SESSION["admininfo"]["language"]."/btn_add.gif' style='cursor:pointer;' onclick=\"copycupon()\" />
+												<img src='../images/".$_SESSION["admininfo"]["language"]."/btc_del.gif' style='cursor:pointer;' onclick=\"removecupon($(this))\"/>
+											</td>
+										</tr>";
+									}else{
+										$sql = "SELECT * FROM shop_gift_certificate_cupon where gc_ix= '$gc_ix'";
+										//echo $sql;
+										$db->query($sql);
+										if($db->total){
+											for($i=0;$i<$db->total;$i++){
+												$db->fetch($i);
+												$Contents .= "
+												<tr class='cupon_tr'>
+													<td nowrap>".giftCouponRuleSelectBox($db->dt[gift_cupon_ix],"appoint_publish_ix[]",($act == "update" ? " validation=true title='지급쿠폰'  ":" validation=true title='지급쿠폰'  "))."</td>
+													<td style='padding-left:10px;'>
+														<img src='../images/".$_SESSION["admininfo"]["language"]."/btn_add.gif' style='cursor:pointer;' onclick=\"copycupon()\" />
+														<img src='../images/".$_SESSION["admininfo"]["language"]."/btc_del.gif' style='cursor:pointer;' onclick=\"removecupon($(this))\"/>
+													</td>
+													<td></td>
+												</tr>";
+											}
+										}else{
+											$Contents .= "
+										<tr class='cupon_tr'>
+											<td nowrap>".giftCouponRuleSelectBox('',"appoint_publish_ix[]",($act == "update" ? " validation=true title='지급쿠폰'  ":" validation=true title='지급쿠폰'  "))."</td>
+											<td style='padding-left:10px;'>
+												<img src='../images/".$_SESSION["admininfo"]["language"]."/btn_add.gif' style='cursor:pointer;' onclick=\"copycupon()\" />
+												<img src='../images/".$_SESSION["admininfo"]["language"]."/btc_del.gif' style='cursor:pointer;' onclick=\"removecupon($(this))\"/>
+											</td>
+										</tr>";
+										}
+									}
+								$Contents .= "
+								</tbody>
+							</table>
+							";
+							
+							
+
+						$Contents .= "
+
+						</td>
+                      </tr>
+                      <tr height=27 id='gifttype_cnt'>
+                      	<td class='input_box_title'>생성갯수 </td>
+                        <td class='input_box_item'  >
+                        <input type='text' name='create_cnt' class='textbox numeric' value='$create_cnt' validation='true' title='생성갯수' onkeyup=\"checkCreateAmount($(this))\" size=10 maxlength=4 ".($act == "update" ? "readonly":"").">
+                        (5,000장 이상은 나누어서 생성하세요)
+						</td>
+                      </tr>
+					  <tr>
+						  <td class='input_box_title' nowrap > <b>사용가능 기간 <!--img src='".$required3_path."'--></b></td>
+						  <td class='input_box_item' style='padding:10px;' >
+							".search_date('gift_start_date','gift_end_date',$gift_start_date,$gift_end_date,'N','A')."
+						</td> 
+					</tr>
+                      <!--tr height=27 >
+						  <td class='input_box_title'>사용가능 기간</td>
+						  <td class='input_box_item' >
+							<table cellpadding=0 cellspacing=2 border=0 bgcolor=#ffffff>
+								<tr>
+									<TD width=215 nowrap><SELECT onchange=javascript:onChangeDate(this.form.FromYY,this.form.FromMM,this.form.FromDD) name=FromYY ></SELECT> 년 <SELECT onchange=javascript:onChangeDate(this.form.FromYY,this.form.FromMM,this.form.FromDD) name=FromMM></SELECT> 월 <SELECT name=FromDD></SELECT> 일 </TD>
+									<TD width=20 align=center> ~ </TD>
+									<TD width=220 nowrap><SELECT onchange=javascript:onChangeDate(this.form.ToYY,this.form.ToMM,this.form.ToDD) name=ToYY></SELECT> 년 <SELECT onchange=javascript:onChangeDate(this.form.ToYY,this.form.ToMM,this.form.ToDD) name=ToMM></SELECT> 월 <SELECT name=ToDD></SELECT> 일</TD>
+									<TD>
+											<a href=\"javascript:select_date('$today','$today',1);\"><img src='../images/".$admininfo[language]."/btn_today.gif'></a>
+										<a href=\"javascript:select_date('$today','$voneweeklater',1);\"><img src='../images/".$admininfo[language]."/btn_1week.gif'></a>
+										<a href=\"javascript:select_date('$today','$v15later',1);\"><img src='../images/".$admininfo[language]."/btn_15days.gif'></a>
+										<a href=\"javascript:select_date('$today','$vonemonthlater',1);\"><img src='../images/".$admininfo[language]."/btn_1month.gif'></a>
+										<a href=\"javascript:select_date('$today','$v2monthlater',1);\"><img src='../images/".$admininfo[language]."/btn_2months.gif'></a>
+										<a href=\"javascript:select_date('$today','$v3monthlater',1);\"><img src='../images/".$admininfo[language]."/btn_3months.gif'></a>
+										</TD>
+								</tr>
+							</table>
+						  </td>
+					  </tr-->
+                      <tr height=28>
+                        <td class='input_box_title'>메모</td>
+                        <td class='input_box_item' style='padding:5px;'><textarea name='memo' style='padding:3px;width:95%;height:50px;'>".$db->dt[memo]."</textarea></td>
+                      </tr>
+					  </table>
+					  <table border='0' cellspacing='0' cellpadding='0' width='100%' style='margin-top:5px;'>
+						  <tr>
+							<td style='text-align:left;'><a href='giftcertificate.php'>목록</a></td>
+							<td style='text-align:right;' >
+								<table align=right>
+									<tr>
+										<!--td><input type=checkbox id='next_mode' name='next_mode' value='goon'><label for='next_mode'>계속등록하기</label> </td>
+										<td><input type=checkbox id='check_mode' name='check_mode' value='test'><label for='check_mode'>중복확인(등록제외)</label> </td-->
+										<td><input type=image src='../image/b_save.gif' border=0> <a href='giftcertificate.php'><img src='../image/b_cancel.gif' border=0 align=absmiddle></a></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					  </table>
+
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        </form>
+      </div>
+    </td>
+  </tr>";
+
+ $help_text = "
+<table cellpadding=0 cellspacing=0 class='small' >
+	<col width=8>
+	<col width=*>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >생성하고자 하는 상품권명을 입력하신 후 저장 버튼을 누르시면 쿠폰이 생성됩니다. </td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >생성하고자 하는 코드번호는 프리픽스 문자를 입력해서 생성 하실 수 있습니다</td></tr>
+	<!--tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >삭제를 원하시는 상품권 내역을 선택하신후 일괄정보 삭제를 클릭하시면 상품권이 삭제됩니다</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >상품권를 직접 지급 하고자 하실 경우 회원 이름을 클릭하여 입력하시면 됩니다.</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >적립내역이나 적립금 사용내역이 주문취소 시 적립금 산출에 적용이 되지 않게 됩니다.</td></tr-->
+</table>
+";
+
+
+$help_text = HelpBox("상품권등록하기", $help_text);
+$Contents .= "
+  <tr>
+    <td align='left'>
+
+  $help_text
+
+    </td>
+  </tr>
+</table>
+
+<form name='lyrstat'><input type='hidden' name='opend' value=''></form>
+<Script Language='JavaScript'>
+ 
+changeGiftType();
+</Script>";
+
+
+
+
+$Script = "<script language='javascript' src='giftcertificate.js'></script>\n<script language='javascript' src='../include/DateSelect.js'></script>\n$Script";
+$P = new LayOut();
+$P->addScript = $Script;
+$P->jquery_use = true;
+$P->prototype_use = false;
+
+$P->Navigation = "프로모션(마케팅) > 상품권등록하기";
+$P->title = "프로모션(마케팅) > 상품권등록하기";
+$P->strLeftMenu = promotion_menu();
+$P->strContents = $Contents;
+echo $P->PrintLayOut();
+
+//어라운지용 차후 삭제!
+function giftCouponRuleSelectBox($publish_ix,$select_name,$property=""){
+	global $arr_couponList;
+	$mdb = new Database;
+
+	//if($arr_couponList !== false && !count($arr_couponList))	{
+	/********** 회원전용 쿠폰을 위해 수정함 ***********/
+	if($select_name=="member_publish_ix") $publish_type="3";
+	else if (substr_count($select_name,"appoint_publish_ix") > 0) $publish_type="1";
+	else $publish_type="2";
+
+
+	//2014-07-22 차후 조건 받아서(강태웅주임)  진행 HONG
+	//and ((cp.use_date_type!='9' AND '".date("Ymd")."' between cp.use_sdate and cp.use_edate) OR cp.use_date_type=9 OR cp.use_date_type=2)
+
+	$arr_couponList=array();
+
+	//and cp.publish_type= '".$publish_type."' 2014-08-14 차후 조건 받아서(강태웅주임)  진행 HONG
+	/********** 회원전용 쿠폰을 위해 수정함 kbk 12/06/13 ***********/ //use_sdate 에 date_format 한 이유는 오라클때문에~
+		$sql = "select cp.*,c.cupon_kind
+					from ".TBL_SHOP_CUPON."  c inner join ".TBL_SHOP_CUPON_PUBLISH." cp on c.cupon_ix = cp.cupon_ix
+					where  c.cupon_ix > 0 and cp.is_use='1' order by cp.regdate desc";// and cp.use_date_type = 3 //특정조건만 나오게 하는 원인을 몰라서 일단 다 나오게 수정함 with 신실장님 kbk 12/06/11
+		//echo $sql;
+		$mdb->query($sql);
+		if($mdb->total)	{
+
+
+			for($i = 0; $i < $mdb->total; $i++)	{
+				$mdb->fetch($i);
+				$arr_couponList[] = $mdb->dt;
+			}
+		}	else	{
+			$arr_couponList = false;
+		}
+	//}
+	//print_r($arr_couponList);
+	$arr_dateType = array(1=>'년','개월','일');
+	$mstring = "<select name='$select_name' class='appoint_publish_ix' style='font-size:12px;width:300px;' $property onchange=\"change_gift_check($(this))\">";
+	$mstring .= "<option value=''>발행쿠폰 전체 목록</option>";
+	if(is_array($arr_couponList)){
+		foreach($arr_couponList as $_key=>$_val)	{
+			switch($_val['use_date_type'])	{
+				case 1:
+					$use_date_type = '발행일';
+					$priod_str = $use_date_type."로부터 ".$_val['publish_date_differ']." ".$arr_dateType[$_val['publish_date_type']]."간";
+				break;
+				case 2:
+					$use_date_type = '등록일';
+					$priod_str = $use_date_type."로부터 ".$_val['regist_date_differ']." ".$arr_dateType[$_val['regist_date_type']]."간";
+				break;
+				case 3:
+					$use_date_type = '사용기간';
+					$priod_str = $use_date_type." : ".date("Y-m-d", strtotime($_val['use_sdate']))." ~ ".date("Y-m-d", strtotime($_val['use_edate']))." ";
+				break;
+			}
+			$mstring .= "<option value='".$_val['publish_ix']."'".($_val['publish_ix'] == $publish_ix ? " selected":"")." title='".$priod_str."'>[".$_val['cupon_no']."] ".$_val['publish_name']." ".$_val['cupon_kind']." ".$priod_str."</option>";
+		}
+	}
+	if(!$arr_couponList)	{
+		$mstring .= "<option value=''>".$msg."</option>";
+	}
+	$mstring .= "</select>";
+	return $mstring;
+}
+
+?>

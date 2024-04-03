@@ -1,0 +1,152 @@
+
+/**		{ margin: 0px auto; padding: 0px; }*/
+*{padding:0;margin:0;}
+body	{ margin: 0px auto; padding: 0px; }
+body,table,th,td,caption,input,textarea,select,font,p,div,ul,ol,li,h1,h2,h3,h4,dl,dd,dt
+		{ font-size: 11px; color: #4e4e4e; font-family: dotum, 돋움, Baekmuk Dotum, Undotum, Apple Gothic, Latin font, sans-serif; word-break: break-all; }
+table,tr,th,td,div,form,p
+		{ border-collapse: collapse; margin: 0px; }/*border:0px; padding: 0px; vertical-align: middle; */
+img		{ border: 0; }/*vertical-align: middle; */
+a		{ color: #4e4e4e; text-decoration: none; cursor: hand; }
+a:hover { text-decoration: underline; }
+table,tr,td,th,col
+		{ line-height: 120%; }
+p,ul,li,ol,dl,dt,dd
+		{ line-height: 120%; }
+ul		{ margin: 0px; padding: 0px; text-align: left; line-height: 120%; list-style-position : outside; list-style-type : none; clear: both; }
+li		{ vertical-align: text-top; line-height: 120%; }
+input,select
+		{ vertical-align: middle; }
+input	{ border: solid 1px #cacaca; }
+input.no{ width: 18px ! important; border: none ! important; margin: 0px ! important; vertical-align: middle; }
+input.img{ vertical-align: top; border: none ! important; }
+
+input.i2		{width: 20px ! important; }
+input.i3		{ width: 30px ! important; }
+input.i4		{ width: 35px ! important; }
+input.i5		{ width: 40px ! important; }
+input.i6		{ width: 45px ! important; }
+input.i7		{ width: 50px ! important; }
+input.i90p		{ width: 90%; }
+input.i100p		{ width: 100%; }
+input.i100		{ width: 99%; }
+textarea.i100	{ width: 99% ! important; }
+
+input.xxs,select.xxs	{ width: 70px ! important; }
+input.xs,select.xs	{ width: 100px ! important; }
+input.s,select.s	{ width: 150px ! important; }
+input.m,select.m	{ width: 264px ! important; }
+input.l,select.l	{ width: 300px ! important; }
+input.xl,select.xl	{ width: 350px ! important; }
+
+input.xxs_f	{ width: 163px ! important; }
+input.xs_f	{ width: 193px ! important; }
+input.s_f	{ width: 243px ! important; }
+input.m_f	{ width: 357px ! important; }
+input.l_f	{ width: 393px ! important; }
+input.xl_f	{ width: 443px ! important; }
+
+textarea.s	{ width: 150px ! important; }
+textarea.m	{ width: 264px ! important; }
+textarea.l	{ width: 300px ! important; }
+textarea.xl	{ width: 350px ! important; }
+textarea	{ overflow: auto; border: solid 1px #CECECE; }
+
+
+*.blk		{ color: #000000; }
+*.org		{ color: #ff8400; }
+*.grn		{ color: #4aa829; }
+*.cpz		{ color: #42ada6; }
+*.gry		{ color: #999999; }
+*.blu		{ color: #007fb4; }
+*.sky		{ color: #8be1e9; }
+*.red		{ color: #de093c; }
+*.pnk		{ color: #f74e71 ! important; }
+*.cmn		{ color: #ce0f3c ! important; }
+
+input.pnk		{ border: solid 1px #f74e71 ! important; color: #4e4e4e; }
+input.cpz		{ border: solid 1px #42ada6 ! important; color: #4e4e4e; }
+input.blu		{ border: solid 1px #007fb4 ! important; color: #4e4e4e; }
+
+/* 공개 */span.op		{ color: #007fb4; }
+/* 비공개 */span.sr		{ color: #f74e71; }
+/* 친구공개 */span.fr		{ color: #4aa829; }
+/* 날짜 */span.dt		{ color: #888888; margin-right: 10px; }
+/* 추천 */span.vt		{ color: #ff8400; margin-right: 10px; }
+/* 조회 */span.ht		{ color: #ff8400; margin-right: 10px; }
+/* 영상 */span.mv		{ color: #ff8400; margin-right: 10px; }
+/* 포인트 */span.pt		{ color: #f74e71; }
+/* 팝콘 */span.pc		{ color: #f74e71; }
+/* 스크랩 */span.sc		{ color: #ff8400; margin-right: 10px; }
+/* 태그 */span.tg		{ color: #4aa829; margin-right: 10px; }
+/* 닉네임 */span.nk		{ color: #167780; }
+/* 랭킹 */span.rk		{ color: #ff8400; margin-right: 10px; }
+/* 출처 */span.fr		{ color: #4aa829 ! important; margin-right: 10px; }
+/* 앨범 */span.ab		{ color: #4aa829; margin-right: 10px; }
+/* 카테고리 */span.cg		{ color: #4aa829; margin-right: 10px; }
+/* 유니온 */span.uo		{ color: #4aa829; margin-right: 10px; }
+/* 쪽지 */span.mm		{ color: #ff8400; }
+/* 쪽지 */span.no		{ color: #888888; margin-right: 10px; }
+
+
+
+*.rgt		{ float: right; }
+*.lft		{ float: left; }
+*.ctr		{ text-align: center; }
+*.str		{ font-weight: bold; }
+*.nor		{ font-weight: normal; }
+
+span.s		{ font-size: 11px ! important; }
+span.ss		{ font-size: 10px ! important; }
+*.un		{ text-decoration: underline; }
+
+*.lh160	{ line-height: 160%; }
+*.lh180	{ line-height: 180%; }
+*.lh200	{ line-height: 200%; }
+
+*.mb05	{ margin-bottom: 5px ! important; }
+*.mb10	{ clear: both; margin-bottom: 10px ! important; }
+*.mb20	{ clear: both; margin-bottom: 20px ! important; }
+*.mt05	{ margin-top: 5px ! important; }
+*.mt10	{ clear: both; margin-top: 10px ! important; }
+*.mt20	{ clear: both; margin-top: 20px ! important; }
+*.p10		{ padding: 10px; }
+*.p20		{ padding: 20px; }
+
+div.t_no	{ border-top: none ! important; }
+div.btn		{ text-align: center; }
+div.btn input	{ vertical-align: top; }
+
+img.bu		{ float: left; vertical-align: middle; }
+img.icn		{ float: left; vertical-align: middle; margin-right: 5px; }
+img.bst		{ float: left; vertical-align: middle; margin-left: 20px; }
+img.new		{ vertical-align: middle; }
+img.nfrm	{ padding: 0px; border: solid 1px #a8a8a8; }
+img.frm		{ padding: 2px; border: solid 1px #a8a8a8; }
+img.sfrm	{ padding: 1px; border: solid 1px #a8a8a8; }
+img.title	{ float: left; vertical-align: top; }
+img.more	{ float: right; vertical-align: top; margin-top: 2px; }
+img.vm		{ vertical-align: middle; }
+input.vt		{ vertical-align: top; }
+img.btn		{ margin-top: 5px; }
+/* 동영상 */img.mv		{ width: 92px; height: 69px; }
+/* 앨범 */img.ab		{ width: 92px; height: 69px; }
+/* 중간앨범 */img.mab		{ width: 76px; height: 56px; }
+/* 포토 */img.pt		{ width: 92px; height: 69px; }
+/* 작은앨범 */img.sab	{ width: 40px; height: 30px; }
+/* 목록앨범 */img.bab	{ width: 60px; height: 45px; }
+/* 유저 */img.us		{ width: 30px; height: 30px; }
+/* 채널 */img.ch		{ width: 106px; height: 86px; }
+
+
+/* 제목 */
+h2	{ text-align: left; }
+h3	{ text-align: left; }
+/* 점있는리스트 */
+ul.dot			{  }
+ul.dot li		{ padding: 3px 0px 1px 8px; vertical-align: text-top; }
+
+/* 점없는리스트 */
+ul.no {  }
+ul.no li { padding: 3px 0px 1px 0px; vertical-align: text-top; }
+

@@ -1,0 +1,113 @@
+function CategoryMode(cmode)
+{
+	if(cmode == "edit"){
+		document.getElementById('edit_category').style.display ='block';
+		document.getElementById('add_subcategory').style.display ='none';
+	}else{
+		document.getElementById('edit_category').style.display ='none';
+		document.getElementById('add_subcategory').style.display ='block';
+	}
+}
+
+function CategorySave(frm,vMode)
+{
+	//alert(frm);
+	if (frm.this_category.value.length < 1){
+		alert('수정/삭제 하시고자 하는 상품카테고리를 선택해 주세요');
+		return false;	
+	}
+	
+	//alert(iView.document.body.innerHTML);
+	
+	//frm.category_top_view.value = iView.document.body.innerHTML;
+	frm.mode.value = vMode;
+	frm.submit();
+}
+
+function SubCategorySave(frm,vMode)
+{
+	//alert(frm);
+	if (frm.cid.value.length != 15){
+		alert('추가 하시고자 하는 상품카테고리를 선택해 주세요');
+		return false;	
+	}
+	
+	if (frm.sub_category.value.length < 1){
+		alert('추가 하시고자 하는 상품카테고리를 입력해 주세요');
+		return false;	
+	}
+	
+	if (frm.sub_depth.value >= 4){
+		alert('카테고리구성은 4단계까지만 가능합니다.');
+		return false;	
+	}
+	
+	
+	frm.mode.value = vMode;
+	frm.submit();
+}
+
+function setCategory(cname,cid,depth)
+{
+	
+	document.thisCategoryform.this_category.value = cname;
+	document.thisCategoryform.cid.value = cid;
+	document.thisCategoryform.this_depth.value = depth;
+	
+	document.category_order.this_depth.value = depth;
+	document.category_order.cid.value = cid;
+	
+	//document.subCategoryform.cid.value = cid;
+	document.subCategoryform.sub_depth.value = eval(depth+1);
+	document.subCategoryform.cid.value = cid;
+	
+/*	
+	if (depth+1 >=4){
+		document.getElementById("add_subcategory").style.display = "none";
+	}else{
+		document.getElementById("add_subcategory").style.display = "block";
+	}
+*/	
+	window.frames["calcufrm"].location.href='calcurate.php?cid='+cid+'&depth='+eval(depth+1); //eval(depth+1) 이값은 depth 가 0 이 없어서 ...
+	window.frames["act"].location.href='category.save.php?mode=infoupdate&cid='+cid+'&depth='+eval(depth+1); //eval(depth+1) 이값은 depth 가 0 이 없어서 ...
+	// 스크립트 호환성 오류때문에 바꿈 2011-04-04 kbk
+	//document.getElementById("calcufrm").src='calcurate.php?cid='+cid+'&depth='+eval(depth+1); //eval(depth+1) 이값은 depth 가 0 이 없어서 ...
+	//document.getElementById("iframe_act").src='category.save.php?mode=infoupdate&cid='+cid+'&depth='+eval(depth+1); //eval(depth+1) 이값은 depth 가 0 이 없어서 ...
+}	
+
+function order_up(frm){
+	frm.mode.value = "up";
+	if (frm.this_depth.value.length < 1){
+		alert('상품카테고리를 선택해주세요');
+		return false;	
+	}
+	
+	frm.submit();
+}
+
+function order_down(frm){
+	frm.mode.value = "down";
+	if (frm.this_depth.value.length < 1){
+		alert('상품카테고리를 선택해주세요');
+		return false;	
+	}
+	
+	frm.submit();
+}
+
+
+function showTabContents(vid, tab_id){
+	var area = new Array('edit_category','add_subcategory');
+	var tab = new Array('tab_01','tab_02');
+	
+	for(var i=0; i<area.length; ++i){
+		if(area[i]==vid){
+			document.getElementById(vid).style.display = 'block';			
+			document.getElementById(tab_id).className = 'on';
+		}else{			
+			document.getElementById(area[i]).style.display = 'none';
+			document.getElementById(tab[i]).className = '';
+		}
+	}
+	
+}

@@ -1,0 +1,275 @@
+<?
+
+
+class ManagePopLayOut{
+	var $strContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $strLeftMenu;
+	var $default_path;
+	var $BodyFunctionAdd;
+	var $Config;
+	var $Navigation;
+	var $NaviTitle;
+	var $layout_display ;
+
+	function ManagePopLayOut(){
+		$this->strContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->BodyFunctionAdd = "";
+		$this->title = "";
+		$this->strLeftMenu = "";
+		$this->default_path = "/admin";
+		$this->Navigation = "HOME";
+		$this->NaviTitle = "";
+		$this->layout_display = true;
+
+		$this->AdminConfig();
+	}
+
+
+
+
+	function AdminConfig(){
+	global $admin_config, $layout_config, $admininfo;
+
+		$cfg_db = new Database;
+
+		$cfg_db->query("select mall_use_templete, mall_domain, mall_use_multishop, mall_ename, mall_data_root from ".TBL_SHOP_SHOPINFO." where mall_ix = '".$admininfo[mall_ix]."' ");
+
+		$cfg_db->fetch();
+
+		$admin_config[mall_use_multishop] = $cfg_db->dt[mall_use_multishop];
+		$admin_config[mall_use_templete] = $cfg_db->dt[mall_use_templete];
+		$admin_config[mall_ename] = $cfg_db->dt[mall_ename];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_domain] = $cfg_db->dt[mall_domain];
+		$layout_config = $admin_config;
+		$this->Config = $admin_config;
+		session_register("admin_config");
+		session_register("layout_config");
+	}
+
+	function PrintLayOut(){
+	global $admininfo, $admin_config;
+$mstring = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//ENg\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/include/admin.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<STYLE>
+#men {
+	BORDER-RIGHT: 2px outset; BORDER-TOP: 2px outset; Z-INDEX: 1; LEFT: 0px; VISIBILITY: hidden; BORDER-LEFT: 2px outset; BORDER-BOTTOM: 2px outset; POSITION: absolute; TOP: 0px
+}
+#men A {
+	PADDING-RIGHT: 1px; PADDING-LEFT: 1px; PADDING-BOTTOM: 4px; MARGIN: 1px 1px 1px 16px; FONT: 11px sans-serif; WIDTH: 100%; PADDING-TOP: 3px; HEIGHT: 100%; TEXT-DECORATION: none
+}
+.ico {
+	BORDER-RIGHT: medium none; BORDER-TOP: medium none; FLOAT: left; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none
+}
+</STYLE>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+<script src='".$this->default_path."/js/jquery-1.8.3.js'></script>
+<script src='".$this->default_path."/js/jquery-ui.js'></script>
+<script language='javascript' src='../work/js/jquery.blockUI.js'></script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+<script language='JavaScript' src='/admin/js/zoom.js'></Script>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/dd.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.php'></Script>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 ".$this->BodyFunctionAdd." onload=\"".$this->OnloadFunction."\" ondragstart='return false' >
+
+<table cellpadding=0 cellspacing=0 border=0 width=100%>";
+
+if($this->layout_display){
+$mstring .= "
+	<tr><td  align=left class='top_orange'  ></td></tr>
+	<tr height=35 bgcolor=#efefef>
+		<td  style='padding:0 0 0 0;'>
+			<table width='100%' border='0' cellspacing='0' cellpadding='0' >
+				<tr>
+					<td width='10%' height='31' valign='middle' style='font-family:굴림;font-size:16px;font-weight:bold;letter-spacing:-2px;word-spacing:0px;padding-left:10px;' nowrap><!--border-bottom:2px solid #ff9b00;-->
+						<img src='/admin/images/icon/sub_title_dot.gif' align=absmiddle> ".$this->NaviTitle."
+					</td>
+
+				</tr>
+			</table>
+		</td>
+	</tr>";
+}
+$mstring .= "
+	<tr >
+		<td   class='top_shadow' style='height:95%;' bgcolor=#ffffff height=3 align=left valign=top id='contentsarea'  >
+		<div id='contents_frame' style='width:100%;overflow-y:scroll;padding:0  ;' ><!---->
+		".$this->strContents."
+		</div>
+		</td>
+
+	</tr>";
+if($this->layout_display){
+$mstring .= "
+	<tr height=30 style=''>
+		<td  height=3 align=right  valign=top style='background-color:#ebeceb;border-top:2px solid #fc9c1d; padding:10px;font-family:돋움'>
+			<table cellpadding=0 cellspacing=0 width=100%>
+			<tr>
+				<td align=left>copyright ⓒ ".$admin_config[mall_domain]." all right reserved. </td>
+				<td align=right style='padding-right:10px;'><a href='javascript:self.close();'><img src='/admin/image/close.gif' border=0></a></td>
+			</tr>
+			</table>
+		</td>
+	</tr>";
+	}
+$mstring .= "
+</table>
+<div id='loading' style='display:none;border:0px solid red;width:100%;height:100%;padding-top:13px;'><img src='../images/loading_large.gif' border=0></div>
+<iframe name='act' id='act' width=0 height=0 frameborder=0></iframe>
+</body>
+<script>
+linecss();
+</script>
+</html>";
+
+echo $mstring;
+
+	}
+
+}
+
+
+class popLayOut{
+	var $strContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $strLeftMenu;
+	var $default_path;
+	var $BodyFunctionAdd;
+	var $Config;
+	var $Navigation;
+
+
+	function popLayOut(){
+		$this->strContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->BodyFunctionAdd = "";
+		$this->title = "";
+		$this->strLeftMenu = "";
+		$this->default_path = "/admin";
+		$this->Navigation = "HOME";
+
+
+		$this->AdminConfig();
+	}
+
+
+
+
+	function AdminConfig(){
+	global $admin_config, $layout_config, $admininfo;
+
+		$cfg_db = new Database;
+
+		$cfg_db->query("select mall_use_templete, mall_domain, mall_use_multishop, mall_ename, mall_data_root from ".TBL_SHOP_SHOPINFO." where mall_ix = '".$admininfo[mall_ix]."' ");
+
+		$cfg_db->fetch();
+
+		$admin_config[mall_use_multishop] = $cfg_db->dt[mall_use_multishop];
+		$admin_config[mall_use_templete] = $cfg_db->dt[mall_use_templete];
+		$admin_config[mall_ename] = $cfg_db->dt[mall_ename];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_domain] = $cfg_db->dt[mall_domain];
+		$layout_config = $admin_config;
+		$this->Config = $admin_config;
+		session_register("admin_config");
+		session_register("layout_config");
+	}
+
+	function PrintLayOut(){
+	global $admininfo;
+$mstring = "
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/include/admin.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+
+<STYLE>
+#men {
+	BORDER-RIGHT: 2px outset; BORDER-TOP: 2px outset; Z-INDEX: 1; LEFT: 0px; VISIBILITY: hidden; BORDER-LEFT: 2px outset; BORDER-BOTTOM: 2px outset; POSITION: absolute; TOP: 0px
+}
+#men A {
+	PADDING-RIGHT: 1px; PADDING-LEFT: 1px; PADDING-BOTTOM: 4px; MARGIN: 1px 1px 1px 16px; FONT: 11px sans-serif; WIDTH: 100%; PADDING-TOP: 3px; HEIGHT: 100%; TEXT-DECORATION: none
+}
+.ico {
+	BORDER-RIGHT: medium none; BORDER-TOP: medium none; FLOAT: left; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none
+}
+</STYLE>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 ".$this->BodyFunctionAdd." onload=\"".$this->OnloadFunction."\" ondragstart='return false' >
+
+<table cellpadding=0 cellspacing=0 border=0 width=100% height=100% >
+
+	<!--tr height='4'>
+		<td  class='top_orange' colspan=2><img src='".$this->default_path."/images/bg_orange_left.gif' ></td>
+	</tr>
+	<tr bgcolor=silver height=20 style='height:20px;'>
+		<td  align=left class='top_navi'  colspan=2>
+		<table cellpadding=0 cellspacing=0>
+			<tr>
+				<td><img src='".$this->default_path."/images/bg_navi_left.gif'></td>
+				<td valign=bottom><img src='".$this->default_path."/images/dot_orange.gif'  align=absmiddle> </td>
+				<td style='padding-left:10px;'> ".$this->Navigation." </td>
+			</tr>
+		</table>
+
+		</td>
+	</tr-->";
+
+$mstring .= "
+	<tr height=95%>
+		<td  height=95% class='top_shadow' bgcolor=#ffffff height=3 align=left valign=top id='contentsarea'  colspan=2>
+		<div id='contents_frame' style='width:100%;overflow:scroll;padding:0 0 0 0  ;border:1px solid red;' ><!---->
+		".$this->strContents."
+		</div>
+		</td>
+		<td ></td>
+	</tr>
+	<!--tr height=30 style=''>
+		<td  height=3 align=right colspan=2 valign=top style='background-color:#ebeceb;border-top:2px solid #fc9c1d; padding:10px;font-family:돋움'>
+			copyright ⓒ mallstory.com all right reserved.
+		</td>
+	</tr-->
+</table>
+<iframe name='act' id='act' width=0 height=0 frameborder=0></iframe>
+</body>
+</html>";
+
+echo $mstring;
+
+	}
+
+}
+?>

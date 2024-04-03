@@ -1,0 +1,17 @@
+; ***************************************** ;
+; Messages list                             ;
+; ***************************************** ;
+
+messages_to				= Messaggi per  <!--%UM_USER_EMAIL%-->
+no_messages				= Nessun messaggio nella cartella "<b><!--%UM_BOX_NAME%--></b>"
+quota_usage				= Quota limite: <!--%UM_USAGE_GRAPHIC%--> <b><!--%UM_TOTAL_USED%--></b> di <b><!--%UM_AVAL_SIZE%--></b> sono usati.
+select_all_mnu				= Seleziona tutto
+delete_selected_mnu			= Cancella selezionati
+move_selected_mnu			= Sposta selezionati in 
+delete_mnu				= Cancella
+move_mnu				= Sposta in
+subject_hea				= Oggetto
+from_hea				= Da
+date_hea				= Data
+size_hea				= Dimensione
+

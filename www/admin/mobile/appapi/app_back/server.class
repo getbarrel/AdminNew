@@ -1,0 +1,26 @@
+<?php 
+
+class ItemGoods
+{
+	var $basicimagefile;
+	var $cid;
+	var $pname;
+	var $coprice;
+	var $wholesale_price;
+	var $listprice;
+	var $stock;
+	var $delivery_price;
+	var $delivery_policy;
+	var $search_keyword;
+	var $basicinfo;
+	var $sns_facebook;
+	var $sns_twitter;
+}
+
+class UserInfo
+{
+	var $id;
+	var $name;
+	var $code;
+	var $company_id;
+}

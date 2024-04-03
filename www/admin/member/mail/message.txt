@@ -1,0 +1,13 @@
+<?
+
+$sname = "심플라인";
+
+$smail = "esimpleline@simpleline.co.kr";
+
+$rmail = "simpleline@simpleline.co.kr";
+
+$subj = "[심플라인] 2006년 첫번째 뉴스레터..!! 초저가 공동구매...!!";
+
+$text = "test";
+
+?>

@@ -1,0 +1,638 @@
+<?php
+include($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.class");
+
+if($_SESSION["admininfo"]['mall_type'] == "F"){
+//	echo "<script>alert('무료형 서비스는 로그분석 및 이커머스 분석은 제공되지 않습니다\\n사용을 원하시면 임대형 또는 독립형 서비스 신청을 하셔야 합니다.');history.back();</script>";
+}
+
+if($_SESSION["admininfo"]['admin_level'] < 8 ){
+	echo "<script>alert(language_data['common']['C'][language]);document.location.href='../../admin.php'</script>";//'관리자 로그인후 사용해주세요...'
+}
+
+ session_start();
+
+include($_SERVER["DOCUMENT_ROOT"]."/logstory.config.php");
+
+
+if(!empty($_GET["report_type"])){
+	$ss_report_type = $_GET["report_type"];
+	$_SESSION['ss_report_type'] = $ss_report_type;
+
+}else{
+	$report_type = $ss_report_type;
+}
+
+
+if(!empty($_GET["report_group_type"])){
+	$ss_report_group_type = $_GET["report_group_type"];
+    $_SESSION['ss_report_group_type'] = $ss_report_group_type;
+
+}else{
+	$report_group_type = $ss_report_group_type;
+}
+
+
+
+if(!empty($_GET["vdate"])){
+	$ss_vdate = $_GET["vdate"];
+	$_SESSION['ss_vdate'] = $ss_vdate;
+}else{
+	$vdate = $ss_vdate;
+}
+
+
+if(!empty($_GET["search_sdate"])){
+	$ss_search_sdate = $_GET["search_sdate"];
+	$search_sdate = $_GET["search_sdate"];
+	$_SESSION['ss_search_sdate'] = $ss_search_sdate;
+}else{
+	$search_sdate = $ss_search_sdate;
+}
+//echo $search_sdate;
+//echo $_GET["search_sdate"];
+
+if(!empty($_GET["search_edate"])){
+	$ss_search_edate = $_GET["search_edate"];
+	$search_edate = $_GET["search_edate"];
+	$_SESSION['ss_search_edate'] = $ss_search_edate;
+}else{
+	$search_edate = $ss_search_edate;
+}
+//echo "vdate:".$vdate;
+
+
+if(!empty($_GET["SelectReport"])){
+	$ss_SelectReport = $_GET["SelectReport"];
+	$_SESSION['ss_SelectReport'] = $ss_SelectReport;
+}else{
+	$SelectReport = $ss_SelectReport;
+}
+//echo "SelectReport:".$SelectReport;
+
+
+if(!empty($referer_id)){
+	$ss_referer_id = $referer_id;
+	$_SESSION['ss_referer_id'] = $ss_referer_id;
+}else{
+	$referer_id = $ss_referer_id;
+}
+
+
+if(!empty($rdepth)){
+	$ss_rdepth = $rdepth;
+	$_SESSION['ss_depth'] = $ss_rdepth;
+}else{
+	$rdepth = $ss_rdepth;
+}
+
+//echo $ss_cid;
+
+if(!empty($cid)){
+	$ss_cid = $cid;
+	$_SESSION['ss_cid'] = $ss_cid;
+}else{
+	$cid = $ss_cid;
+}
+
+
+if(!empty($depth)){
+	$ss_depth = $depth;
+	$_SESSION['ss_depth'] = $ss_depth;
+}else{
+	$depth = $ss_depth;
+}
+
+//echo $depth;
+
+//auth(9);
+$use_path = "/admin/logstory/";
+include_once($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/database.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/".$use_path."include/report_menu.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/".$use_path."include/commerce_menu.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/calender.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/".$use_path."include/util.php");
+
+
+
+//날짜 검색 데이터 진입시 검증 처리
+if($search_sdate && checkIsAValidDate($search_sdate) === false){
+    $search_sdate = date('Ymd');
+    $_GET['search_sdate'] = $search_sdate;
+}
+
+if($search_edate && checkIsAValidDate($search_edate) === false){
+    $search_edate = date('Ymd');
+    $_GET['search_edate'] = $search_edate;
+}
+
+function checkIsAValidDate($myDateString){
+    return (bool)strtotime($myDateString);
+}
+
+
+if (!class_exists('forbizReportPage'))
+{ // 클래스선언이 없으면...
+	class forbizReportPage extends LayOut{
+		var $strContents;
+		var $forbizContents;
+		var $addScript;
+		var $OnloadFunction;
+		var $title;
+		var $strLeftMenu;
+		var $forbizLeftMenu;
+		var $default_path;
+
+		function PrintReportPage(){
+		global $admininfo;
+		$mndb = new Database;
+		$paths = explode("/",$_SERVER["PHP_SELF"]);
+		//print_r($paths);
+
+		$this->strContents = $this->forbizContents;
+		$this->strLeftMenu = $this->forbizLeftMenu;
+
+			if($_SESSION["admininfo"]["language"] != "korea"){
+
+
+				$sql = "select text_div, text_korea, text_trans
+					from admin_language
+					where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",str_replace("commerce","ec",str_replace("report","log",$paths[3])))."_lnb')
+					order by CHAR_LENGTH(text_korea) desc  ";
+
+				//echo nl2br($sql);
+				$mndb->query($sql);
+				if($mndb->total){
+				//echo "test";
+					$languages = $mndb->fetchall();
+					//print_r($dics);
+					$count = 10;
+					for($i=0;$i < count($languages);$i++){
+						//echo $languages[$i]["text_korea"]."<br>\n";
+						$this->strTopMenu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->strTopMenu);
+						$this->strLeftMenu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->strLeftMenu);
+						$this->right_menu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->right_menu);
+					}
+				}
+			}
+			if($mndb->dbms_type == "oracle"){
+				$sql = "select text_korea, text_trans, LENGTH(text_korea) as text_korea_cnt
+						from admin_dic where menu_code = '".md5($_SERVER["PHP_SELF"])."' and language_type = '".$_SESSION["admininfo"]["language"]."' and dic_type = 'WORD'
+						union
+						select CAST(text_korea as varchar(255)) as text_korea, CAST(text_trans as varchar(255)) as text_trans , LENGTH(text_korea) as text_korea_cnt
+						from admin_language
+						where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+						order by text_korea_cnt desc";
+			}else{
+				$sql = "select text_korea, text_trans from admin_dic where menu_code = '".md5($_SERVER["PHP_SELF"])."' and language_type = '".$_SESSION["admininfo"]["language"]."' and dic_type = 'WORD'
+					union
+					select text_korea, text_trans
+					from admin_language
+					where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+					order by CHAR_LENGTH(text_korea) desc
+					 ";
+			}
+
+			//echo nl2br($sql);
+			$mndb->query($sql);
+			if($mndb->total){
+			//echo "test";
+				$dics = $mndb->fetchall();
+				//print_r($dics);
+				$count = 10;
+				for($i=0;$i < count($dics);$i++){
+					$pattern = "[".$dics[$i]["text_korea"]."]";
+					//$this->strContents = preg_replace($pattern, $dics[$i]["text_trans"], $this->strContents,$count);
+					$this->strContents = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $this->strContents);
+				}
+			}
+
+
+ 
+			$this->addScript = $this->addScript ."<LINK REL='stylesheet' HREF='".$this->default_path."/logstory/include/logstory.css' TYPE='text/css'>\n<SCRIPT language=javascript  src='../include/forbiz.js'></SCRIPT>";
+			if($_SESSION["ss_SelectReport"]){
+			$this->addScript .= "<SCRIPT language=javascript  >
+				$(document).ready(function() {
+					ChangeReport('".$_SESSION["ss_SelectReport"]."')
+				});
+				</script>";
+			}
+			echo $this->PrintLayOut();
+		}
+
+	}
+
+} // 클래스를 선언하고 종료한다...
+
+class forbizReportPage2{
+	var $strContents;
+	var $forbizContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $forbizLeftMenu;
+	var $default_path;
+
+	function forbizReportPage2(){
+		$this->forbizContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->title = "";
+		$this->forbizLeftMenu = "";
+		$this->default_path = "/admin";
+		$this->admin_home_link = $this->default_path."/store/main.php";
+	}
+
+
+	function PrintReportPage(){
+	global $admininfo, $DOCUMENT_ROOT;
+
+	if($_SESSION["admininfo"][admin_level] == 9){
+		if($_SESSION["admininfo"][sattle_module] == "allthegate"){
+			$permit_string = str_replace("01-06:","",$_SESSION["admininfo"][permit]);
+			$permit_string = str_replace("01-07:","",$permit_string);
+			$permit_string = str_replace("01-08:","",$permit_string);
+			$permit_string = $permit_string."01-07:";
+		}else if($_SESSION["admininfo"][sattle_module] == "inicis"){
+			$permit_string = str_replace("01-07:","",$_SESSION["admininfo"][permit]);
+			$permit_string = str_replace("01-06:","",$permit_string);
+			$permit_string = str_replace("01-08:","",$permit_string);
+			$permit_string = $permit_string."01-06:";
+		}else if($_SESSION["admininfo"][sattle_module] == "lgdacom"){
+			$permit_string = str_replace("01-06:","",$_SESSION["admininfo"][permit]);
+			$permit_string = str_replace("01-07:","",$permit_string);
+			$permit_string = str_replace("01-08:","",$permit_string);
+			$permit_string = $permit_string."01-08:";
+		}else if($_SESSION["admininfo"][sattle_module] == "kcp"){
+			$permit_string = str_replace("01-06:","",$_SESSION["admininfo"][permit]);
+			$permit_string = str_replace("01-07:","",$permit_string);
+			$permit_string = str_replace("01-08:","",$permit_string);
+			$permit_string = str_replace("01-09:","",$permit_string);
+			$permit_string = $permit_string."01-09:";
+		}
+	}else if($_SESSION["admininfo"][admin_level] == 8){
+		$permit_string = $_SESSION["admininfo"][permit];
+		$this->admin_home_link = $this->default_path."/store/notice/bbs_list.php";
+	}
+
+	if (file_exists($_SERVER["DOCUMENT_ROOT"]."".$_SESSION["admininfo"][mall_data_root]."/images/admin_logo.gif")){
+		$admin_logo_path = $_SESSION["admininfo"][mall_data_root]."/images/admin_logo.gif";
+	}else{
+		$admin_logo_path = $this->default_path."/images/admin_logo.gif";
+	}
+
+$mstring = "
+<!--<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">-->
+<!--<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//ENg\">-->
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<META content='MSHTML 6.00.2800.1498' name=GENERATOR>
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/include/admin.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/logstory/include/logstory.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='".$this->default_path."/logstory/include/logstory.css' TYPE='text/css'-->
+<STYLE>
+#men {
+	BORDER-RIGHT: 2px outset; BORDER-TOP: 2px outset; Z-INDEX: 1; LEFT: 0px; VISIBILITY: hidden; BORDER-LEFT: 2px outset; BORDER-BOTTOM: 2px outset; POSITION: absolute; TOP: 0px
+}
+#men A {
+	PADDING-RIGHT: 1px; PADDING-LEFT: 1px; PADDING-BOTTOM: 4px; MARGIN: 1px 1px 1px 16px; FONT: 11px sans-serif; WIDTH: 100%; PADDING-TOP: 3px; HEIGHT: 100%; TEXT-DECORATION: none
+}
+.ico {
+	BORDER-RIGHT: medium none; BORDER-TOP: medium none; FLOAT: left; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none
+}
+</STYLE>
+";
+
+$mstring .= "<!--script type='text/javascript' src='".$this->default_path."/js/prototype.js'></script>
+<script type='text/javascript' src='".$this->default_path."/js/effects.js'></script>
+<script type='text/javascript' src='".$this->default_path."/js/doitBox_user.js'></script-->";
+$mstring .= "<script language='JavaScript' src='".$this->default_path."/js/jquery-1.4.js'></Script>";
+$mstring .="
+<script language='javascript'>
+var permit = \"permit:".$permit_string."\";
+</script>
+<script language='JavaScript' src='".$this->default_path."/js/admin.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/menus_layer.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/menus_data.js'></Script>
+<!--script language='JavaScript' src='".$this->default_path."/funny/js/admin.js'></Script-->
+<SCRIPT language=javascript  src='../include/forbiz.js'></SCRIPT>
+<script language='JavaScript' src='".$this->default_path."/js/dd.js'></Script>
+<script language='javascript'>
+/*generateGNBLayer('storeleft', subMenus_storeleft);
+generateGNBLayer('hompy', subMenus_hompy);
+generateGNBLayer('club', subMenus_club);
+generateGNBLayer('design', subMenus_design);
+generateGNBLayer('order', subMenus_order);
+generateGNBLayer('sattlement', subMenus_sattlement);
+generateGNBLayer('member', subMenus_member);
+generateGNBLayer('zeronine', subMenus_zeronine);
+generateGNBLayer('marketting', subMenus_marketting);
+generateGNBLayer('static', subMenus_static);
+generateGNBLayer('log', subMenus_log);
+generateGNBLayer('estimate', subMenus_estimate);
+generateGNBLayer('database', subMenus_database);*/
+generateGNBLayer('storeleft', subMenus_storeleft);
+generateGNBLayer('hompy', subMenus_hompy);
+generateGNBLayer('club', subMenus_club);
+generateGNBLayer('design', subMenus_design);
+generateGNBLayer('order', subMenus_order);
+generateGNBLayer('sattlement', subMenus_sattlement);
+generateGNBLayer('member', subMenus_member);
+generateGNBLayer('zeronine', subMenus_zeronine);
+generateGNBLayer('marketting', subMenus_marketting);
+generateGNBLayer('static', subMenus_static);
+generateGNBLayer('log', subMenus_log);
+generateGNBLayer('estimate', subMenus_estimate);
+generateGNBLayer('database', subMenus_database);
+generateGNBLayer('bbsmanage', subMenus_bbsmanage);
+generateGNBLayer('cogoods', subMenus_cogoods);
+generateGNBLayer('inventory', subMenus_inventory);
+generateGNBLayer('campaign', subMenus_campaign);
+generateGNBLayer('work', subMenus_work);
+/*
+function MenuHidden(){
+	//alert(document.getElementById('admin_left_menu').style.display);
+	if(document.getElementById('admin_left_menu').style.display == 'block'){
+		document.getElementById('admin_left_menu').style.display='none';
+		document.getElementById('menu_view_btn').style.display='inline';
+	}else{
+		document.getElementById('admin_left_menu').style.display='block';
+		document.getElementById('menu_view_btn').style.display='none';
+	}
+
+}*/
+function MenuHidden(view){
+	//alert(document.getElementById('admin_left_menu').style.display);
+	//if(document.getElementById('admin_left_menu').style.display == 'block'){
+	if(view){
+		document.getElementById('admin_left_menu').style.display='';
+		document.getElementById('menu_view_btn').style.display='none';
+
+		document.getElementById('contents_frame').style.width = '950px';
+		document.frames['iframe_act'].location.href='/menu_forcookie.php?menu=Y';
+	}else{
+		document.getElementById('admin_left_menu').style.display='none';
+		document.getElementById('menu_view_btn').style.display='';
+
+		document.getElementById('contents_frame').style.width = (950 + 190) + 'px';
+
+
+		document.frames['iframe_act'].location.href='/menu_forcookie.php?menu=N';
+	}
+
+}
+
+function loading(frm){
+
+		var pc_obj = document.getElementById('contentsarea');
+		pc_obj.readOnly = true;
+		with (document.getElementById('save_loading').style){
+
+			width = '1000px';
+			height = '1000px';
+			backgroundColor = '#ffffff';
+			filter = 'Alpha(Opacity=50)';
+			opacity = '0.5';
+		}
+
+		var obj = document.createElement('div');
+		with (obj.style){
+			position = 'relative';
+			zIndex = 100;
+		}
+		obj.id = 'loadingbar';
+		obj.innerHTML = \"<img src='/images/indicator.gif' border=0>\";
+		document.getElementById('save_loading').appendChild(obj);
+
+		document.getElementById('save_loading').style.display = 'block';
+		//document.getElementById('save_btn').focus();
+
+
+	return true;
+}
+
+function unloading(){
+	var obj = parent.document.getElementById('contentsarea');
+	obj.readOnly = false;
+	obj.style.border = '0px solid silver';
+	parent.document.getElementById('loadingbar').innerHTML ='';
+	parent.document.getElementById('save_loading').innerHTML ='';
+
+
+	parent.document.getElementById('save_loading').style.display = 'none';
+	//parent.document.getElementById('contentsarea').focus();
+}
+</SCRIPT>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 ".$this->BodyFunctionAdd." onload=\"".$this->OnloadFunction."\">
+<table cellpadding=0 cellspacing=0 border=0 style='width:100%;'>
+	<col width='178'>
+	<col width='*'>
+	<tr >
+		<td bgcolor='#ffffff' align=center rowspan=2><div style='width:178px;'><a href='".$this->admin_home_link."'><img src='".$admin_logo_path."' border=0></a></div></td>
+		<td height=25 bgcolor='#e7ebe7' class='top_bg' style='padding:0px;padding-left:10px;border-bottom:1px solid #b8b8b8;'>
+			<a href='".$this->admin_home_link."'><img src='".$this->default_path."/images/topmenu/btn_home.gif' hspace=4></a>
+			<!--img src='".$this->default_path."/images/topmenu/btn_ftp.gif' hspace=4-->
+			<a href='".$this->default_path."/admin.php?act=logout'><img src='".$this->default_path."/images/topmenu/btn_logout.gif' hspace=4></a>
+			<a href='/' target=_blank><img src='".$this->default_path."/images/topmenu/btn_myshop.gif' hspace=4></a>
+		</td>
+	</tr>
+	<tr height=65>
+		<td align=left>
+		".topmenu($this->default_path."/images/topmenu")."
+		</td>
+	</tr>";
+
+$mstring .= "
+	<tr>
+		<!--td valign=top width=180 style='display:block' rowspan=4 id='admin_left_menu'-->
+		<td valign=top style='padding-left:2px;' rowspan=4 id='admin_left_menu'>
+			<table class='mbox01' style='width:175px;height:150px'  border=0 cellpadding='0' cellspacing='0'>
+				<tr>
+					<th class='box_01'></th>
+					<td class='box_02' ><a href=\"javascript:MenuHidden();\" id='menu_hidden_text' ><img src='".$this->default_path."/images/btn_menu_hidden.gif' ></a></td>
+					<th class='box_03'></th>
+				</tr>
+				<tr>
+					<th class='box_04'></th>
+					<td class='box_05' valign=top >
+						".$this->forbizLeftMenu."
+					</td>
+					<th class='box_06'></th>
+				</tr>
+				<tr>
+					<th class='box_07'></th>
+					<td class='box_08'></td>
+					<th class='box_09'></th>
+				</tr>
+			</table>
+			<table align=center width='175'>
+				<tr><td style='padding:5px;' align=center><a onclick=\"PoPWindow('/manage/valiables.pop.php',450,300,'sendsms')\" style='color:#ffffff'>치환변수 보기</a> </td></tr>
+
+			</table>
+		</td>
+		<td  class='top_orange' colspan=2><!--img src='".$this->default_path."/images/bg_orange_left.gif' --></td>
+	</tr>
+	<tr bgcolor=silver style='height:23px;'>
+		<td  align=left class='top_navi'  colspan=2 >
+		<table cellpadding=0 cellspacing=0 height=23 border=0>
+			<tr>
+				<td><img src='".$this->default_path."/images/bg_navi_left.gif'></td>
+				<td valign=middle><img src='".$this->default_path."/images/dot_orange.gif'  align=absmiddle> </td>
+				<td style='padding-left:10px;'>  ".$this->Navigation." <a href=\"javascript:MenuHidden();\"  ><img src='".$this->default_path."/images/btn_menu_view.gif' id='menu_view_btn' style='display:none;' align=absmiddle></a> </td>
+			</tr>
+		</table>
+
+		</td>
+	</tr>";
+
+$mstring .= "
+	<!--tr><td colspan=15 bgcolor=#000000 height=1></td></tr-->
+	<tr height=100%><!--bgcolor=#007DB7-->
+
+		<td  class='top_shadow' bgcolor=#ffffff height=3 align=left valign=top colspan=2>
+		<div style='z-index:2;position:absolute;'>
+		<div style='width:100%;height:300px;display:block;position:relative;z-index:10px;text-align:center;padding-top:150px;display:none;' id='save_loading'></div>
+		</div>
+		<div id='contentsarea' style='min-height:500px;width:950px;padding:20px 30px 30px 30px ;'><!--overflow:auto; id='contentsarea'  id='contents_frame'-->
+		".$this->forbizContents."
+		</div>
+		</td>
+	</tr>
+	<tr height=30 style=''>
+		<!--td valign=top   ></td-->
+		<td  height=3 align=right colspan=2 valign=top style='background-color:#ebeceb;border-top:2px solid #fc9c1d; padding:10px;font-family:돋움'>
+			copyright ⓒ logstory.com all right reserved.
+		</td>
+	</tr>
+</table>
+<iframe name='act' id='act' width=0 height=0 frameborder=2></iframe>
+</body>
+</html>";
+
+echo $mstring;
+
+	}
+
+
+
+
+	function PrintReportPage_(){
+	global $admininfo;
+$mstring = "
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=euc-kr'>
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/logstory/include/logstory.css' TYPE='text/css'>
+<STYLE>
+#men {
+	BORDER-RIGHT: 2px outset; BORDER-TOP: 2px outset; Z-INDEX: 1; LEFT: 0px; VISIBILITY: hidden; BORDER-LEFT: 2px outset; BORDER-BOTTOM: 2px outset; POSITION: absolute; TOP: 0px
+}
+#men A {
+	PADDING-RIGHT: 1px; PADDING-LEFT: 1px; PADDING-BOTTOM: 4px; MARGIN: 1px 1px 1px 16px; FONT: 11px sans-serif; WIDTH: 100%; PADDING-TOP: 3px; HEIGHT: 100%; TEXT-DECORATION: none
+}
+.ico {
+	BORDER-RIGHT: medium none; BORDER-TOP: medium none; FLOAT: left; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none
+}
+</STYLE>
+<script language='javascript'>
+var permit = \"permit:".$_SESSION["admininfo"][permit]."\";
+
+</script>
+<script language='JavaScript' src='".$this->default_path."/funny/js/menus_layer.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/funny/js/menus_data.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/funny/js/admin.js'></Script>
+<SCRIPT language=javascript  src='../include/forbiz.js'></SCRIPT>
+<SCRIPT Language='JavaScript'>
+
+generateGNBLayer('storeleft', subMenus_storeleft);
+generateGNBLayer('hompy', subMenus_hompy);
+generateGNBLayer('club', subMenus_club);
+generateGNBLayer('design', subMenus_design);
+generateGNBLayer('order', subMenus_order);
+generateGNBLayer('sattlement', subMenus_sattlement);
+generateGNBLayer('member', subMenus_member);
+generateGNBLayer('zeronine', subMenus_zeronine);
+generateGNBLayer('marketting', subMenus_marketting);
+generateGNBLayer('static', subMenus_static);
+generateGNBLayer('log', subMenus_log);
+generateGNBLayer('estimate', subMenus_estimate);
+generateGNBLayer('database', subMenus_database);
+
+
+</SCRIPT>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 onload=\"".$this->OnloadFunction."\">
+<table cellpadding=0 cellspacing=0 border=0 width=100% height=100%>
+	<tr height=65>
+		<td bgcolor='#EEF7FC'><img src='/manage/funny/image/funny_logo.gif' border=0></td>
+		<td align=left >
+		".topmenu("/manage/funny")."
+		</td>
+	</tr>
+	<!--tr><td  bgcolor=#000000 height=3></td></tr-->";
+
+$mstring .= "
+	<tr bgcolor=silver>
+		<td width=170 valign=bottom bgcolor='#007DB7' >
+		</td>
+		<td  height=25 bgcolor='#4CA4CC' style='padding-left:30px;'>".$this->title." </td>
+	</tr>";
+
+$mstring .= "
+	<!--tr><td colspan=15 bgcolor=#000000 height=1></td></tr-->
+	<tr height=90%>
+		<td valign=top width=190 bgcolor=#007DB7 >".$this->forbizLeftMenu."</td>
+		<td  bgcolor=#ffffff height=3 align=left valign=top >
+		<div style='overflow:auto;height:100%;width:100%;padding:30px;' id='contentsarea'>
+		".$this->forbizContents."
+		</div>
+		</td>
+	</tr>
+	<tr height=30>
+		<td valign=top  bgcolor=#006599 ></td>
+		<td bgcolor=#007DB7 height=3 align=center valign=top id='contentsarea' style='padding:10px;color:#ffffff;font-size:11px;'>
+			copyright ⓒ <img src='/manage/funny/image/bottom_logo.gif' align=absmiddle> all right reserved.
+		</td>
+	</tr>
+</table>
+<iframe name='act' id='act' width=0 height=0 frameborder=0></iframe>
+</body>
+</html>";
+
+echo $mstring;
+
+	}
+
+}
+
+
+/*
+// 문자열 자르기
+function cut_str($str,$len){
+
+  if(strlen($str) < $len) return $str;
+
+  $str = substr($str, 0, $len);
+  $j = 0;
+
+  for($i = strlen($str) - 1; $i >= 0; $i--) {
+       if(ord($str[$i]) <= 127) break;
+       $j++;
+  }
+
+  $str = ($j % 2) ? substr($str, 0, strlen($str) - 1) : $str;
+
+  $str .= "...";
+
+  return $str;
+}
+*/
+?>

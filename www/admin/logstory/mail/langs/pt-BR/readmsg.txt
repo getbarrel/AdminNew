@@ -1,0 +1,27 @@
+; ***************************************** ;
+; Reading a message                         ;
+; ***************************************** ;
+
+next_mnu					= Próxima
+previous_mnu					= Anterior
+back_mnu					= Voltar
+reply_mnu					= Responder
+reply_all_mnu					= Responder a todos
+forward_mnu					= Encaminhar
+headers_mnu					= Cabeçalhos
+move_mnu					= Mover para
+delete_mnu					= Excluir
+
+from_hea					= De:
+to_hea						= Para:
+cc_hea						= Cópia:
+date_hea					= Data:
+subject_hea					= Assunto:
+attach_hea					= Anexos:
+
+attch_name_hea					= Nome
+attch_force_hea					= Download
+attch_type_hea					= Tipo
+attch_size_hea					= Tam.
+
+catch_address					= Adicionar ao catálogo de endereços

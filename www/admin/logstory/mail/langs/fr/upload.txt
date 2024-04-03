@@ -1,0 +1,8 @@
+
+; ***************************************** ;
+; Upload		                    ;
+; ***************************************** ;
+
+up_title 				= Ajouter une pièce jointe
+up_information_text		= Sélectionnez un fichier 
+up_button_text			= Envoyer

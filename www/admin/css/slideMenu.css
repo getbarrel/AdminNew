@@ -1,0 +1,54 @@
+
+.containerOuter {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height:75px;
+	overflow: hidden;
+}
+
+.container {
+	position: relative;
+	width: 100%;
+	height: 75px;
+	margin: 0 auto;
+	overflow: visible;
+}
+
+.container .iosSliderContainer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 75px;
+	margin: 0 0 0 0;
+	overflow: visible;
+}
+
+.iosSlider {
+	position: relative;
+	top: 0;
+	left: 0;
+	overflow: visible;
+	width: 100%;
+	height: 75px;
+}
+
+.iosSlider .slider {
+	width: 10000px;
+	height: 100%;
+}
+
+.iosSlider .slider .item {
+	float: left;
+	width: 245px;
+	height: 100%;
+}
+.iosSlider .slider .item img {
+	position: relative;
+	top: 0;
+	left: 0;
+	max-width: 100%;
+	width: 100%;
+	margin: 0 auto;
+}

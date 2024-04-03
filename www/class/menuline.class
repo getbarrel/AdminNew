@@ -1,0 +1,90 @@
+<?
+Class MenuLine{
+	var $menu_cnt;
+	var $menu_text_string;
+	var $menu_str;
+	var $menu_str2;
+	var $menu_print_str;
+	var $menu_str_start ;
+	var $menu_str_middle;
+	var $menu_str_end;
+	var $b_cid;
+	var $ms_template_wehtpah;
+	
+	function MenuLine(){
+		$this->menu_cnt = 0;
+	
+		if($HTTP_HOST == "simpleline.mallstory.co.kr"){			
+			$this->ms_template_wehtpah = "/shop_templete/basic";
+		}else{			
+			$this->ms_template_wehtpah = "/shop_templete/sample";
+		}	
+		
+		$this->menu_str_start = "<tr bgcolor='#ffffff'><td><table cellpadding=0 cellspacing=0 height=17><tr>";
+		$this->menu_str_middle = "<td class='left30' style='padding-left:5px;font-size:11px;'  colspan=3 ><img src='/data/simpleline/templet/basic/images/cat_yellowbullet.gif' border=0 align=absmiddle> <a href='{menu_link}' class='p11 ls1'>{menu}</a></td>";
+		$this->menu_str_end = "</tr></table></td></tr>";			
+	}
+	
+	
+	function print_top_menu($cid){
+		if($this->b_cid == ""){
+			$this->b_cid = $cid;
+		}
+		
+		if($this->menu_print_str != ""){
+			$menu_middle_string = $this->menu_print_str;
+			$this->menu_text_string = "";
+			$this->menu_print_str = "";
+			return $this->menu_str_start.$menu_middle_string.$this->menu_str_end;
+		}
+	}
+	
+	function printmenu($menu_text, $menu_link, $cid){
+		if($this->b_cid == ""){
+			$this->b_cid = $cid;
+		}
+		if( strlen($menu_text) >= 11 || strlen($this->menu_text_string) >= 12 || $this->b_cid != $cid) {
+			$this->b_cid = $cid;
+		//echo strlen($this->menu_text_string)."<br>";
+		//echo $this->b_cid ."!=". $cid ." = ". ($this->b_cid != $cid)."<br>";
+			$menu_middle_string = $this->menu_print_str;
+			$this->menu_text_string = "";
+			$this->menu_print_str = "";
+			
+		
+			$this->menu_print_str = str_replace("{menu}",$menu_text,$this->menu_str_middle);		
+			$this->menu_print_str = str_replace("{menu_link}",$menu_link,$this->menu_print_str);
+			$this->menu_text_string = $menu_text;
+					
+			return $this->menu_str_start.$menu_middle_string.$this->menu_str_end;
+		}else{
+			$this->menu_text_string .= $menu_text;
+			$this->menu_str = $this->menu_str_middle;
+			$this->menu_str = str_replace("{menu}",$menu_text,$this->menu_str);		
+			$this->menu_str = str_replace("{menu_link}",$menu_link,$this->menu_str);
+			$this->menu_print_str .= $this->menu_str;
+		//echo strlen($this->menu_text_string)."<br>";	
+		//echo 2;
+			/*
+			if($this->menu_cnt == 0){
+				$this->menu_print_str = $this->menu_str2;
+				$this->menu_print_str = str_replace("{menu1}",$menu_text,$this->menu_print_str);		
+				$this->menu_print_str = str_replace("{menu_link1}",$menu_link,$this->menu_print_str);
+				$this->menu_cnt = $this->menu_cnt + 1;
+			}else if($this->menu_cnt == 1){				
+				$this->menu_print_str = str_replace("{menu2}",$menu_text,$this->menu_print_str);		
+				$this->menu_print_str = str_replace("{menu_link2}",$menu_link,$this->menu_print_str);
+				$this->menu_cnt = 0;
+				return $this->menu_print_str;
+			}else if($this->menu_cnt == 2){				
+				$this->menu_print_str = str_replace("{menu3}",$menu_text,$this->menu_print_str);		
+				$this->menu_print_str = str_replace("{menu_link3}",$menu_link,$this->menu_print_str);
+				$this->menu_cnt = 0;
+				return $this->menu_print_str;
+			}
+			*/
+		}
+	}
+
+}
+?>

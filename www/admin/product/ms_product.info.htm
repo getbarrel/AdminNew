@@ -1,0 +1,212 @@
+<html>
+<meta http-equiv='Content-Type' content='text/html; charset=euc-kr'>
+<link href='/css/mallstory.css' rel='stylesheet' type='text/css'>
+<Script Language='JavaScript' src='/js/zoom.js'></Script>
+<Script Language='JavaScript'>		
+function dispObj(mode,vid)
+{
+	if(mode == 'all'){
+		document.getElementById(vid).style.display = 'block';
+	}else{
+		hideObj();
+		
+		var obj = document.getElementById(vid).style.display;
+		
+		if (obj == 'none'){
+			document.getElementById(vid).style.display = 'block';
+		}else{
+			document.getElementById(vid).style.display = 'none';
+		}
+	}
+}
+
+function hideObj()
+{
+	for(i=0;i<3;i++){		
+		eval('disp'+i).style.display = 'none';
+	}
+}
+
+function goOrder(gubun,vURL,vact){
+	if(gubun != 'wish'){	
+	{{MALLSTORY_CHECK_JAVASCRIPT}}
+	{{MALLSTORY_CHECK_OPTION_JAVASCRIPT}}
+	}
+	
+	if(document.pinfo.pcount.value < 1){
+		alert('제품 구매 수량은 0 보다 커야 합니다.');
+		return false;	
+	}
+	
+	if(gubun != 'wish' && document.pinfo.stock.value < document.pinfo.pcount.value){
+		alert('수량이 부족하여 주문이 이루어 지지 않습니다. '+document.pinfo.stock.value+' 개 까지 주문이 가능합니다.');
+		return false;	
+	}
+	
+	if(gubun == 'wish'){
+		document.pinfo.target = 'act';			
+	}else{
+		document.pinfo.target = '';			
+	}
+	document.pinfo.action=vURL;
+	document.pinfo.act.value = vact;
+	
+	document.pinfo.submit();
+}
+
+function num_check() {
+        // ie에서만 작동
+        var keyCode = event.keyCode
+        if (keyCode < 48 || keyCode > 57){
+                alert('문자는 사용할 수 없습니다.'+'['+keyCode+']')
+                event.returnValue=false
+        }
+        
+}
+
+</Script>
+<body bgcolor='#ffffff' leftmargin=0 topmargin=0 rightmargin=0 >
+<br><br><br>
+	<table cellpadding=0 cellspacing=0>	
+	<tr>
+		<td valign='top' style='padding-left:5px;display:none'>{{MALLSTORY_LEFT_MENU}}</td>
+		<td style='padding-top:0px;' width=820>
+			<table cellpadding=0 cellspacing=0 border=0>				
+				<tr>					
+					<td width=400 align=center valign=middle>
+					<table cellpadding=0 cellspacing=0>
+						<tr>
+							<td valign=middle>
+							<div id=mimg><img src='{{MALLSTORY_PRODUCT_PATH}}/product/m_{{MALLSTORY_PRODUCT_ID}}.gif' onclick='zoomBox(event,this,500,500,500,200,bigimg);' width='200'></div>
+							<div class=box id=bigimg onclick='outTip(bigimg);'  style='Z-INDEX: 100; FILTER: revealTrans(duration=1); LEFT: 500px; VISIBILITY: hidden; WIDTH: 100px; POSITION: absolute; TOP: 200px;border:5px solid #B3B6B6'>
+							<img src='{{MALLSTORY_PRODUCT_PATH}}/product/b_{{MALLSTORY_PRODUCT_ID}}.gif'></div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+							<!--".PrintClipArt($id)."-->
+							</td>
+						</tr>
+					</table>
+						
+					</td>									
+					<td width=400 style='padding-right:10px;'>
+						<form name='pinfo' method='get' action=''>
+						<input type=hidden name=act value='add'>
+						<input type=hidden name=id value='{{MALLSTORY_PRODUCT_ID}}''>
+						<input type=hidden name=cid value='{{MALLSTORY_PRODUCT_CID}}'><input type=hidden name=stock value='{{MALLSTORY_PRODUCT_STOCK}}'> 
+						<!--{{ MALLSTORY_DESIGN_ONELINEBOX_START }}-->
+						<div style='padding:5px;padding-bottom:5px;'><img src='/mallstory_templete/basic/images/freeship_icon_ani3.gif' border=0 align=absmiddle> &nbsp;&nbsp;<b style='font-size:17px;'>{{MALLSTORY_PRODUCT_NAME}}</b></div>				
+						
+						
+						{{MALLSTORY_DESIGN_ONELINEBOX_START2}}
+						<table cellpadding=3 cellspacing=0 width='100%' border=0 align=center>						
+						<tr><td width=150><b>판매금액</b></td><td><b>{{MALLSTORY_PRODUCT_PRICE}}</b></td></tr>
+						<tr hegiht=1><td colspan=2 background='../image/dot.gif'></td></tr>
+						<tr><td>무이자 할부 </td><td>{{MALLSTORY_PRODUCT_NONINTEREST}}</td></tr>
+						<tr hegiht=1><td colspan=2 background='../image/dot.gif'></td></tr>
+						<tr><td>제조사/원산지 </td><td>{{MALLSTORY_PRODUCT_COMPANY}}</td></tr>
+						<tr hegiht=1><td colspan=2 background='../image/dot.gif'></td></tr>
+						<tr><td>상품코드 </td><td>{{MALLSTORY_PRODUCT_ID}}</td></tr>
+						<tr hegiht=1><td colspan=2 background='../image/dot.gif'></td></tr>
+						<tr>
+							<td>수량 </td>
+							<td>
+								<input type='text' name='pcount' onkeypress='num_check()' value=1 size=2 class=input2>
+								<!--select name='pcount'>
+									<option value=1>1</option>
+									<option value=2>2</option>
+									<option value=3>3</option>
+									<option value=4>4</option>
+									<option value=5>5</option>
+									<option value=10>10</option>
+								</select-->
+							</td>
+						</tr>
+						<tr hegiht=1><td colspan=2 background='../image/dot.gif'></td></tr>
+						<tr><td>특이사항 </td><td>{{MALLSTORY_PRODUCT_SHOTINFO}}</td></tr>
+						</table>
+						{{MALLSTORY_DESIGN_ONELINEBOX_END2}}
+						<!--{{ MALLSTORY_DESIGN_ONELINEBOX_END }}-->
+						<br>
+						<table cellpadding=3 cellspacing=0>
+							<tr>
+								<td><img src='/mallstory_templete/basic/images/bt_buynow.gif' border=0 onclick="goOrder('order','/shop/ms_cart.php','direct')" border=0 style='cursor:hand;'></td>
+								<td><img src='/mallstory_templete/basic/images/bt_cart.gif' border=0 style='cursor:hand;' onclick="goOrder('cart','/shop/ms_cart.php','add')" ></td>
+								<td valign=bottom><img src='/mallstory_templete/basic/images/bt_wishlist.gif' border=0 onclick="goOrder('wish','/mypage/ms_wishlist.act.php?act=insert&pid={{MALLSTORY_PRODUCT_ID}}&cid={{MALLSTORY_PRODUCT_CID}}','insert')" align=absmiddle border=0 style='cursor:hand;'></td>
+								<td valign=bottom><img src='/mallstory_templete/basic/images/bt_compare.gif' border=0></td>
+							</tr>
+						</table>
+						</form>
+						<!--img src='/mallstory_templete/basic/images/btn_mail_put_c.gif' border=0-->
+					</td>				
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 style='padding-top:10px;'>
+			
+			<table cellpadding=0 cellspacing=0 width='800' border=0 align=center>
+			<tr>				
+				<td width=800 style='padding-top:10px;' align=center>
+					<!--상품상세정보-->
+			                  <table width="600" border="0" cellspacing="0" cellpadding="0">
+			                    <tr> 
+			                      <td width="29" valign="top"><img src="/mallstory_templete/basic/images/bg_description_left.gif" width="29" height="60"></td>
+			                      <td width="570" valign="bottom" background="/mallstory_templete/basic/images/bg_description_center.gif"><table width="589" border="0" cellspacing="0" cellpadding="0">
+			                          <tr> 
+			                            <td width="146" height="33"><img src="/mallstory_templete/basic/images/description_img1_up.gif" width="146" height="28"></td>
+			                            <td width="135"><img src="/mallstory_templete/basic/images/description_img2.gif" width="135" height="28"></td>
+			                            <td width="188"><img src="/mallstory_templete/basic/images/description_img3.gif" width="188" height="28"></td>
+			                            <td><img src="/mallstory_templete/basic/images/description_img4.gif" width="107" height="28"></td>
+			                          </tr>
+			                        </table></td>
+			                      <td width="29" valign="top"><img src="/mallstory_templete/basic/images/bg_description_right.gif" width="29" height="60"></td>
+			                    </tr>
+			                    <tr align="center"> 
+			                      <td height="10" colspan="3" valign="top"></td>
+			                    </tr>			                   
+			                    <tr align="center">
+			                      <td height="20" colspan="3"></td>
+			                    </tr>
+			                  </table> 
+			                  <!--END 상품상세정보-->
+				</td>
+				
+			</tr>
+			<tr>
+				<td  valign=top style='padding-left:0px;' align=center>
+				{{MALLSTORY_PRODUCT_DESC}}
+				<br>
+				<!--상품상세정보-->
+			                  <table width="600" border="0" cellspacing="0" cellpadding="0">
+			                    <tr> 
+			                      <td width="29" valign="top"><img src="/mallstory_templete/basic/images/bg_description_left.gif" width="29" height="60"></td>
+			                      <td width="570" valign="bottom" background="/mallstory_templete/basic/images/bg_description_center.gif"><table width="589" border="0" cellspacing="0" cellpadding="0">
+			                          <tr> 
+			                            <td width="146" height="33"><img src="/mallstory_templete/basic/images/description_img1.gif" width="146" height="28"></td>
+			                            <td width="135"><img src="/mallstory_templete/basic/images/description_img2.gif" width="135" height="28"></td>
+			                            <td width="188"><img src="/mallstory_templete/basic/images/description_img3.gif" width="188" height="28"></td>
+			                            <td><img src="/mallstory_templete/basic/images/description_img4_up.gif" width="107" height="28"></td>
+			                          </tr>
+			                        </table></td>
+			                      <td width="29" valign="top"><img src="/mallstory_templete/basic/images/bg_description_right.gif" width="29" height="60"></td>
+			                    </tr>
+			                    <tr align="center"> 
+			                      <td height="10" colspan="3" valign="top"></td>
+			                    </tr>			                   
+			                    <tr align="center">
+			                      <td height="20" colspan="3"></td>
+			                    </tr>
+			                  </table> 
+			                  <!--END 상품상세정보-->
+				</td>
+				
+			</tr>
+			</table>
+		</td>
+	</tr>	
+	</table>	
+</body>
+</html>

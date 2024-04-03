@@ -1,0 +1,11 @@
+; ***************************************** ;
+; Catch Address		                    ;
+; ***************************************** ;
+
+ctc_title		= Preleva indirizzo
+ctc_information		= Sono visualizzati solo gli indirizzi non ancora memorizzati nella rubrica.
+ctc_name		= Nome
+ctc_email		= E-mail
+ctc_no_address		= Nessun indirizzo disponibile
+ctc_save		= Salva
+ctc_close		= Chiudi

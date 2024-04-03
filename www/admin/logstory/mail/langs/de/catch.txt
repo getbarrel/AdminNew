@@ -1,0 +1,11 @@
+; ***************************************** ;
+; Catch Address		                    ;
+; ***************************************** ;
+
+ctc_title		= E-Mail-Adressübernahme
+ctc_information		= Es werden nur Adressen angezeigt, die noch nicht in Ihrem Adressbuch gespeichert sind
+ctc_name		= Name
+ctc_email		= E-Mail
+ctc_no_address		= Kein Kontakt verfügbar
+ctc_save		= Speichern
+ctc_close		= Schliessen

@@ -1,0 +1,25 @@
+; ***************************************** ;
+; Compose                                   ;
+; ***************************************** ;
+
+to_hea					= Para:
+cc_hea					= Cópia:
+bcc_hea					= Cópia Oculta:
+subject_hea				= Assunto:
+address_tip				= Pegar endereços do catálogo
+
+attach_hea				= Anexos:
+attch_add_new				= Incluir novo anexo
+attch_name_hea				= Nome
+attch_size				= Tam.
+attch_type_hea				= Tipo
+attch_dele_hea				= Excluir
+attch_no_hea				= Nenhum anexo
+
+add_signature				= Adicionar Assinatura
+send_text				= Enviar
+
+result_error				= Não foi possível enviar o email
+result_success				= Email enviado com sucesso
+nav_continue				= Continuar
+nav_back				= Voltar

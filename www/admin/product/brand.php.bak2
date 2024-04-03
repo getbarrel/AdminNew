@@ -1,0 +1,284 @@
+<?
+include("../class/layout.class");
+//include("../webedit/webedit.lib.php");
+
+$db = new Database;
+//print_r($_SESSION);
+$Contents = "
+<table cellpadding=3 cellspacing=0 border=0 width=100%>
+	<tr>
+		<td colspan=2>".GetTitleNavigation("귣", "ǰ > 귣")."</td>
+	</tr>
+	<tr height=10>
+		<td align=rihgt style='padding-right:20px;' valign=top>
+			<table width='100%' border=0>						
+				<tr height=30>
+					<td width=100%><img src='/admin/images/dot_org.gif' align=absmiddle> <b>귣</b><br></td>
+				</tr>
+			</table>
+			<table width='100%' border=0>
+			<form method='POST' action='brand.php'>
+				<tr height=30>
+					<td width=100%><select name='search_type' style='font-size:12px;'><option value='b_ix'>귣ڵ</option><option value='brand_name'>귣̸</option></select> <input type='text' name='search_text'> <input type='image' src='../image/search01.gif' value='˻' align=absmiddle><br></td>
+				</tr>
+			</form>
+			</table>
+		".BrandList()."
+		</td>
+		<td rowspan=6 width=60% valign=top>
+		<form name='brandform' action='./brand.act.php' method='post'  onsubmit=\"return BrandInput(this,'insert');\" enctype='multipart/form-data' target=act>
+		<input type=hidden name=mode value=insert>
+		<input type=hidden name=b_ix value=''>
+		<input type='hidden' name='top_design' value=''>
+		<input type='hidden' name='mmode' value='$mmode'>
+			<table border='0' cellspacing='1' cellpadding='7' width='100%'>
+				<tr>
+					<td bgcolor='#F8F9FA'>	
+						<table width='100%' border=0>						
+							<tr height=30><td width=100%><img src='/admin/images/dot_org.gif' align=absmiddle> <b>귣 ߰ϱ </b><br></td></tr>
+						</table>
+						<table cellpadding=3 cellspacing=1  bgcolor=#c0c0c0 border=0 width='100%'>
+						<col width='25%'>
+						<col width='75%'>
+							<tr bgcolor=#ffffff>
+								<td class='leftmenu' >īװ��� </td>
+								<td style='padding-left:20px;'>".getCategoryList2()."</td>
+							</tr>
+							<!--tr height=1><td colspan=3 background='/img/dot.gif'></td></tr-->
+							<tr bgcolor=#ffffff>
+								<td class='leftmenu'> </td>
+									<td style='padding-left:20px;'>";
+									if($admininfo[admin_level] == 9){
+										$Contents .= "<input type=radio name=disp class=nonborder value=0 id='disp_0' validation=false title='' ><label for='disp_0'></label>
+										<input type=radio name=disp class=nonborder value=1 id='disp_1' validation=false title=''><label for='disp_1'></label>
+										<input type=radio name=disp class=nonborder value=2 id='disp_2' validation=false title='' checked><label for='disp_2'>û</label>";
+									}else if($admininfo[admin_level] == 8){
+										$Contents .= "<div style='display:none;'><input type=radio name=disp class=nonborder value=0 id='disp_0' validation=false title=''><label for='disp_0'></label>
+										<input type=radio name=disp class=nonborder value=1 id='disp_1' validation=false title=''><label for='disp_1'></label></div>
+										<input type=radio name=disp class=nonborder value=2 id='disp_2' validation=false title='' checked><label for='disp_2'>û</label>";
+									}
+								$Contents .= "</td>
+							</tr>
+								<!--tr height=1><td colspan=3 background='/img/dot.gif'></td></tr-->
+								<tr bgcolor=#ffffff style='display:none;'>
+									<td class='leftmenu'>˻ǥ </td>
+									<td style='padding-left:20px;' >
+									<input type=checkbox name=search_disp class=nonborder value=1> 
+									</td>
+								</tr>
+								<!--tr height=1><td colspan=3 background='/img/dot.gif'></td></tr-->
+								<tr bgcolor=#ffffff>
+									<td class='leftmenu'>귣 </td>
+									<td style='padding-left:20px;'>
+									<input type=text name=brand size=15 validation=true title='귣'> 
+									</td>
+								</tr>
+								<!--tr height=1><td colspan=3 background='/img/dot.gif'></td></tr-->
+								<tr bgcolor=#ffffff>
+									<td class='leftmenu' nowrap>귣 ̹ <span class=small>(140*42)</span></td>
+									<td style='padding-left:20px;' >
+									<input type=file name='brandimg' size=15 style='font-size:8pt;'><!-- style='display: none;'-->				
+									</td>
+								</tr>
+								<!--tr height=1><td colspan=3 background='/img/dot.gif'></td></tr-->
+								<tr bgcolor=#ffffff>
+									<td class='leftmenu' nowrap>귣 ̹</td>
+									<td style='padding-left:20px;' id='brandimgarea' class=small>
+									
+									</td>
+								</tr>
+								<!-- <tr bgcolor=#ffffff>
+									<td class='leftmenu' nowrap>귣 ̹2 <span class=small>(140*42)</span></td>
+									<td style='padding-left:20px;' >
+									<input type=file name='brandimg2' size=15 style='font-size:8pt;'>
+									</td>
+								</tr>
+								<tr bgcolor=#ffffff>
+									<td class='leftmenu' nowrap>귣 ̹2</td>
+									<td style='padding-left:20px;' id='brandimgarea_on' class=small>
+									
+									</td>
+								</tr> -->
+								<tr bgcolor=#ffffff>
+									<td class='leftmenu' nowrap>귣 </td>
+									<td style='padding-left:20px;' id='brandimgarea' class=small>
+									<input type='text' name='shotinfo' style='width:100%;height:40px' value='$shotinfo' maxlength='80'>
+									</td>
+								</tr>
+							</table><br>
+							<table width='100%' border=0 cellpadding=0 cellspacing=0>
+								<tr >
+									<td align=right nowrap width=450>
+										<table cellpadding=0 cellspacing=0>
+										<tr>
+											<td style='padding-right:5px;'><img src='../image/btc_del.gif' border=0 id=delete style='cursor:hand;display:none' onclick=\"BrandSubmit(document.brandform,'delete')\"></td>
+											<td><img src='../image/btc_modify.gif' border=0 id=modify style='cursor:hand;display:none' onclick=\"BrandSubmit(document.brandform,'update')\"></td>
+										</tr>
+										</table>
+									</td>
+									<td align=right id='btn_ok' style='display:block'><img src='../images/btn/ok2.gif' border=0 align=absmiddle style='cursor:hand' onclick=\"BrandSubmit(document.brandform,'insert')\"></td>
+								</tr></form>
+							</table>
+							</td>
+						</tr>
+					</table>
+				<!--/td>
+				<th class='box_06'></th>
+			</tr>
+			<tr>
+				<th class='box_07'></th>
+				<td class='box_08'></td>
+				<th class='box_09'></th>
+			</tr>
+		</table--><br>
+		</td>
+		
+	</tr>
+	</table>
+	<iframe name='extand' src='' width=0 height=0></iframe>";
+	
+	
+$help_text = "
+<table cellpadding=0 cellspacing=0 class='small' >
+	<col width=8>
+	<col width=*>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >귣 ܺ   κ  Ͽ <b>귣 </b> Ҽ ֽϴ </td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >귣   Ͻø 귣 ̸ Ŭּ 귣  Ѵ ϱ ư Ŭմϴ</td></tr>
+</table>
+";
+
+$Contents .= HelpBox("귣", $help_text);
+	
+
+if($mmode == "pop"){	
+	$Script = "<script language='JavaScript' src='brand.js'></script>";
+	$P = new ManagePopLayOut();
+	$P->addScript = $Script;
+//	$P->OnloadFunction = "Init(document.brandform);MM_preloadImages('../webedit/images/wtool1_1.gif','../webedit/images/wtool2_1.gif','../webedit/images/wtool3_1.gif','../webedit/images/wtool4_1.gif','../webedit/images/wtool5_1.gif','../webedit/images/wtool6_1.gif','../webedit/images/wtool7_1.gif','../webedit/images/wtool8_1.gif','../webedit/images/wtool9_1.gif','../webedit/images/wtool11_1.gif','../webedit/images/wtool13_1.gif','../webedit/images/wtool10_1.gif','../webedit/images/wtool12_1.gif','../webedit/images/wtool14_1.gif','../webedit/images/bt_html_1.gif','../webedit/images/bt_source_1.gif')"; //showSubMenuLayer('storeleft');
+	$P->Navigation = "HOME > ǰ > 귣";	
+	$P->NaviTitle = "귣";
+	$P->strLeftMenu = product_menu();
+	$P->strContents = $Contents;
+	echo $P->PrintLayOut();
+}else{
+	$Script = "<script language='JavaScript' src='brand.js'></script>";
+	$P = new LayOut();
+	$P->addScript = $Script;
+	$P->OnloadFunction = ""; //Init(document.brandform);showSubMenuLayer('storeleft');
+	$P->Navigation = "HOME > ǰ > 귣";
+	$P->strLeftMenu = product_menu();
+	$P->strContents = $Contents;
+	echo $P->PrintLayOut();
+	
+}
+
+
+
+
+
+function getCategoryList2($depth=0, $select_cid="")
+{
+	$mdb = new Database;
+	$mdb->query("SELECT * FROM ".TBL_MALLSTORY_CATEGORY_INFO." where depth ='0' order by vlevel1, vlevel2, vlevel3, vlevel4, vlevel5 ");
+	
+	$SelectString = "<Select name='cid' >";
+	
+	if ($mdb->total){
+			$SelectString = $SelectString."<option value=''>⺻īװ��� </option>";
+		for($i=0; $i < $mdb->total; $i++){
+			$mdb->fetch($i);
+			if($select_cid == $mdb->dt[cid]){
+				$SelectString = $SelectString."<option value='".$mdb->dt[cid]."' selected>".$mdb->dt[cname]."</option>";
+			}else{
+				$SelectString = $SelectString."<option value='".$mdb->dt[cid]."' >".$mdb->dt[cname]."</option>";
+			}
+		}
+	}else{
+	$SelectString = $SelectString."<option value=''> īװ���  ʽϴ.</option>";
+	}
+	
+	$SelectString = $SelectString."</Select>";
+	
+	return $SelectString;
+}
+
+
+function BrandList()
+{
+global $db, $admininfo,$search_text,$search_type;
+	if($search_text == ""){
+		if($admininfo[admin_level] == "9"){
+			$db->query("SELECT mb.*, mc.cname FROM mallstory_brand mb left join ".TBL_MALLSTORY_CATEGORY_INFO." mc on mb.cid = mc.cid");
+		}else{
+			$db->query("SELECT mb.*, mc.cname FROM mallstory_brand mb left join ".TBL_MALLSTORY_CATEGORY_INFO." mc on mb.cid = mc.cid where mb.company_id = '".$admininfo[company_id]."'");
+		}
+	}else{
+		if($search_type == "brand_name"){
+			if($admininfo[admin_level] == "9"){
+				$db->query("SELECT mb.*, mc.cname FROM mallstory_brand mb left join ".TBL_MALLSTORY_CATEGORY_INFO." mc on mb.cid = mc.cid where $search_type LIKE '%$search_text%'");
+			}else{
+				$db->query("SELECT mb.*, mc.cname FROM mallstory_brand mb left join ".TBL_MALLSTORY_CATEGORY_INFO." mc on mb.cid = mc.cid where mb.company_id = '".$admininfo[company_id]."' and $search_type LIKE '%$search_text%'");
+			}
+		}else{
+			if($admininfo[admin_level] == "9"){
+				$db->query("SELECT mb.*, mc.cname FROM mallstory_brand mb left join ".TBL_MALLSTORY_CATEGORY_INFO." mc on mb.cid = mc.cid where $search_type = '$search_text'");
+			}else{
+				$db->query("SELECT mb.*, mc.cname FROM mallstory_brand mb left join ".TBL_MALLSTORY_CATEGORY_INFO." mc on mb.cid = mc.cid where mb.company_id = '".$admininfo[company_id]."' and $search_type = '$search_text'");
+			}
+		}
+	}
+	
+	$bl = "<table cellpadding=0 cellspacing=0 width=350>
+		<tr height=25 bgcolor=#efefef align=center><td class='s_td'>ȣ</td><!--td class='m_td'>ڵ</td--><td class='m_td'>īװ���</td><td class='m_td'>귣̸(ڵ)</td><td class='e_td'></td><!--td class='e_td'>˻ǥ</td--></tr>";
+	
+	if ($db->total == 0)	{
+		$bl = $bl."<tr height=100><td colspan=6 align=center>귣 Ʈ  ϴ.</td></tr>";
+	}else{
+		
+		for($i=0 ; $i <$db->total ; $i++)
+		{
+			$db->fetch($i);
+			if($db->dt[disp] == 1){
+				$display_string = "";	
+			}else if($db->dt[disp] == 2){
+				$display_string = "û";	
+			}else{
+				$display_string = "";
+			}
+			
+			if($db->dt[search_disp] == 1){
+				$search_disp_string = "ǥ";	
+			}else{
+				$search_disp_string = "ǥ";
+			}
+			
+			
+			if($admininfo[admin_level] == 9){		
+				$brand_name = "<a href=\"JavaScript:ViewBrandImage('".$db->dt[b_ix]."')\">".$db->dt[brand_name]."</a>";	
+			}else if($admininfo[admin_level] == 8){		
+				if($admininfo[company_id] == $db->dt[company_id]){
+					$brand_name = "<a href=\"JavaScript:ViewBrandImage('".$db->dt[b_ix]."')\"><u>".$db->dt[brand_name]."</u></a>";	
+				}else{
+					$brand_name = $db->dt[brand_name];
+				}
+			}
+			
+			$bl = $bl."<tr height=27 align=center><td >".($i+1)."</td><!--td><a href=\"JavaScript:ViewBrandImage('".$db->dt[b_ix]."')\">".$db->dt[b_ix]."</a></td--><td class=small>".($db->dt[cname] == "" ? "ü":$db->dt[cname])."</td><td align=center>$brand_name (<a href=\"JavaScript:ViewBrandImage('".$db->dt[b_ix]."')\">".$db->dt[b_ix]."</a>)</td><td>".$display_string."</td><!--td class=small>".$search_disp_string."</td--></tr>";
+			$bl = $bl."<tr height=1><td colspan=6 background='/img/dot.gif'></td></tr>";
+		}		
+	}
+	
+	$bl = $bl."</table>";
+		
+		return $bl;
+}
+
+/*
+create table mallstory_brand (
+	b_ix int(3) unsigned zerofill not null auto_increment,
+	brand_name varchar(100) null default null,
+	disp char(1) null default '0',
+	primary key(b_ix)
+);
+*/
+?>

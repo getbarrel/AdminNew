@@ -1,0 +1,799 @@
+<?
+@include_once("../web.config");
+include_once("../../class/database.class");
+include_once("../lib/imageResize.lib.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.class");
+include_once("../inventory/inventory.lib.php");
+
+
+//	print_r($goods_items);
+//	exit;
+
+session_start();
+$db = new Database;
+$db2 = new Database;
+//$db->debug = true;
+//$db2->debug = true;
+
+$inventory_cid_info = array ('cid0_1','cid1_1','cid2_1','cid3_1');
+
+if($admininfo[company_id] == ""){
+	echo "<script language='JavaScript' src='../_language/language.php'></Script><script language='javascript'>alert(language_data['common']['C'][language]);location.href='/admin/admin.php'</script>";
+	//'관리자 로그인후 사용하실수 있습니다.'
+	exit;
+}
+if ($act == "value_check_jquery"){
+	$strLen = strlen($value);
+	if($strLen < '6' || $strLen > '16') {
+		echo "130"; //자리수가 지정된만큼 충족이 안된다면 A문자를 출력하고 끝냄
+		exit;
+	}
+	/*
+	if (!preg_match("/^[a-z]{1}[0-9a-z_]+$/", $id)) {
+		echo "110"; // 유효하지 않은 회원아이디
+		exit;
+	}
+	*/
+	/*
+	$deny_id = array("admin","administrator","webmaster","master","root","administrator");
+	$db->query("select mall_deny_id from oaasys_shopinfo where mall_ix = '".$layout_config[mall_ix]."' and mall_div = '".$layout_config[mall_div]."' ");
+	$db->fetch();
+	
+	$deny_id_add = explode(",",$db->dt[mall_deny_id]);
+	$deny_id = array_merge((array)$deny_id,(array)$deny_id_add);
+	for($i=0;$i<count($deny_id);$i++){
+		if(trim($id) == $deny_id[$i]){
+			echo "120"; //가입불가 ID입니다. 다른 ID로 입력해주시기 바랍니다.
+			exit;
+		}
+	}
+	*/
+
+
+
+	$db->query("SELECT * FROM inventory_goods WHERE gid='$value' ");
+	
+	if ($db->total)
+	{
+		echo "N"; //등록이 되어있는 [아이디]입니다.등록불가입니다.
+	}
+	else
+	{
+		echo "300";
+		/*
+		$db->query("SELECT * FROM oaasys_company_userinfo WHERE charger_id='$id'");
+		if ($db->total){
+			echo "N"; //등록이 되어있는 [아이디]입니다.등록불가입니다.
+		}else{
+			echo "300"; //등록이 가능한 [아이디]입니다.
+		}
+		*/
+	}
+}
+
+
+if ($act == "get_goods_unit")
+{
+	$db->query("select *,
+		(select brand_name from shop_brand where b_ix=g.b_ix ) as brand_name,
+		(select com_name from common_company_detail where company_id=g.ci_ix ) as com_name
+	from inventory_goods g right join inventory_goods_unit gu on g.gid =gu.gid where gu_ix='".$gu_ix."' ");
+	//$db->query("DELETE FROM ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL_TMP." WHERE opnt_ix='".$opnt_ix."'");
+	if($db->dbms_type == "oracle"){
+		$unit = $db->fetch("object");
+	}else{
+		$unit = $db->fetch("object");
+	}
+	$unit = str_replace("\"true\"","true",json_encode($unit));
+	$unit = str_replace("\"false\"","false",$unit);
+	echo $unit;
+	exit;
+}
+
+
+if ($act == "get_basicinfo"){
+/*
+	for($i=0;$i < count($id); $i++){
+		$db->query("select basicinfo from ".TBL_SHOP_PRODUCT." where id='".$id[$i]."' ");
+		$db->fetch();
+		$basicinfo .= $db->dt[basicinfo];
+	}
+
+	$basicinfo = str_replace("\"true\"","true",json_encode($basicinfo));
+	$basicinfo = str_replace("\"false\"","false",$basicinfo);
+	echo $basicinfo;
+	//header("Location:../product_list.php");
+*/
+}
+
+
+if ($act == "templet_insert"){
+/*
+	$thisfile = load_template($DOCUMENT_ROOT.$admin_config[mall_data_root]."/productreg_templet/$page_name");
+	echo "
+	<html>
+	<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+	<body>
+	$thisfile
+	</body>
+	</html>";
+	echo "<script>parent.document.frames['iView'].document.body.innerHTML = document.body.innerHTML;</script>";
+*/
+}
+
+
+if ($act == "vieworder_update")
+{
+/*
+	for($i=0;$i < count($sortlist);$i++){
+		$sql = "update ".TBL_SHOP_RELATION_PRODUCT." set
+			vieworder='".($i+1)."'
+			where pid='$pid' and rp_pid='".$sortlist[$i]."'";//
+
+		//echo $sql;
+		$db->query($sql);
+	}
+*/
+}
+
+if ($act == "get_barcode")
+{
+		
+		if($code_div == "item_code"){
+			$db->query("select gi_ix from inventory_goods_item order by gi_ix desc limit 1 ");
+			
+
+			if($db->total){
+				$db->fetch();
+				$gi_ix = $db->dt[gi_ix];
+				echo $gi_ix;
+			}else{
+				echo rand(1000000000,9999999999);
+			}
+			exit;
+		}else if($code_div == "item_barcode"){
+			echo rand(1000000000,1000999999);
+		}else if($code_div == "barcode"){
+			echo rand(1000000000,1000999999);
+		}
+/*
+	for($i=0;$i < count($sortlist);$i++){
+		$sql = "update ".TBL_SHOP_RELATION_PRODUCT." set
+			vieworder='".($i+1)."'
+			where pid='$pid' and rp_pid='".$sortlist[$i]."'";//
+
+		//echo $sql;
+		$db->query($sql);
+	}
+*/
+}
+
+
+//echo "bs_act:".$bs_act;
+
+if ($act == 'insert' || $act == "tmp_insert"){
+
+	
+	if(!file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory/")){
+		mkdir($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory/");
+		chmod($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory/",0777);
+	}
+
+	$gname = strip_tags(trim($gname));
+
+
+	foreach($inventory_cid_info as $cid_name){
+		//echo $cid_name;
+		if($$cid_name){
+			$cid=$$cid_name;
+		}
+	}
+
+	if($admininfo[admin_level] == 9){
+		if($mode == "copy"){
+			$company_id = $admin;
+		}else{
+			if($admin == ""){
+				if($company_id ==""){
+					$company_id = $admininfo[company_id];
+				}
+			}else{
+				if($company_id ==""){
+					$company_id = $admin;
+				}
+			}
+		}
+	}else{
+		$company_id = $admininfo[company_id];
+	}
+
+	if(!$use_box){
+		$use_box = 0;
+	}
+
+	if(!$use_set){
+		$use_set = 0;
+	}
+	$db->debug = true;
+	/*
+	$sql = "insert into inventory_goods(gid,gname,gcode,cid,admin,goods_div,model,orgin,maker,ci_ix,pi_ix,bs_goods_url,search_keyword,etc,bimg,regdate) values('','$gname','$gcode','$cid','$company_id','$goods_div','$model','$orgin','$maker','$ci_ix','$pi_ix','$bs_goods_url','$search_keyword','$etc','$bimg_text',NOW())";
+	*/
+	$sql = "insert into inventory_goods(gid,gname,gcode,barcode,basic_unit,order_basic_unit,sell_basic_unit,cid,admin,item_account,standard,available_priod,model,orgin,maker,ci_ix,pi_ix,ps_ix,bs_goods_url,search_keyword,etc,surtax_div,is_use,leadtime,available_amountperday,valuation,lotno,bimg,mimg,msimg,simg,cimg,editdate,regdate) 
+	values
+	('$gid','$gname','$gcode','$barcode','$basic_unit','$order_basic_unit','$sell_basic_unit','$cid','$admin','$item_account','$standard','$available_priod','$model','$origin','$company','$ci_ix','$pi_ix','$ps_ix','$bs_goods_url','$search_keyword','$etc','$surtax_div','$is_use','$leadtime','$available_amountperday','$valuation','$lotno','$bimg','$mimg','$msimg','$simg','$cimg',NOW(),NOW()) ";
+
+
+	//use_box, amount_perbox,input_price_perbox,box_barcode,use_set,amount_perset,input_price_perset,set_barcode,
+	//'$use_box','$amount_perbox','$input_price_perbox','$box_barcode','$use_set','$amount_perset','$input_price_perset','$set_barcode',
+
+
+	//echo($sql);
+	//exit;
+	$db->sequences = "INVENTORY_GOODS_SEQ";
+	$db->query($sql);
+
+	/*
+	if($db->dbms_type == "oracle"){
+		$INSERT_PRODUCT_ID = $db->last_insert_id;
+		//echo $INSERT_PRODUCT_ID;
+		//exit;
+	}else{
+		$db->query("SELECT gid FROM inventory_goods WHERE gid=LAST_INSERT_ID()");
+		$db->fetch();
+		$INSERT_PRODUCT_ID = $db->dt[gid];
+	}
+	*/
+
+
+	$before_uploaddir = UploadDirText($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory", $bgid, 'Y');
+	$uploaddir = UploadDirText($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory", $INSERT_PRODUCT_ID, 'Y');
+
+	if ($allimg_size > 0 || $mode == "copy" || ($bimg_text && $img_url_copy)){
+		//워터마크 적용
+		if($mode == "copy" && $bimg_text == "" && $allimg == ""){// 상품 복사모드일때는 기존 상품의 이미지를 복사해서 나머지 이미지가 생성됩니다
+			$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$before_uploaddir."/basic_".$bgid.".gif";
+
+			if (file_exists($basic_img_src)){
+				copy($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif");
+
+				chmod($basic_img_src,0777);
+
+				$image_info = getimagesize ($basic_img_src);
+				$image_type = substr($image_info['mime'],-3);
+				$image_width = $image_info[0];
+			}
+		}else{
+			//echo "img_url_copy :".$img_url_copy;
+			//	exit;
+
+			if($img_url_copy){
+
+				if(copy($bimg_text, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif")){
+					$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif";
+				}else{
+					copy($bimg_text, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif");
+					$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif";
+				}
+
+				$allimg = $basic_img_src;
+				//echo $basic_img_src;
+				chmod($basic_img_src,0777);
+				$image_info = getimagesize ($basic_img_src);
+				$image_type = substr($image_info['mime'],-3);
+
+			}else{
+
+				if($allimg){
+					$image_info = getimagesize ($allimg);
+					$image_type = substr($image_info['mime'],-3);
+					//echo $image_type;
+					//exit;
+
+					$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif";
+					copy($allimg, $basic_img_src); // 원본 이미지를 만든다.
+					chmod($basic_img_src,0777);
+
+				}
+			}
+		}
+
+		if($image_info[0] > $image_info[1]){
+			$image_resize_type = "W";
+		}else{
+			$image_resize_type = "H";
+		}
+
+		$chk_cimg = 1;
+
+		/*if($watermark) {
+			require_once "../lib/class.upload.php";
+
+			$s_water_handle = new Upload($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif");
+			$s_water_result = WaterMarkProcess2($s_water_handle, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/");
+
+
+			$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_watermark_".$INSERT_PRODUCT_ID.".gif";
+			copy($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/watermark/basic_".$INSERT_PRODUCT_ID.".gif",$basic_img_src);
+			chmod($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$INSERT_PRODUCT_ID.".gif", 0777);
+
+
+			$image_type = "gif"; // 워터마크 처리후 마임타입이 gif로 바뀐다.
+			//$image_info = getimagesize ($basic_img_src);
+			//$image_type = substr($image_info['mime'],-3);
+			//echo $image_type;
+		}*/
+
+
+		if($image_type == "gif" || $image_type == "GIF"){
+
+			MirrorGif($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif", MIRROR_NONE);
+			resize_gif($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif",$inventory_image_info[0][width],$inventory_image_info[0][height],$image_resize_type);
+
+			if($chk_cimg == 1){
+				MirrorGif($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif", MIRROR_NONE);
+				resize_gif($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif",$inventory_image_info[1][width],$inventory_image_info[1][height],$image_resize_type);
+			}
+
+		}else if($image_type == "png" || $image_type == "PNG"){
+
+			MirrorPNG($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif", MIRROR_NONE);
+			resize_png($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif",$inventory_image_info[0][width],$inventory_image_info[0][height],$image_resize_type);
+
+			if($chk_cimg == 1){
+				MirrorPNG($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif", MIRROR_NONE);
+				resize_png($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif",$inventory_image_info[1][width],$inventory_image_info[1][height],$image_resize_type);
+			}
+
+		}else{
+			//copy($allimg, $basic_img_src);
+			//exit;
+
+			//copy($allimg, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/product".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif");
+			if (file_exists($basic_img_src)){
+				Mirror($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif", MIRROR_NONE);
+				resize_jpg($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif",$inventory_image_info[0][width],$inventory_image_info[0][height],$image_resize_type);
+
+				if($chk_cimg == 1){
+					Mirror($basic_img_src, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif", MIRROR_NONE);
+					resize_jpg($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif",$inventory_image_info[1][width],$inventory_image_info[1][height],$image_resize_type);
+				}
+			}
+		}
+	}
+
+
+	if ($bimg_size > 0){
+		copy($bimg, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$INSERT_PRODUCT_ID.".gif");
+	}
+
+	if ($cimg_size > 0){
+		copy($cimg, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$INSERT_PRODUCT_ID.".gif");
+	}
+
+	/*
+	for($j=0;$j < count($goods_items);$j++){
+
+		if($goods_items[$j][item_name]){
+
+
+			$sql = "insert into inventory_goods_item 
+						(gi_ix,gid,unit,item_name,item_code,item_sell_ing_cnt,item_barcode,item_safestock,is_use,item_stock_code,item_change_amount,insert_yn,regdate) 
+						values
+						('','".$INSERT_PRODUCT_ID."','".$goods_items[$j][unit]."','".$goods_items[$j][item_name]."','".$goods_items[$j][item_code]."','".$goods_items[$j][item_sell_ing_cnt]."','".$goods_items[$j][item_barcode]."','".$goods_items[$j][item_safestock]."','".$goods_items[$j][is_use]."','".$goods_items[$j][item_stock_code]."','".$goods_items[$j][item_change_amount]."','Y',NOW())";
+			$db->sequences = "INVENTORY_GOODS_ITEM_SEQ";
+			$db->query($sql);
+
+		
+
+		}
+	}
+	*/
+
+	for($j=0;$j < count($goods_unit);$j++){	//도매할인가,소매할인가 추가 2013-12-16 이학봉
+
+		if($goods_unit[$j][unit]){
+
+			
+			$sql = "insert into inventory_goods_unit
+						(gid,unit,change_amount,buying_price,offline_wholesale_price,wholesale_price,sellprice,safestock,barcode,editdate,regdate,add_status,is_pos_link,sell_ing_cnt,available_stock,wholesale_sellprice,discount_price) values
+						('".$gid."','".$goods_unit[$j][unit]."','".$goods_unit[$j][change_amount]."','".$goods_unit[$j][buying_price]."','".$goods_unit[$j][offline_wholesale_price]."','".$goods_unit[$j][wholesale_price]."','".$goods_unit[$j][sellprice]."','".$goods_unit[$j][safestock]."','".$goods_unit[$j][barcode]."',NOW(),NOW(),'I','N','".$goods_unit[$j][sell_ing_cnt]."','".$goods_unit[$j][available_stock]."','".$goods_unit[$j][wholesale_sellprice]."','".$goods_unit[$j][discount_price]."') ";
+
+			$db->sequences = "INVENTORY_GOODS_ITEM_SEQ";
+			$db->query($sql);
+
+		
+
+		}
+	}
+
+
+	if(!$bs_act){
+		if($act == "tmp_insert"){
+			echo "<script language='javascript' src='../js/message.js.php'></script><script language='javascript'>show_alert('재고상품등록이 정상적으로 처리 되었습니다.');parent.document.location.href='../inventory/inventory_goods_input.php?gid=".$INSERT_PRODUCT_ID."';</script>";
+		}else{
+			if($mmode == "pop"){
+				echo "<script language='javascript' src='../js/message.js.php'></script><script language='javascript'>show_alert('재고상품등록이 정상적으로 처리 되었습니다.');parent.self.close();</script>";
+			}else{
+				echo "<script language='javascript' src='../js/message.js.php'></script><script language='javascript'>show_alert('재고상품등록이 정상적으로 처리 되었습니다.');parent.document.location.href='../inventory/inventory_goods_input.php?gid=".$INSERT_PRODUCT_ID."';</script>";
+			}
+		}
+	}
+}
+
+
+if ($act == "delete")
+{
+
+	$uploaddir = UploadDirText($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory", $gid, 'Y');
+
+
+	if ($uploaddir && file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/")){
+		rmdirr($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/");
+	}
+
+	$db->query("DELETE FROM inventory_goods WHERE gid='$gid'");
+	//$db->query("DELETE FROM inventory_goods_item WHERE gid='$gid'");
+	$db->query("DELETE FROM inventory_goods_unit WHERE gid='$gid'");
+
+	echo "<script language='javascript' src='../js/message.js.php'></script><script language='javascript'>show_alert('재고상품삭제가 정상적으로 처리 되었습니다.');parent.document.location.href='../inventory/stock_report.php';</script>";
+
+}
+
+if ($act == "update" || $act == "tmp_update")
+{
+
+
+	if(!file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory/")){
+		mkdir($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory/");
+		chmod($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory/",0777);
+	}
+
+
+	foreach($inventory_cid_info as $cid_name){
+		//echo $cid_name;
+		if($$cid_name){
+			$cid=$$cid_name;
+		}
+	}
+
+	if($admininfo[admin_level] == 9){
+		if($admin != ""){
+			$admin_update = "admin='$admin',";
+		}
+
+		if($company_id != ""){
+			$admin_update = "admin='$company_id',";
+		}
+	}
+	/*
+	$sql = "update inventory_goods set
+				".$admin_update."
+				gname='".$gname."',
+				gcode='".$gcode."',
+				cid='".$cid."',
+				goods_div='".$goods_div."',
+				model='".$model."',
+				orgin='".$orgin."',
+				maker='".$maker."',
+				ci_ix='".$ci_ix."',
+				pi_ix='".$pi_ix."',
+				bs_goods_url='".$bs_goods_url."',
+				search_keyword='".$search_keyword."',
+				etc='".$etc."',
+				bimg='".$bimg_text."',
+				editdate=NOW()
+			where gid='".$gid."' ";
+*/
+	
+
+	$sql = "update inventory_goods set
+				".$admin_update."
+				gname='".$gname."',
+				gcode='".$gcode."',
+				barcode='".$barcode."',
+				basic_unit='".$basic_unit."',
+				order_basic_unit='".$order_basic_unit."',
+				sell_basic_unit='".$sell_basic_unit."',
+				cid='".$cid."',
+				admin='".$admin."',
+				item_account='".$item_account."',
+				standard='".$standard."',		
+				available_priod='".$available_priod."',						
+				model='".$model."',
+				orgin='".$origin."',
+				maker='".$company."',
+				ci_ix='".$ci_ix."',
+				pi_ix='".$pi_ix."',
+				ps_ix='".$ps_ix."',
+				b_ix='".$b_ix."',
+				bs_goods_url='".$bs_goods_url."',
+				search_keyword='".$search_keyword."',
+				etc='".$etc."',
+				
+				surtax_div='".$surtax_div."',
+				is_use='".$is_use."',
+				leadtime='".$leadtime."',
+				available_amountperday='".$available_amountperday."',
+				valuation='".$valuation."',
+				lotno='".$lotno."',
+				bimg='".$bimg."',
+				mimg='".$mimg."',
+				msimg='".$msimg."',
+				simg='".$simg."',
+				cimg='".$cimg."',
+				editdate= NOW()
+				where gid='".$gid."'   ";
+
+				/*
+				use_box='".$use_box."',
+				amount_perbox='".$amount_perbox."',
+				input_price_perbox='".$input_price_perbox."',
+				box_barcode='".$box_barcode."',
+				use_set='".$use_set."',
+				amount_perset='".$amount_perset."',
+				input_price_perset='".$input_price_perset."',
+				set_barcode='".$set_barcode."',
+				*/
+				//print_r($goods_unit);
+	//$db->debug = true;
+
+	$db->query($sql);
+
+	/*
+	$sql = "update inventory_goods_item set insert_yn='N' where gid='".$gid."' ";
+	$db->query($sql);
+
+	for($j=0;$j < count($goods_items);$j++){
+
+		if($goods_items[$j][use_set] =='Y'){
+			$use_set = "Y";
+		}else{
+			$use_set = "N";
+		}
+
+		if($goods_items[$j][use_box] =='Y'){
+			$use_box = "Y";
+		}else{
+			$use_box = "N";
+		}
+
+
+		if($goods_items[$j][gi_ix]){
+
+			$sql = "update inventory_goods_item set
+						unit='".$goods_items[$j][unit]."',
+						item_name='".$goods_items[$j][item_name]."',
+						item_code='".$goods_items[$j][item_code]."',						
+						item_sell_ing_cnt='".$goods_items[$j][item_sell_ing_cnt]."',
+						item_barcode='".$goods_items[$j][item_barcode]."',
+						item_safestock='".$goods_items[$j][item_safestock]."',
+						is_use='".$goods_items[$j][is_use]."',
+						item_stock_code='".$goods_items[$j][item_stock_code]."',
+						item_change_amount='".$goods_items[$j][item_change_amount]."',						
+						insert_yn='Y',
+						editdate=NOW()
+					where gi_ix='".$goods_items[$j][gi_ix]."'";
+
+			//	input_price='".$goods_items[$j][input_price]."',
+			// output_price='".$goods_items[$j][output_price]."',
+
+			$db->query($sql);
+
+		}else{
+
+			$sql = "insert into inventory_goods_item (gi_ix,gid,unit,item_name,input_price,output_price,item_sell_ing_cnt,item_stock,item_safestock,use_box, is_use,item_code,insert_yn,regdate) values('','".$gid."','".$goods_items[$j][unit]."','".$goods_items[$j][item_name]."','".$goods_items[$j][input_price]."','".$goods_items[$j][output_price]."','".$goods_items[$j][item_sell_ing_cnt]."','".$goods_items[$j][item_stock]."','".$goods_items[$j][item_safestock]."','".$use_box."','".$is_use."','".$goods_items[$j][item_code]."','Y',NOW())";
+			$db->sequences = "INVENTORY_GOODS_ITEM_SEQ";
+			$db->query($sql);
+
+		}
+	}
+
+	$sql = "delete from inventory_goods_item where gid='".$gid."' and insert_yn = 'N' ";
+	$db->query($sql);
+	*/
+
+	//$db->debug = true;
+	for($j=0;$j < count($goods_unit);$j++){	//도매할인가,소매할인가 추가 2013-12-16 이학봉
+
+		if($goods_unit[$j][unit]){
+
+			$sql = "select * from inventory_goods_unit where gid='".$gid."' and unit = '".$goods_unit[$j][b_unit]."' ";
+			$db->query($sql);
+			
+			if($db->total){
+					$sql = "update inventory_goods_unit set
+								
+								unit='".$goods_unit[$j][unit]."',
+								change_amount='".$goods_unit[$j][change_amount]."',
+								buying_price='".$goods_unit[$j][buying_price]."',
+								offline_wholesale_price='".$goods_unit[$j][offline_wholesale_price]."',
+								wholesale_price='".$goods_unit[$j][wholesale_price]."',
+								sellprice='".$goods_unit[$j][sellprice]."',
+								safestock='".$goods_unit[$j][safestock]."',
+								barcode='".$goods_unit[$j][barcode]."',
+								sell_ing_cnt='".$goods_unit[$j][sell_ing_cnt]."',
+								available_stock='".$goods_unit[$j][available_stock]."',
+								wholesale_sellprice = '".$goods_unit[$j][wholesale_sellprice]."',
+								discount_price = '".$goods_unit[$j][discount_price]."',
+								add_status = 'U',
+								is_pos_link = 'N',
+								editdate=NOW(),
+								regdate=NOW() 
+								where gid='".$goods_unit[$j][gid]."' and  unit = '".$goods_unit[$j][unit]."'";
+					$db->query($sql);
+
+			}else{
+				$sql = "insert into inventory_goods_unit
+							(gid,unit,change_amount,buying_price,offline_wholesale_price,wholesale_price,sellprice,safestock,barcode,editdate,regdate,add_status,is_pos_link,sell_ing_cnt,available_stock,wholesale_sellprice,discount_price) values
+							('".$gid."','".$goods_unit[$j][unit]."','".$goods_unit[$j][change_amount]."','".$goods_unit[$j][buying_price]."','".$goods_unit[$j][offline_wholesale_price]."','".$goods_unit[$j][wholesale_price]."','".$goods_unit[$j][sellprice]."','".$goods_unit[$j][safestock]."','".$goods_unit[$j][barcode]."',NOW(),NOW(),'I','N','".$goods_unit[$j][sell_ing_cnt]."','".$goods_unit[$j][available_stock]."','".$goods_unit[$j][wholesale_sellprice]."','".$goods_unit[$j][discount_price]."') ";
+
+				//$db->sequences = "INVENTORY_GOODS_ITEM_SEQ";
+				$db->query($sql);
+			}
+
+			//shop_product 금액 적용 2013-12-16 이학봉
+			$sql = "select p.id from shop_product as p inner join inventory_goods_unit as gu on (gu.gu_ix = p.pcode) where gu.gid = '".$goods_unit[$j][gid]."' and gu.unit = '".$goods_unit[$j][unit]."' and p.product_type = '0'";
+			$db2->query($sql);
+			$product_array = $db2->fetchall();
+			if(count($product_array) > 0){
+				for($k=0;$k<count($product_array);$k++){
+					$pid = $product_array[$k][id];
+					$usql = "update shop_product set
+								wholesale_price = '".$goods_unit[$j][wholesale_price]."',
+								wholesale_sellprice = '".$goods_unit[$j][wholesale_sellprice]."',
+								listprice = '".$goods_unit[$j][sellprice]."',
+								sellprice = '".$goods_unit[$j][discount_price]."',
+								coprice = '".$goods_unit[$j][buying_price]."'
+							where
+								id = '".$pid."'";
+					$db2->query($usql);
+				}
+			}
+			//shop_product 금액 적용 2013-12-16 이학봉
+
+			//shop_product_options_detail 금액 적용 2013-12-16 이학봉
+			$osql = "select 
+						pod.id as options_id
+					from
+						shop_product as p 
+						inner join shop_product_options_detail as pod on (p.id = pod.pid and p.product_type = '0')
+						inner join inventory_goods_unit as gu on (pod.option_code = gu.gu_ix)
+					where
+						gu.gid = '".$goods_unit[$j][gid]."'
+						and gu.unit = '".$goods_unit[$j][unit]."'
+						and p.product_type = '0'";
+			$db2->query($osql);
+			$product_options_array = $db2->fetchall();
+
+			if(count($product_options_array) > 0){
+				for($k=0;$k<count($product_options_array);$k++){
+					$op_id = $product_options_array[$k][options_id];
+					$update = "update shop_product_options_detail set
+									option_wholesale_listprice = '".$goods_unit[$j][wholesale_price]."',
+									option_wholesale_price = '".$goods_unit[$j][wholesale_sellprice]."',
+									option_listprice = '".$goods_unit[$j][sellprice]."',
+									option_price = '".$goods_unit[$j][discount_price]."',
+									option_coprice = '".$goods_unit[$j][buying_price]."'
+								where
+									id ='".$op_id."'";
+					$db2->query($update);
+				}
+			}
+			//shop_product_options_detail 금액 적용 2013-12-16 이학봉
+		}
+	}
+
+	//print_r($goods_unit);
+	//exit;
+
+	$uploaddir = UploadDirText($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory", $gid, 'Y');
+	$adduploaddir = UploadDirText($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory", $gid, 'Y');
+
+	if($allimg_size != 0 || ($bimg_text && $img_url_copy)){
+
+		if($bimg_text && $img_url_copy){
+			//echo str_replace("$","\$",$bimg_text);
+			copy(str_replace("$","\$",$bimg_text), $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif");
+			$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif";
+			chmod($basic_img_src,0777);
+			$image_info = getimagesize ($basic_img_src);
+			//print_r($image_info);
+			$image_type = substr($image_info['mime'],-3);
+		}else{
+			$image_info = getimagesize ($allimg);
+			$image_type = substr($image_info['mime'],-3);
+			$image_width = $image_info[0];
+
+			copy($allimg, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif");
+
+			$basic_img_src = $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif";
+			chmod($basic_img_src,0777);
+		}
+
+		if($image_info[0] > $image_info[1]){
+			$image_resize_type = "W";
+		}else{
+			$image_resize_type = "H";
+		}
+
+		$chk_cimg=1;
+
+		if($image_type == "gif"){
+
+			if (file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif")){
+				unlink($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif");
+			}
+
+			MirrorGif($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif", MIRROR_NONE);
+			resize_gif($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif",$inventory_image_info[0][width],$inventory_image_info[0][height],$image_resize_type);
+
+
+			if($chk_cimg == 1){
+				if (file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif")){
+					unlink($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif");
+				}
+				MirrorGif($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif", MIRROR_NONE);
+				resize_gif($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif",$inventory_image_info[1][width],$inventory_image_info[1][height],$image_resize_type);
+			}
+
+		}else if($image_type == "png"){
+
+			if (file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif")){
+				unlink($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif");
+			}
+
+			MirrorPNG($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif", MIRROR_NONE);
+			resize_png($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif",$inventory_image_info[0][width],$inventory_image_info[0][height],$image_resize_type);
+
+			if($chk_cimg == 1){
+				if (file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif")){
+					unlink($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif");
+				}
+				MirrorPNG($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif", MIRROR_NONE);
+				resize_png($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif",$inventory_image_info[1][width],$inventory_image_info[1][height],$image_resize_type);
+			}
+
+		}else{
+
+			if (file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif")){
+				unlink($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif");
+			}
+
+			Mirror($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif", MIRROR_NONE);
+			resize_jpg($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif",$inventory_image_info[0][width],$inventory_image_info[0][height],$image_resize_type);
+
+			if($chk_cimg == 1){
+				if (file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif")){
+					unlink($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif");
+				}
+				Mirror($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/basic_".$gid.".gif", $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif", MIRROR_NONE);
+				resize_jpg($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif",$inventory_image_info[1][width],$inventory_image_info[1][height],$image_resize_type);
+			}
+		}
+	}
+
+
+
+
+	if ($bimg_size > 0){
+		copy($bimg, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/b_".$gid.".gif");
+	}
+
+	if ($cimg_size > 0)
+	{
+		copy($cimg, $_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/inventory".$uploaddir."/c_".$gid.".gif");
+	}
+
+
+	if($act == "tmp_update"){
+		echo "<script language='javascript' src='../js/message.js.php'></script><script>show_alert('재고상품수정이 정상적으로 처리 되었습니다.');parent.document.location.reload();</script>";
+	}else{
+		if($mmode == "pop"){
+			echo "<script language='javascript' src='../js/message.js.php'></script><script>show_alert('재고상품수정이 정상적으로 처리 되었습니다.');parent.self.close();</script>";
+		}else{
+			echo "<script language='javascript' src='../js/message.js.php'></script><script>show_alert('재고상품수정이 정상적으로 처리 되었습니다.');parent.document.location.reload();</script>";
+		}
+	}
+}
+
+?>

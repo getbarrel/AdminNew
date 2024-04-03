@@ -1,0 +1,596 @@
+<?
+
+
+class ManagePopLayOut{
+	var $strContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $strLeftMenu;
+	var $default_path;
+	var $BodyFunctionAdd;
+	var $Config;
+	var $Navigation;
+	var $NaviTitle;
+	var $layout_display ;
+	var $view_type ;
+
+
+	function ManagePopLayOut(){
+		$this->strContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->BodyFunctionAdd = "";
+		$this->title = "";
+		$this->strLeftMenu = "";
+		$this->default_path = "/admin";
+		$this->Navigation = "HOME";
+		$this->NaviTitle = "";
+		$this->layout_display = true;
+		$this->view_type = "";
+
+		$mndb = new Database;
+		$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+		//echo $sql;
+		$mndb->query($sql);
+		if(!$mndb->total){
+			$paths = explode("/",$_SERVER["PHP_SELF"]);
+			$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+			$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+				values
+				('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+			echo $sql;
+			$mndb->query($sql);
+		}
+
+		$this->AdminConfig();
+	}
+
+
+
+
+	function AdminConfig(){
+	global $admin_config, $layout_config, $admininfo;
+
+		$cfg_db = new Database;
+		
+		$sql = "select *
+				from ".TBL_SHOP_SHOPINFO." where mall_ix = '".$admininfo[mall_ix]."' and mall_domain LIKE '".str_replace("www.","",$_SERVER["HTTP_HOST"])."%' ";
+
+		$cfg_db->query($sql);
+
+		$cfg_db->fetch();
+
+		$admin_config[mall_use_multishop] = $cfg_db->dt[mall_use_multishop];
+		$admin_config[mall_use_templete] = $cfg_db->dt[mall_use_templete];
+		$admin_config[mall_ename] = $cfg_db->dt[mall_ename];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_domain] = $cfg_db->dt[mall_domain];
+		$layout_config = $admin_config;
+		$this->Config = $admin_config;
+		session_register("admin_config");
+		session_register("layout_config");
+
+		$mndb = new Database;
+		$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+		//echo $sql;
+		$mndb->query($sql);
+		if(!$mndb->total){
+			$paths = explode("/",$_SERVER["PHP_SELF"]);
+			$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+			$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+				values
+				('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+			echo $sql;
+			$mndb->query($sql);
+		}
+	}
+
+	function PrintLayOut(){
+	global $admininfo, $admin_config;
+
+
+	$mndb = new Database;
+
+
+	$paths = explode("/",str_replace($admin_root,"/admin",$_SERVER["PHP_SELF"]));
+
+	if($_SESSION["admininfo"]["language"] != "korea"){
+		$sql = "select text_div, text_korea, text_trans
+			from admin_language
+			where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+			order by CHAR_LENGTH(text_korea) desc  ";
+		//echo nl2br($sql);
+		 
+		$mndb->query($sql);
+		if($mndb->total){
+		//echo "test";
+
+			$languages = $mndb->fetchall();
+			//print_r($dics);
+			$count = 10;
+			for($i=0;$i < count($languages);$i++){
+				//echo $languages[$i]["text_korea"]."<br>\n";
+				$this->strTopMenu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->strTopMenu);
+				$this->strLeftMenu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->strLeftMenu);
+				$this->right_menu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->right_menu);
+			}
+		}
+	}
+	if($_SESSION["admininfo"]["language"] != "korea"){
+		if($mndb->dbms_type == "oracle"){
+			$sql = "select text_korea, text_trans, CHAR_LENGTH(text_korea) as text_korea_cnt
+			from admin_dic where menu_code = '".md5($_SERVER["PHP_SELF"])."' and language_type = '".$_SESSION["admininfo"]["language"]."' and dic_type = 'WORD'
+			union
+			select CAST(text_korea as varchar(255)) as text_korea, CAST(text_trans as varchar(255)) as text_trans , CHAR_LENGTH(text_korea) as text_korea_cnt
+			from admin_language
+			where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+			order by text_korea_cnt desc
+			 ";
+			//echo $sql;
+			$mndb->query($sql);
+			if($mndb->total){
+			//echo "test";
+				$dics = $mndb->fetchall();
+				//print_r($dics);
+				$count = 10;
+				for($i=0;$i < count($dics);$i++){
+					$pattern = "[".$dics[$i]["text_korea"]."]";
+					//$this->strContents = preg_replace($pattern, $dics[$i]["text_trans"], $this->strContents,$count);
+					$this->strContents = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $this->strContents);
+				}
+			}
+
+		}else{
+			if(true){
+					$sql = "select text_korea, text_trans from admin_dic where menu_code = '".md5(str_replace($admin_root,"/admin",$_SERVER["PHP_SELF"]))."' and language_type = '".$_SESSION["admininfo"]["language"]."' and dic_type = 'WORD'
+						union
+						select text_korea, text_trans
+						from admin_language
+						where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+						order by CHAR_LENGTH(text_korea) desc
+						 ";
+					//echo $sql;
+					$mndb->query($sql);
+					if($mndb->total){
+					//echo "test";
+						$dics = $mndb->fetchall();
+						//print_r($dics);
+						$count = 10;
+						for($i=0;$i < count($dics);$i++){
+							$pattern = "[".$dics[$i]["text_korea"]."]";
+							//$this->strContents = preg_replace($pattern, $dics[$i]["text_trans"], $this->strContents,$count);
+							$this->strContents = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $this->strContents);
+						}
+					}
+			}
+		}
+	}
+if($this->layout_display){
+$mstring = "<!DOCTYPE html> 
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge'/>
+	<title></title>
+<base target='_self'/>
+<LINK REL='stylesheet' HREF='".$this->default_path."/v3/include/admin.css?".rand()."' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'-->
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<LINK href='".$this->default_path."/css/facebox2.css' type='text/css' rel='stylesheet'>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/class.css' />
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/common.css' />
+<script language='javascript'>
+var language = \"".$admininfo[language]."\";
+</script>";
+if($_SERVER["HTTP_HOST"] == "unimind.kr" || $_SERVER["HTTP_HOST"] == "www.unimind.kr"){
+	$mstring .= "<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+	<script src='".$this->default_path."/js/jquery-1.8.3.js'></script>
+	<script src='".$this->default_path."/js/jquery-ui.js'></script>";
+	
+}else{
+
+	$mstring .= "
+	<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+	<script src='".$this->default_path."/js/jquery-1.8.3.js'></script>
+	<script src='".$this->default_path."/js/jquery-ui.js'></script>
+	<script language='javascript' src='".$this->default_path."/js/jquery.combobox.js'></script>";
+}
+$mstring .= "
+<script language='javascript' src='".$this->default_path."/js/jquery.blockUI.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.cookie.js'></script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+<script language='JavaScript' src='/admin/js/zoom.js'></Script>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/dd.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.php'></Script>
+<style type='text/css'>
+	#container	{width:100%;position:relative; margin:0 auto; }
+	#container:after	{width:100%;content:'';display:block;clear:both;}
+</style>
+
+".$this->addScript."
+</head>
+<body topmargin=0 leftmargin=0 bottommargin=0 rightmargin=0 ".$this->BodyFunctionAdd." onload=\"winResize();".$this->OnloadFunction."\" ondragstart='return false' >
+<div class='point_color' id='show_alert_box' style='z-index:10000;width:100%;height:22px;text-align:center;padding:10px;font-weight:bold;font-size:20px;position:absolute;top:-42px;'></div>
+<div id='container'>
+	<table cellpadding=0 cellspacing=0 border=0 width=100% height=100% >
+		<!--tr><td  align=left class='top_orange'  ></td></tr-->
+		
+		<tr height=42 bgcolor=#000000>
+			<td  style='padding:0 0 0 0;'> 
+				<table width='100%' border='0' cellspacing='0' cellpadding='0' >
+					<tr> 
+						<td width='10%' height='42' valign='middle' style='font-family:굴림;font-size:16px;color:#ffffff;font-weight:bold;letter-spacing:-2px;word-spacing:0px;padding-left:10px;' nowrap><!--border-bottom:2px solid #ff9b00;-->
+							<!--img src='/admin/images/icon/sub_title_dot.gif' align=absmiddle-->
+							<img src='/admin/v3/images/common/arrow_icon02.gif' align=absmiddle> ".$this->NaviTitle."
+						</td>
+						<td width='90%' align='right' valign='top' ><!--style='border-bottom:2px solid #efefef;'-->
+							&nbsp;
+						</td>
+					</tr>
+					<!--tr height=10><td colspan=2></td></tr-->
+				</table>
+			</td>
+		</tr>
+		<tr><td class='topmenu_bg01'></td></tr>
+		<tr >
+			<td    style='height:93%;padding:0px;' bgcolor=#ffffff  align=left valign=top id='contentsarea'  >
+			<div id='contents_frame' style='overflow:auto;padding:10px;' ><!--width:100%;-->
+			".$this->strContents."
+			</div>
+			</td>
+		</tr>
+		<tr height=30 >
+			<td  height=3 align=right  valign=middle style='height:40px;background-color:#ebeceb;border-top:2px solid #ea4200; padding:0px;font-family:돋움'>
+				<table cellpadding=0 cellspacing=0 width=100%>
+				<tr>
+					<td align=left style='padding:0px 0px 0px 10px'>copyright ⓒ ".$admin_config[mall_domain]." all right reserved. </td>
+					<td align=right style='padding-right:10px;'><a href='javascript:self.close();'> <img src='/admin/images/".$admininfo["language"]."/btn_close.gif' border=0></a></td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</div>
+<div id='loading' style='display:none;border:0px solid red;width:100%;height:100%;padding-top:13px;'>
+<table class='layer_box' border=0 cellpadding=0 cellspacing=0 style='width:250px;height:70px;' >
+		<col width='11px'>
+		<col width='*'>
+		<col width='11px'>
+		<tr>
+			<th class='box_01'></th>
+			<td class='box_02' ></td>
+			<th class='box_03'></th>
+		</tr>
+
+		<tr>
+			<th class='box_04' style='vertical-align:top'></th>
+			<td class='box_05' rowspan=2 valign=top style='padding:15px 15px 5px 25px;font-size:12px;line-height:150%;text-align:left;' >
+			<table>
+				<tr>
+					<td><img src='/admin/images/indicator_.gif' border=0><!--img src='../images/loading_large.gif' border=0--></td>
+					<td style='padding-left:20px;'> 정보를 처리중입니다...</td>
+				</tr>
+			</table>
+			</td>
+			<th class='box_06'></th>
+		</tr>
+		<tr>
+			<th class='box_04'></th>
+			<th class='box_06'></th>
+		</tr>
+		<tr>
+			<th class='box_07'></th>
+			<td class='box_08'></td>
+			<th class='box_09'></th>
+		</tr>
+	</table>
+</div>
+<div id='layerBg' style='border:0px solid gray;'></div>
+<iframe name='act' id='act' style='display:none;'></iframe>
+<iframe name='iframe_act' id='iframe_act' width=0 height=0 frameborder=0 style='display:none;'></iframe>
+<iframe name='bs_site_frame' id='bs_site_frame' width='0' height='0px' frameborder=0 style='display:none;'></iframe>
+<script language='JavaScript' src='/admin/js/admin_bottom.js'></Script>
+<script type='text/javascript' src='".$this->default_path."/js/jquery.numeric.js'></script>
+<script language='javascript'>
+
+try{
+$('.numeric').numeric();
+}catch(e){}
+$('.integer').numeric(false, function() { alert(integer_only); this.value = ''; this.focus(); });
+$('.positive').numeric({ negative: false }, function() { alert(no_nagative_values); this.value = ''; this.focus(); });
+$('.positive-integer').numeric({ decimal: false, negative: false }, function() { alert('Positive integers only'); this.value = ''; this.focus(); });
+$('#remove').click(
+	function(e)
+	{
+		e.preventDefault();
+		$('.numeric,.integer,.positive').removeNumeric();
+	}
+);
+</script>
+</body>
+</html>";
+}else{
+$mstring = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+<meta http-equiv='X-UA-Compatible' content='IE=EmulateIE8'/>
+<meta http-equiv='X-UA-Compatible' content='IE=7, IE=9'>
+	<title></title>
+<base target='_self'/>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/v3/include/admin.css?".rand()."' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'-->
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<LINK href='".$this->default_path."/css/facebox2.css' type='text/css' rel='stylesheet'>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/class.css' />
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/common.css' />
+<script language='javascript'>
+var language = \"".$admininfo[language]."\";
+
+</script>";
+if($_SERVER["HTTP_HOST"] == "unimind.kr" || $_SERVER["HTTP_HOST"] == "www.unimind.kr"){
+	$mstring .= "<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+	<script src='".$this->default_path."/js/jquery-1.8.3.js'></script>
+	<script src='".$this->default_path."/js/jquery-ui.js'></script>";
+	
+}else{
+
+	$mstring .= "
+	<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+	<script src='".$this->default_path."/js/jquery-1.8.3.js'></script>
+	<script src='".$this->default_path."/js/jquery-ui.js'></script>
+	<script language='javascript' src='".$this->default_path."/js/jquery.combobox.js'></script>";
+}
+$mstring .= "
+
+
+<script language='javascript' src='".$this->default_path."/js/jquery.blockUI.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.cookie.js'></script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+<script language='JavaScript' src='/admin/js/zoom.js'></Script>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/dd.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.php'></Script>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 rightmargin=0 ".$this->BodyFunctionAdd." onload=\"winResize();".$this->OnloadFunction."\" ondragstart='return false' >";
+if($this->view_type == "personalization"){
+$mstring .= $this->addScript."<div style='padding:10px 45px 10px 10px;'>
+<div style='background-color:#efefef;padding:8px 10px 8px 10px;margin-bottom:2px;'><img src='../image/title_head.gif' align=absmiddle><b class=blk> ".$this->NaviTitle."</b> </span></b> </div>
+".$this->strContents."
+</div>";
+}else{
+$mstring .= $this->strContents;
+}
+$mstring .= "
+<div id='loading' style='display:none;border:0px solid red;width:100%;height:100%;padding-top:13px;'><img src='../images/loading_large.gif' border=0></div>
+<div id='layerBg' style='border:0px solid gray;'></div>
+<iframe name='act' id='act' style='display:none;'></iframe>
+<iframe name='iframe_act' id='iframe_act' width=0 height=0 frameborder=0 style='display:none;'></iframe>
+<iframe name='bs_site_frame' id='bs_site_frame' width='100%' height='0px' frameborder=0></iframe>
+</body>
+<script language='JavaScript' src='".$this->default_path."/js/admin_bottom.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/v3/js/menus_layer.js'></Script>
+<!--script language='JavaScript' src='".$this->default_path."/v3/include/menus_data.php'></Script-->
+<script type='text/javascript' language=javascript src='".$this->default_path."/js/facebox.js'></script>
+<script type='text/javascript' src='".$this->default_path."/js/jquery.numeric.js'></script>
+<script language='javascript'>
+
+try{
+$('.numeric').numeric();
+}catch(e){}
+$('.integer').numeric(false, function() { alert(integer_only); this.value = ''; this.focus(); });
+$('.positive').numeric({ negative: false }, function() { alert(no_nagative_values); this.value = ''; this.focus(); });
+$('.positive-integer').numeric({ decimal: false, negative: false }, function() { alert('Positive integers only'); this.value = ''; this.focus(); });
+$('#remove').click(
+	function(e)
+	{
+		e.preventDefault();
+		$('.numeric,.integer,.positive').removeNumeric();
+	}
+);
+</script>
+<!--script>
+linecss();
+</script-->
+</html>";
+}
+
+echo $mstring;
+
+	}
+
+}
+
+
+class popLayOut{
+	var $strContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $strLeftMenu;
+	var $default_path;
+	var $BodyFunctionAdd;
+	var $Config;
+	var $Navigation;
+
+
+	function popLayOut(){
+		$this->strContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->BodyFunctionAdd = "";
+		$this->title = "";
+		$this->strLeftMenu = "";
+		$this->default_path = "/admin";
+		$this->Navigation = "HOME";
+		
+		$mndb = new Database;
+		$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+		//echo $sql;
+		$mndb->query($sql);
+		if(!$mndb->total){
+			$paths = explode("/",$_SERVER["PHP_SELF"]);
+			$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+			$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+				values
+				('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+			echo $sql;
+			$mndb->query($sql);
+		}
+
+		$this->AdminConfig();
+	}
+
+
+
+
+	function AdminConfig(){
+	global $admin_config, $layout_config, $admininfo;
+
+		$cfg_db = new Database;
+
+		$cfg_db->query("select mall_use_templete, mall_domain, mall_use_multishop, mall_ename, mall_data_root from ".TBL_SHOP_SHOPINFO." where mall_ix = '".$admininfo[mall_ix]."' ");
+
+		$cfg_db->fetch();
+
+		$admin_config[mall_use_multishop] = $cfg_db->dt[mall_use_multishop];
+		$admin_config[mall_use_templete] = $cfg_db->dt[mall_use_templete];
+		$admin_config[mall_ename] = $cfg_db->dt[mall_ename];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_domain] = $cfg_db->dt[mall_domain];
+		$layout_config = $admin_config;
+		$this->Config = $admin_config;
+		session_register("admin_config");
+		session_register("layout_config");
+	}
+
+	function PrintLayOut(){
+	global $admininfo;
+$mstring = "
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/v3/include/admin.css?".rand()."' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'-->
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<LINK href='".$this->default_path."/css/facebox2.css' type='text/css' rel='stylesheet'>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/class.css' />
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/common.css' />
+
+<STYLE>
+DIV{padding:0px;margin:0px;}
+TABLE{padding:0px;margin:0px;}
+#men {
+	BORDER-RIGHT: 2px outset; BORDER-TOP: 2px outset; Z-INDEX: 1; LEFT: 0px; VISIBILITY: hidden; BORDER-LEFT: 2px outset; BORDER-BOTTOM: 2px outset; POSITION: absolute; TOP: 0px
+}
+#men A {
+	PADDING-RIGHT: 1px; PADDING-LEFT: 1px; PADDING-BOTTOM: 4px; MARGIN: 1px 1px 1px 16px; FONT: 11px sans-serif; WIDTH: 100%; PADDING-TOP: 3px; HEIGHT: 100%; TEXT-DECORATION: none
+}
+.ico {
+	BORDER-RIGHT: medium none; BORDER-TOP: medium none; FLOAT: left; BORDER-LEFT: medium none; BORDER-BOTTOM: medium none
+}
+</STYLE>
+<script language='JavaScript' src='".$this->default_path."/js/jquery-1.4.js'></Script>
+<script language='javascript' src='".$this->default_path."/js/jquery.blockUI.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.cookie.js'></script>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 ".$this->BodyFunctionAdd." onload=\"".$this->OnloadFunction."\" ondragstart='return false' >
+
+<table cellpadding=0 cellspacing=0 border=0 width=100% height=100% >
+
+	<!--tr height='4'>
+		<td  class='top_orange' colspan=2><img src='".$this->default_path."/images/bg_orange_left.gif' ></td>
+	</tr>
+	<tr bgcolor=silver height=20 style='height:20px;'>
+		<td  align=left class='top_navi'  colspan=2>
+		<table cellpadding=0 cellspacing=0>
+			<tr>
+				<td><img src='".$this->default_path."/images/bg_navi_left.gif'></td>
+				<td valign=bottom><img src='".$this->default_path."/images/dot_orange.gif'  align=absmiddle> </td>
+				<td style='padding-left:10px;'> ".$this->Navigation." </td>
+			</tr>
+		</table>
+
+		</td>
+	</tr-->";
+
+$mstring .= "
+	<tr height=95%>
+		<td  height=95% class='top_shadow' bgcolor=#ffffff height=3 align=left valign=top id='contentsarea'  colspan=2>
+		<div id='contents_frame' style='overflow:hidden;padding:0 0 0 0  ;' ><!---->
+		".$this->strContents."
+		</div>
+		</td>
+		<td ></td>
+	</tr>
+	<!--tr height=30 style=''>
+		<td  height=3 align=right colspan=2 valign=top style='background-color:#ebeceb;border-top:2px solid #fc9c1d; padding:10px;font-family:돋움'>
+			copyright ⓒ mallstory.com all right reserved.
+		</td>
+	</tr-->
+</table>
+<iframe name='act' id='act' width=0 height=0 frameborder=0></iframe>
+</body>
+<script language='JavaScript' src='/admin/js/admin_bottom.js'></Script>
+<script type='text/javascript' src='".$this->default_path."/js/jquery.numeric.js'></script>
+<script language='javascript'>
+try{
+$('.numeric').numeric();
+}catch(e){}
+$('.integer').numeric(false, function() { alert(integer_only); this.value = ''; this.focus(); });
+$('.positive').numeric({ negative: false }, function() { alert(no_nagative_values); this.value = ''; this.focus(); });
+$('.positive-integer').numeric({ decimal: false, negative: false }, function() { alert('Positive integers only'); this.value = ''; this.focus(); });
+$('#remove').click(
+	function(e)
+	{
+		e.preventDefault();
+		$('.numeric,.integer,.positive').removeNumeric();
+	}
+);
+</script>
+</html>";
+
+		$mndb = new Database;
+		$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+		//echo $sql;
+		$mndb->query($sql);
+		if(!$mndb->total){
+			$paths = explode("/",$_SERVER["PHP_SELF"]);
+			$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+			$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+				values
+				('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+			//echo $sql;
+			$mndb->query($sql);
+		}
+echo $mstring;
+
+	}
+
+}
+?>

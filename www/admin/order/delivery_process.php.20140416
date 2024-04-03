@@ -1,0 +1,1804 @@
+<?
+include_once("../class/layout.class");
+//print_r($admin_config);
+if ($startDate == ""){
+	$before10day = mktime(0, 0, 0, date("m")  , date("d")-20, date("Y"));
+
+//	$sDate = date("Y/m/d");
+	$sDate = date("Y/m/d", $before10day);
+	$eDate = date("Y/m/d");
+
+	$startDate = date("Y-m-d", $before10day);
+	$endDate = date("Y-m-d");
+}
+
+$db1 = new Database;
+$odb = new Database;
+$ddb = new Database;
+$od_db = new MySQL;
+$db = new Database;
+
+
+if(!$title_str){
+	$title_str  = "매출진행관리";
+}
+
+$vdate = date("Ymd", time());
+$today = date("Ymd", time());
+$firstday = date("Ymd", time()-86400*date("w"));
+$lastday = date("Ymd", time()+86400*(6-date("w")));
+
+if($max == ""){
+	$max = 15; //페이지당 갯수
+}
+
+if ($page == ''){
+	$start = 0;
+	$page  = 1;
+}else{
+	$start = ($page - 1) * $max;
+}
+
+// 검색 조건 설정 부분
+//$where = "WHERE od.status <> 'SR' AND od.product_type NOT IN (".implode(',',$sns_product_type).") ";
+
+ if($view_type == 'sc_order'){
+	$where = "WHERE od.status <> 'SR' AND od.product_type IN (".implode(',',$sns_product_type).") ";
+	$folder_name = "sns";
+ }else{//통합커머스 용도 2013-08-27 신훈식 -> 위로 올람 20130828 Hong
+	$where = "WHERE od.status <> 'SR' ";
+	$folder_name = "product";
+}
+
+if ($oid != "")		$where .= "and od.oid = '$oid' ";
+if ($bname != "")	$where .= "and bname = '$bname' ";
+if ($rname != "")	$where .= "and rname = '$rname' ";
+if ($rmobile != "")    $where .= "and rmobile = '$rmobile' ";
+if ($bmobile != "")    $where .= "and bmobile = '$bmobile' ";
+
+if($pre_type == ORDER_STATUS_DELIVERY_COMPLETE || $pre_type == ORDER_STATUS_BUY_FINALIZED){
+	if($mode!="search"){
+		$orderdate=1;
+	}
+
+	if(!$date_type){
+		$date_type="o.date";
+	}
+}
+
+if($orderdate){
+	$where .= "and date_format(".$date_type.",'%Y-%m-%d') between '".$startDate."' and '".$endDate."' ";
+}
+
+
+if($invoice_no_bool == "Y"){
+	$where .= " and ifnull(od.invoice_no,'') !='' ";
+}elseif($invoice_no_bool == "N"){
+	$where .= " and ifnull(od.invoice_no,'') ='' ";
+}
+
+
+if($search_type && $search_text){
+		if($search_type == "combi_name"){
+			$where .= "and (bname LIKE '%".trim($search_text)."%'  or rname LIKE '%".trim($search_text)."%' or bank_input_name LIKE '%".trim($search_text)."%') ";
+		}else{
+			$where .= "and $search_type LIKE '%".trim($search_text)."%' ";
+		}
+	}
+//print_r($type);
+
+if(empty($type)){
+	$type = $fix_type;
+}
+
+if(is_array($type)){
+	for($i=0;$i < count($type);$i++){
+		if($type[$i]){
+			if($type_str == ""){
+				$type_str .= "'".$type[$i]."'";
+			}else{
+				$type_str .= ", '".$type[$i]."' ";
+			}
+		}
+	}
+
+	if($type_str != ""){
+		$where .= "and od.status in ($type_str) ";
+	}
+}else{
+	if($type){
+		$where .= "and od.status = '$type' ";
+	}
+}
+
+if(is_array($method)){
+	for($i=0;$i < count($method);$i++){
+		if($method[$i] != ""){
+			if($method_str == ""){
+				$method_str .= "'".$method[$i]."'";
+			}else{
+				$method_str .= ", '".$method[$i]."' ";
+			}
+		}
+	}
+
+	if($method_str != ""){
+		$where .= "and o.method in ($method_str) ";
+	}
+}else{
+	if($method){
+		$where .= "and o.method = '$method' ";
+	}
+}
+
+if(is_array($payment_agent_type)){
+	for($i=0;$i < count($payment_agent_type);$i++){
+		if($payment_agent_type[$i] != ""){
+			if($payment_agent_type_str == ""){
+				$payment_agent_type_str .= "'".$payment_agent_type[$i]."'";
+			}else{
+				$payment_agent_type_str .= ", '".$payment_agent_type[$i]."' ";
+			}
+		}
+	}
+
+	if($payment_agent_type_str != ""){
+		$where .= "and o.payment_agent_type in ($payment_agent_type_str) ";
+	}
+}else{
+	if($payment_agent_type){
+		$where .= "and o.payment_agent_type = '$payment_agent_type' ";
+	}
+}
+
+if(is_array($order_from)){
+	for($i=0;$i < count($order_from);$i++){
+		if($order_from[$i] != ""){
+			if($order_from_str == ""){
+				$order_from_str .= "'".$order_from[$i]."'";
+			}else{
+				$order_from_str .= ",'".$order_from[$i]."' ";
+			}
+		}
+	}
+
+	if($order_from_str != ""){
+		$where .= "and od.order_from in ($order_from_str) ";
+	}
+}else{
+	if($order_from){
+		$where .= "and od.order_from = '$order_from' ";
+	}
+}
+
+if($product_type != ""){
+	$where .= "and od.product_type = '".$product_type."'";
+}
+
+if($admin_div != ""){
+	if($admin_div=='c'){
+		$where .= "and od.company_id = '".$admininfo[company_id]."'";
+	}else{
+		$where .= "and od.company_id != '".$admininfo[company_id]."'";
+	}
+}
+
+if($pre_type != ORDER_STATUS_DELIVERY_READY){
+	if(is_array($delivery_status)){
+		for($i=0;$i < count($delivery_status);$i++){
+			if($delivery_status[$i] != ""){
+				if($delivery_status_str == ""){
+					$delivery_status_str .= "'".$delivery_status[$i]."'";
+				}else{
+					$delivery_status_str .= ", '".$delivery_status[$i]."' ";
+				}
+			}
+		}
+
+		if($delivery_status_str != ""){
+			$where .= "and od.delivery_status in ($delivery_status_str) ";
+		}
+	}else{
+		if($delivery_status){
+			$where .= "and od.delivery_status = '$delivery_status' ";
+		}
+	}
+}else{
+	if($_COOKIE[view_wdr_order] == 1){
+		$where .= "and (od.delivery_status not in ('WDA','WDC') or od.delivery_status is null)";
+	}else{
+		$where .= "and (od.delivery_status not in ('WDA','WDR','WDC') or od.delivery_status is null)";
+	}
+}
+
+
+if(is_array($p_admin) && count($p_admin) == 1){
+	if($p_admin[0]=="A"){
+		$where .= "and od.company_id ='".$a_company_id."' ";
+	}elseif($p_admin[0]=="S"){
+		$where .= "and od.company_id !='".$a_company_id."' ";
+	}
+}else{
+	if($p_admin=="A"){
+		$where .= "and od.company_id ='".$a_company_id."' ";
+	}elseif($p_admin=="S"){
+		$where .= "and od.company_id !='".$a_company_id."' ";
+	}
+}
+
+$Contents = "
+
+<table width='100%'>
+	<tr>
+		<td align='left' colspan=6 > ".GetTitleNavigation("$title_str", "배송관리 > $title_str ")."</td>
+	</tr>
+</table>
+<table width='100%' cellpadding='0' cellspacing='0' border=0>
+	<!--tr>
+		<td colspan=2>
+			".OrderSummary($pre_type, $title_str)."
+		</td>
+	</tr-->
+	<tr>
+		<td style='width:75%;' colspan=2 valign=top>
+			<form name='search_frm' method='get' action=''>
+			<input type='hidden' name='mode' value='search' /> 
+			<table width=100%  border=0>
+				<tr height=25>
+					<td style='border-bottom:2px solid #efefef'><img src='../images/dot_org.gif' align=absmiddle> <b>주문정보 검색하기</b></td>
+				</tr>
+				<tr>
+					<td align='left' colspan=2 width='100%' valign=top style='padding-top:5px;'>
+						<table class='box_shadow' style='width:100%;' align=left cellpadding='0' cellspacing='0' border='0'>
+							<tr>
+								<th class='box_01'></th>
+								<td class='box_02'></td>
+								<th class='box_03'></th>
+							</tr>
+							<tr>
+								<th class='box_04'></th>
+								<td class='box_05'>
+									<TABLE cellSpacing=0 cellPadding=3 style='width:100%;' align=center border=0 class='search_table_box'>
+											<col width=15%>
+											<col width=35%>
+											<col width=15%>
+											<col width=35%>";
+											if($admininfo[admin_level]==9){
+											$Contents .= "
+											<tr height=30>
+												<th class='search_box_title' >판매처 선택 </th>
+												<td class='search_box_item' nowrap colspan='3'>
+													<table cellpadding=0 cellspacing=0 width='100%' border='0' >
+														<col width='15%'>
+														<col width='15%'>
+														<col width='15%'>
+														<col width='15%'>
+														<col width='15%'>
+														<col width='15%'>
+														<TR height=25>";
+													
+													if($view_type == 'offline_order'){
+														$Contents .= "
+														
+															<TD><input type='checkbox' name='order_from[]' id='order_from_offline' value='offline' ".CompareReturnValue('offline',$order_from,' checked')." checked><label for='order_from_offline'>오프라인 영업</label></TD>
+														";
+													}else{
+														$Contents .= "
+															<TD><input type='checkbox' name='order_from[]' id='order_from_self' value='self' ".CompareReturnValue('self',$order_from,' checked')." ><label for='order_from_self'>자체쇼핑몰</label></TD>
+															<TD><input type='checkbox' name='order_from[]' id='order_from_offline' value='offline' ".CompareReturnValue('offline',$order_from,' checked')." ><label for='order_from_offline'>오프라인 영업</label></TD>
+															<TD><input type='checkbox' name='order_from[]' id='order_from_pos' value='pos' ".CompareReturnValue('pos',$order_from,' checked')." ><label for='order_from_pos'>POS</label></TD>";
+														$db1->query("select * from sellertool_site_info where disp='1' ");
+													$sell_order_from=$db1->fetchall();
+													for($i=0;$i<count($sell_order_from);$i++){
+															$Contents .= "<TD><input type='checkbox' name='order_from[]' id='order_from_".$sell_order_from[$i][site_code]."' value='".$sell_order_from[$i][site_code]."' ".CompareReturnValue($sell_order_from[$i][site_code],$order_from,' checked')." ><label for='order_from_".$sell_order_from[$i][site_code]."'>".$sell_order_from[$i][site_name]."</label></TD>";
+													}
+													}
+
+													
+										$Contents .= "
+														</TR>
+													</table>
+												</td>
+											</tr>";
+											}
+if($pre_type == ORDER_STATUS_DELIVERY_READY||$pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY || $pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_READY||$pre_type ==ORDER_STATUS_INCOM_COMPLETE){
+$Contents .= "
+											<tr>
+												<th class='search_box_title'>처리상태 </th>
+												<td class='search_box_item' colspan=3>
+												<table cellpadding=0 cellspacing=0 width='100%' border='0'>
+													<col width='15%'>
+													<col width='15%'>
+													<col width='15%'>
+													<col width='15%'>
+													<col width='15%'>
+													<col width='15%'>
+													<TR height=30>
+														<TD ><input type='checkbox' name='type[]' id='type_".ORDER_STATUS_DELIVERY_READY."' value='".ORDER_STATUS_DELIVERY_READY."' ".CompareReturnValue(ORDER_STATUS_DELIVERY_READY,$type,' checked')." ><label for='type_".ORDER_STATUS_DELIVERY_READY."'>".getOrderStatus(ORDER_STATUS_DELIVERY_READY)."</label></TD>
+														<TD ><input type='checkbox' name='type[]' id='type_".ORDER_STATUS_DELIVERY_DELAY."' value='".ORDER_STATUS_DELIVERY_DELAY."' ".CompareReturnValue(ORDER_STATUS_DELIVERY_DELAY,$type,' checked')." ><label for='type_".ORDER_STATUS_DELIVERY_DELAY."'>".getOrderStatus(ORDER_STATUS_DELIVERY_DELAY)."</label></TD>
+														<TD></TD>
+														<TD></TD>
+														<TD></TD>
+														<TD></TD>
+													</TR>
+												</TABLE>
+												</td>
+											</tr>";
+}
+$Contents .= "
+											<tr height=27>
+												<th class='search_box_title''>
+												<select name='date_type'>
+												<option value='".($db1->dbms_type == "oracle" ? 'o.date_' : 'o.date' )."' ".CompareReturnValue(($db1->dbms_type == "oracle" ? 'o.date_' : 'o.date' ),$date_type,' selected').">주문일자</option>
+												<option value='o.bank_input_date' ".CompareReturnValue('o.bank_input_date',$date_type,' selected').">입금일자</option>
+												</select>
+												<input type='checkbox' name='orderdate' id='visitdate' value='1' onclick='ChangeOrderDate(document.search_frm);' ".CompareReturnValue('1',$orderdate,' checked')."></th>
+												<td class='search_box_item' colspan=3>
+												".search_date('startDate','endDate',$startDate,$endDate)."
+												</td>
+											</tr>";
+									if($admininfo[admin_level] == 9){
+							$Contents .= "
+											<tr height=30>
+												<th class='search_box_title'>상품관리구분 </th>
+												<td class='search_box_item' colspan='3'>
+													<input type='checkbox' name='p_admin[]' id='p_admin_a' value='A' ".CompareReturnValue("A",$p_admin,' checked')." ><label for='p_admin_a'>본사상품</label>&nbsp;
+													<input type='checkbox' name='p_admin[]' id='p_admin_s' value='S' ".CompareReturnValue("S",$p_admin,' checked')." ><label for='p_admin_s'>셀러상품</label>
+												</td>
+											</tr>";
+									}
+
+								if($admininfo[mall_type] != "F" && $admininfo[admin_level] == 9){
+									$Contents .= "
+											<tr height=30>";
+											
+											$Contents .= "
+												<th class='search_box_title'>업체명 </th>
+												<td class='search_box_item'>".CompanyList($company_id,"","")."</td>
+												<th class='search_box_title'>담당MD </th>
+												<td class='search_box_item'>".MDSelect($md_code)."</td>
+												";
+										
+											$Contents .= "
+												<!--th class='search_box_title' ".(($admininfo[mall_type] == "F" || $admininfo[admin_level] == 8) ? "colspan=3":"").">상품구분 : </th>
+												<td class='search_box_item'>
+													<select name='product_type'>
+														<option value='' ".CompareReturnValue('',$product_type,' selected').">전체보기</option>
+														<option value='0' ".CompareReturnValue('0',$product_type,' selected').">국내</option>
+														<option value='2' ".CompareReturnValue('2',$product_type,' selected').">선매입</option>
+														<option value='1' ".CompareReturnValue('1',$product_type,' selected').">사이트 주문</option>
+													</select>
+												</td-->
+											</tr>";
+									}
+								$Contents .= "
+										<tr height=30>
+											<th class='search_box_title'>조건검색 </th>
+											<td class='search_box_item'>
+												<table cellpadding='3' cellspacing='0' border='0' width='100%'>
+												<col width='170px'>
+												<col width='*'>
+												<tr>
+													<td >
+													<select name='search_type' style='font-size:12px;'>
+														<option value='combi_name' ".CompareReturnValue('combi_name',$search_type,' selected').">주문자명+입금자명+수취인명</option>
+														<option value='bname' ".CompareReturnValue('bname',$search_type,' selected').">주문자명</option>
+														<option value='pname' ".CompareReturnValue('pname',$search_type,' selected').">상품명</option>
+														<option value='od.oid' ".CompareReturnValue('od.oid',$search_type,' selected').">주문번호</option>
+														<option value='rname' ".CompareReturnValue('rname',$search_type,' selected').">수취인명</option>
+														<option value='bmobile' ".CompareReturnValue('bmobile',$search_type,' selected').">주문자핸드폰</option>
+														<option value='rmobile' ".CompareReturnValue('rmobile',$search_type,' selected').">수취인핸드폰</option>
+														<option value='deliverycode' ".CompareReturnValue('deliverycode',$search_type,' selected').">송장번호</option>
+														<option value='option_text' ".CompareReturnValue('option_text',$search_type,' selected').">옵션명</option>
+													</select>
+													</td>
+													<td ><input type='text' class=textbox name='search_text' size='30' value='$search_text' style=''></td>
+													</tr>
+												</table>
+											</td>
+											<td class='input_box_title'> 목록갯수</td>
+											<td class='input_box_item'>
+												<select name=max style=\"font-size:12px;height: 20px; width: 50px;\" align=absmiddle><!-- onchange=\"document.frames['act'].location.href='".$HTTP_URL."?cid=$cid&depth=$depth&view=innerview&max='+this.value\"-->
+												<option value='5' ".CompareReturnValue(5,$max).">5</option>
+												<option value='10' ".CompareReturnValue(10,$max).">10</option>
+												<option value='15' ".CompareReturnValue(15,$max).">15</option>
+												<option value='20' ".CompareReturnValue(20,$max).">20</option>
+												<option value='50' ".CompareReturnValue(50,$max).">50</option>
+												<option value='100' ".CompareReturnValue(100,$max).">100</option>
+												</select> <span >한페이지에 보여질 갯수를 선택해주세요</span>
+											</td>
+										</tr>
+									</TABLE>
+								</td>
+								<th class='box_06'></th>
+							</tr>
+							<tr>
+								<th class='box_07'></th>
+								<td class='box_08'></td>
+								<th class='box_09'></th>
+							</tr>
+							</table>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 align=center style='padding:10px 0px;'>
+			<input type='image' src='../images/".$admininfo["language"]."/bt_search.gif' border=0>
+		</td>
+	</tr>
+</table>
+</form>
+
+<form name=listform method=post action='orders.goods_list.act.php' onsubmit='return CheckStatusUpdate(this)' target='act'><!--target='act'-->
+<input type='hidden' name='act' value='select_status_update'>
+<input type='hidden' name='pre_type' value='$pre_type'>
+<input type='hidden' id='oid' value=''>
+<input type='hidden' id='od_ix' value=''>
+<table width='100%' border='0' cellpadding='3' cellspacing='0' align='center' >
+ <tr>";
+
+
+	if($admininfo[admin_level] == 9){
+		if($company_id != ""){
+			$where .= " and o.oid = od.oid and  od.company_id = '".$company_id."'";
+		}else{
+			$where .= " and o.oid = od.oid ";
+		}
+
+		if($admininfo[mem_type] == "MD"){
+			$where .= " and od.company_id in (".getMySellerList($admininfo[charger_ix]).") ";
+		}
+	}else if($admininfo[admin_level] == 8){
+		$where .= " and o.oid = od.oid and od.company_id = '".$admininfo[company_id]."'";
+	}
+
+	if($view_type == 'offline_order'){		//영업관리 용도 2013-07-05 이학봉
+		$where .= " and od.order_from in ('offline') ";
+	}
+
+	$sql = "SELECT count(distinct od.od_ix) as total
+					FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+					$where "; //, ".TBL_SHOP_PRODUCT." p, ".TBL_SHOP_ORDER_DETAIL." od
+	//echo nl2br($sql);
+	$db1->query($sql);
+
+	$db1->fetch();
+	$order_goods_total = $db1->dt[total];
+
+	$sql = "SELECT od.oid
+					FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+					$where GROUP BY od.oid "; //, ".TBL_SHOP_PRODUCT." p, ".TBL_SHOP_ORDER_DETAIL." od
+	//echo $sql;
+	//exit;
+	$db1->query($sql);
+
+
+	$total = $db1->total;
+
+	if($db1->dbms_type == "oracle"){
+		$sql = "SELECT distinct o.oid , o.payment_price ,date_
+					FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+					$where
+					ORDER BY date_ DESC LIMIT $start, $max";
+	}else{
+		$sql = "SELECT o.oid, o.payment_price
+					FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+					$where
+					GROUP BY od.oid ORDER BY date DESC LIMIT $start, $max";
+	}
+
+	//echo nl2br($sql);
+	$db1->query($sql);
+
+//exit;
+
+ $Contents .= "<td colspan=3 align=left>
+					<b>전체 주문수(상품수) : ".$order_goods_total." 건</b>
+					<input type='checkbox' name='view_wdr_order' id='view_wdr_order' onclick=\"ToggleOrder('WDR')\" ".($_COOKIE[view_wdr_order] == 1 ? "checked":"")." >
+					<label for='view_wdr_order'> 출고대기포함</label>
+					</td>
+				<td colspan=5 align=right>";
+if($pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY || $pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING || $pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_READY || $pre_type == ORDER_STATUS_INCOM_COMPLETE){
+
+	$Contents .="<select id='order_select_type' ><option value='s'>선택한 주문만</option><option value='l'>전체 주문을</option></select> ".DeliveryMethod("","","id='order_select_delivery_method'","select")." ".deliveryCompanyList2("","id='order_select_delivery_company'",$ddb->dt[company_id])." <input type='button' value='일괄 변경' onclick=\"order_select_delivery()\" /> ";
+
+	$Contents .="<script type='text/javascript'>
+	<!--
+	function order_select_delivery (){
+		var m_val = $('#order_select_delivery_method').val();
+		var c_val = $('#order_select_delivery_company').val();
+		if( $('#order_select_type').val()=='s'){
+			$('input[name^=od_ix]:checked').each(function(){
+				$('[name^=delivery_method][name*='+$(this).val()+']').val(m_val);
+				$('[name^=quick][name*='+$(this).val()+']').val(c_val);
+			})
+		}else{
+			$('[name^=delivery_method]').val(m_val);
+			$('[name^=quick]').val(c_val);
+		}
+	}
+		
+	//-->
+	</script>";
+
+	/*
+	$Contents .=DeliveryMethod("","","onchange=\"$('[name^=delivery_method]').val(this.value);if(this.value=='TE'){ $('[name^=quick]').val(13);}else{ $('[name^=quick]').val('');}\"","select")." ".deliveryCompanyList2("","onchange=\"$('[name^=quick]').val(this.value);\"",$ddb->dt[company_id])." 일괄 변경";
+	*/
+}
+if($pre_type == ORDER_STATUS_DELIVERY_READY){
+	$Contents .= "<a href='excel_out.php?excel_type=delivery&pre_type=$pre_type' rel='facebox' ><img src='../images/".$admininfo["language"]."/btn_excel_set.gif'></a>";
+}
+
+if($admininfo[admin_level] == 9){
+	if($pre_type == ORDER_STATUS_DELIVERY_READY){
+		$Contents .= " <a href='orders_excel2003.php?excel_type=delivery&pre_type=$pre_type&invoice_no_bool=$invoice_no_bool&".$type_param."&".$delivery_type_param."&".$QUERY_STRING."'><img src='../images/".$admininfo["language"]."/btn_excel_save.gif' border=0></a>&nbsp;&nbsp;";
+	}
+}else if($admininfo[admin_level] == 8){
+	if($pre_type == ORDER_STATUS_DELIVERY_READY){
+		$Contents .= "<span style='color:red'><!--! 주의 : 입금예정 처리상태일 경우, 상품배송을 하지 마시기 바랍니다. 판매된 상품으로 처리 불가능-->".getTransDiscription(md5($_SERVER["PHP_SELF"]),'B')."</span> ";
+		$Contents .= "<a href='orders_excel2003.php?excel_type=delivery&pre_type=$pre_type&invoice_no_bool=$invoice_no_bool&".$type_param."&".$delivery_type_param."&".$QUERY_STRING."'><img src='../images/".$admininfo["language"]."/btn_excel_save.gif' border=0></a>&nbsp;&nbsp;";
+	}
+//$Contents .= "<a href='orders.excel.hanjin.php?".$QUERY_STRING."'><img src='../image/btn_delivery_excel_save.gif' border=0 align=absmiddle></a>";
+}
+
+//invoice_no_bool 조건을 다시줄 필요 있음
+if(($pre_type == ORDER_STATUS_DELIVERY_ING && $invoice_no_bool=="Y")||$pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_READY){//송장입력완료페이지 //ShowModalWindow 
+	$Contents .= " <input type='button' value='배송확정검수' onclick=\"PopSWindow('../order/delivery_barcode_invoice.pop.php',950,500,'delivery_barcode_invoice');\" />";
+}elseif($pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING){
+	$Contents .= "<input type='button' value='포장검수' onclick=\"PopSWindow('../order/picking_barcode_invoice.pop.php',950,500,'picking_barcode_invoice');\" />";
+}
+
+$Contents .= "
+  </td>
+  </tr>
+  </table>
+  <table width='100%' border='0' cellpadding='3' cellspacing='0' align='center' class='list_table_box'>
+	<tr height='30' >";
+	$Contents .= "<td class='s_td' width='30px' rowspan='2'><input type=checkbox  name='all_fix2' onclick='fixAll2(document.listform)'></td>";
+	$Contents .= "
+		".($admininfo[admin_level]==9 ? "<td width='7%' align='center'  class='s_td' rowspan='2' nowrap><font color='#000000' ><b>판매처</b></font></td>" : "" )."
+		<td width='12%' align='center' class='m_td'><font color='#000000' ><b>주문일자/주문번호</b></font></td>
+		<td width='*' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>제품명</b></font></td>
+		<td width='8%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>옵션</b></font></td>
+		<td width='6%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>판매가(할인가)</b></font></td>
+		<td width='4%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>수량</b></font></td>
+		<td width='6%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>배송비</b></font></td>";
+
+if($pre_type != ORDER_STATUS_WAREHOUSE_DELIVERY_READY && $pre_type != ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE && $pre_type != ORDER_STATUS_BUY_FINALIZED){
+		$Contents .= "<td width='6%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>재고<br/>/진행<br/>/부족</b></font></td>";
+}
+
+if($pre_type == ORDER_STATUS_DELIVERY_READY){
+	$Contents .= "
+		<td width='7%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' class=small><b>처리상태</b></font></td>
+		<td width='7%' align='center' class='e_td' rowspan='2' nowrap><font color='#000000' class=small><b>발송예정일</b></font></td>";
+}elseif($pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY||$pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING||$pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_READY||$pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE||$pre_type ==ORDER_STATUS_INCOM_COMPLETE||$pre_type == ORDER_STATUS_DELIVERY_ING){
+	$Contents .= "
+		<td width='7%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' class=small><b >처리상태</b></font></td>";
+	if($admininfo[admin_level]==9){
+		$Contents .= "
+		<td width='7%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' class=small><b >출고처리상태</b></font></td>";
+	}
+	$Contents .= "<td width='10%' align='center' class='m_td' nowrap><font color='#000000' ><b>배송타입/택배사</b></font></td>";
+}elseif($pre_type == ORDER_STATUS_DELIVERY_COMPLETE || $pre_type == ORDER_STATUS_BUY_FINALIZED){
+	$Contents .= "
+		<td width='5%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' class=small><b >처리상태</b></font></td>";
+	if($admininfo[admin_level]==9){
+		$Contents .= "
+		<td width='5%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' class=small><b >출고처리상태</b></font></td>";
+	}
+
+	$Contents .= "
+		<td width='10%' align='center' class='m_td' nowrap><font color='#000000' ><b>배송타입/택배사</b></font></td>
+		<td width='5%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' ><b>정산처리상태</b></font></td>";
+
+	if($pre_type == ORDER_STATUS_BUY_FINALIZED){
+		$Contents .= "
+		<td width='5%' align='center' class='m_td' rowspan='2' ><font color='#000000' ><b>리뷰작성</b></font></td>";
+	}
+}else{
+	$Contents .= "
+		<td width='5%' align='center' class='m_td' rowspan='2' nowrap><font color='#000000' class=small><b >처리상태</b></font></td>";
+	if($admininfo[admin_level]==9){
+		$Contents .= "
+		<td width='5%' align='center' class='e_td' rowspan='2' nowrap><font color='#000000' class=small><b >출고처리상태</b></font></td>";
+	}
+}
+
+$Contents .= "
+	</tr>
+
+  ";
+
+if($pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY||$pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING||$pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_READY||$pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE||$pre_type ==ORDER_STATUS_INCOM_COMPLETE||$pre_type == ORDER_STATUS_DELIVERY_ING || $pre_type == ORDER_STATUS_DELIVERY_COMPLETE||$pre_type == ORDER_STATUS_BUY_FINALIZED){
+	$Contents .= "
+	<tr height='30' >
+		<td align='center' class='m_td' ><font color='#000000' ><b>주문자명/수취인</b></font></td>
+		<td align='center' class='m_td' ><font color='#000000' ><b>송장번호/위치추적</b></font></td>
+	</tr>";
+}else{
+$Contents .= "
+	<tr height='30' >
+		<td align='center' class='m_td' ><font color='#000000' ><b>주문자명/수취인</b></font></td>
+	</tr>";
+}
+
+
+if($db1->total){
+	for ($i = 0; $i < $db1->total; $i++)
+	{
+		$db1->fetch($i);
+
+		if($admininfo[admin_level] == 9){
+			if($admininfo[mem_type] == "MD"){
+				$addWhere = " and od.company_id in (".getMySellerList($admininfo[charger_ix]).") ";
+			}
+			
+			if(is_array($type)){
+				if($type_str != ""){
+					$addWhere .= "and od.status in ($type_str) ";
+				}
+			}else{
+				if($type){
+					$addWhere .= "and od.status = '$type' ";
+				}
+			}
+			
+			
+			if($invoice_no_bool == "Y"){
+				$addWhere .= " and ifnull(od.invoice_no,'') !='' ";
+			}elseif($invoice_no_bool == "N"){
+				$addWhere .= " and ifnull(od.invoice_no,'') ='' ";
+			}
+			
+
+			if($pre_type != ORDER_STATUS_DELIVERY_READY){
+				if(is_array($delivery_status)){
+					if($delivery_status_str != ""){
+						$addWhere .= "and od.delivery_status in ($delivery_status_str) ";
+					}
+				}else{
+					if($delivery_status){
+						$addWhere .= "and od.delivery_status = '$delivery_status' ";
+					}
+				}
+			}else{
+				if($_COOKIE[view_wdr_order] == 1){
+					$addWhere .= "and (od.delivery_status not in ('WDA','WDC') or od.delivery_status is null) ";
+				}else{
+					$addWhere .= "and (od.delivery_status not in ('WDA','WDR','WDC') or od.delivery_status is null) ";
+				}
+				
+			}
+
+			if($db1->dbms_type == "oracle"){
+				$sql = "SELECT o.oid,o.is_erp_link,o.is_erp_link_return, od.od_ix,od.pname,od.mimg, od.option_text, od.regdate, od.psprice, od.pcnt, od.ptprice,od.commission, uid_ as user_id,company_id,od.delivery_price,od.accounts_status,od.pcode,od.use_coupon,od.use_coupon_code,o.buserid,o.bmobile,o.rtel,o.rmobile,o.rmail,
+						o.delivery_price as pay_delivery_price,com_name,od.pid, rname, bname, mem_group,o.use_reserve_price,od.admin_message,od.delivery_method,od.stock_use_yn,od.erp_link_date,
+						tid, od.status, method, total_price, date_,receipt_y, od.company_name, od.company_id,od.quick, od.invoice_no,od.order_from,od.delivery_status,od.set_group,od.sub_pname,od.product_type,od.due_date,
+						(select IFNULL(delivery_price,'') as delivery_price from shop_order_delivery where o.oid = oid and od.company_id = company_id) as delivery_totalprice,
+						(select IFNULL(company_total,'') as company_total from shop_order_delivery where o.oid = oid and od.company_id = company_id ) as company_total,
+						(select IFNULL(delivery_pay_type,'') as delivery_pay_type from shop_order_delivery where o.oid = oid and od.company_id = company_id) as delivery_pay_type,
+						(case when od.option1 != 0 then pod.option_stock else p.stock end) as stock,
+						(case when od.option1 != 0 then pod.option_sell_ing_cnt else p.sell_ing_cnt end) as sell_ing_cnt,
+						(select regdate from shop_order_status where oid=od.oid and status=od.status or pid=od.pid order by regdate desc,pid desc limit 0,1) as status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.delivery_status order by regdate desc,pid desc limit 0,1) as delivery_status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.accounts_status order by regdate desc,pid desc limit 0,1) as ac_status_regdate
+						DATE_FORMAT(DATE_ADD(case ac_delivery_type when 'DI' then od.di_date when 'DC' then od.dc_date else od.dc_date end,INTERVAL od.ac_expect_date DAY),'%Y-%m-%d') as ac_expect_date
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL." pod on (od.option1=pod.id) left join ".TBL_SHOP_PRODUCT." p on (p.id=od.pid) 
+						where o.oid = od.oid and o.oid = '".$db1->dt[oid]."' 
+						$addWhere ORDER BY od.company_id DESC, od.status DESC
+						 "; //ORDER BY company_id DESC\
+						 //and od.product_type NOT IN (".implode(',',$sns_product_type).")
+			}else{
+				$sql = "SELECT o.oid,o.is_erp_link,o.is_erp_link_return, od.od_ix,od.pname,od.mimg, od.option_text, od.regdate, od.psprice, od.pcnt, od.ptprice,od.commission, uid as user_id,company_id,od.delivery_price,od.accounts_status,od.pcode,od.use_coupon,od.use_coupon_code,o.buserid,o.bmobile,o.rtel,o.rmobile,o.rmail,
+						o.delivery_price as pay_delivery_price,com_name,od.pid, rname, bname, mem_group,o.use_reserve_price,od.admin_message,od.delivery_method,od.stock_use_yn,od.erp_link_date,
+						tid, od.status, method, total_price, UNIX_TIMESTAMP(date) AS date,receipt_y, od.company_name, od.company_id,od.quick, od.invoice_no,od.order_from,od.delivery_status,od.set_group,od.sub_pname,od.product_type,od.due_date,
+						(select IFNULL(delivery_price,'') as delivery_price from shop_order_delivery where o.oid = oid and od.company_id = company_id limit 1) as delivery_totalprice,
+						(select IFNULL(company_total,'') as company_total from shop_order_delivery where o.oid = oid and od.company_id = company_id ) as company_total,
+						(select IFNULL(delivery_pay_type,'') as delivery_pay_type from shop_order_delivery where o.oid = oid and od.company_id = company_id  limit 0,1) as delivery_pay_type,
+						(case when od.option1 != 0 then pod.option_stock else p.stock end) as stock,
+						(case when od.option1 != 0 then pod.option_sell_ing_cnt else p.sell_ing_cnt end) as sell_ing_cnt,
+						(select regdate from shop_order_status where oid=od.oid and status=od.status or pid=od.pid order by regdate desc,pid desc limit 0,1) as status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.delivery_status order by regdate desc,pid desc limit 0,1) as delivery_status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.accounts_status order by regdate desc,pid desc limit 0,1) as ac_status_regdate,
+						DATE_FORMAT(DATE_ADD(case ac_delivery_type when 'DI' then od.di_date when 'DC' then od.dc_date else od.dc_date end,INTERVAL od.ac_expect_date DAY),'%Y-%m-%d') as ac_expect_date
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL." pod on (od.option1=pod.id) left join ".TBL_SHOP_PRODUCT." p on (p.id=od.pid) 
+						where o.oid = od.oid and o.oid = '".$db1->dt[oid]."' 
+						$addWhere ORDER BY company_id DESC, od.status DESC
+						 "; //ORDER BY company_id DESC
+						 //and od.product_type NOT IN (".implode(',',$sns_product_type).")
+			}
+
+		}else if($admininfo[admin_level] == 8){
+
+			if(is_array($type)){
+				if($type_str != ""){
+					$addWhere = "and od.status in ($type_str) ";
+				}
+			}else{
+				if($type){
+					$addWhere = "and od.status = '$type' ";
+				}
+			}
+			
+			if($invoice_no_bool == "Y"){
+				$addWhere .= " and ifnull(od.invoice_no,'') !='' ";
+			}elseif($invoice_no_bool == "N"){
+				$addWhere .= " and ifnull(od.invoice_no,'') ='' ";
+			}
+			
+
+			if($pre_type != ORDER_STATUS_DELIVERY_READY){
+				if(is_array($delivery_status)){
+					if($delivery_status_str != ""){
+						$addWhere .= "and od.delivery_status in ($delivery_status_str) ";
+					}
+				}else{
+					if($delivery_status){
+						$addWhere .= "and od.delivery_status = '$delivery_status' ";
+					}
+				}
+			}else{
+				if($_COOKIE[view_wdr_order] == 1){
+					$addWhere .= "and (od.delivery_status not in ('WDA','WDC') or od.delivery_status is null) ";
+				}else{
+					$addWhere .= "and (od.delivery_status not in ('WDA','WDR','WDC') or od.delivery_status is null) ";
+				}
+				
+				
+			}
+
+			if($db->dbms_type == "oracle"){
+				$sql = "SELECT o.oid,o.is_erp_link,o.is_erp_link_return, od.od_ix,od.pname,od.mimg, od.option_text, od.regdate, od.psprice, od.pcnt, od.ptprice,od.commission, uid_ as user_id,company_id,od.delivery_price,od.accounts_status,od.pcode,od.use_coupon,od.use_coupon_code,o.buserid,o.bmobile,o.rtel,o.rmobile,o.rmail,
+						o.delivery_price as pay_delivery_price,com_name,od.pid, rname, bname, mem_group,o.use_reserve_price,od.admin_message,od.delivery_method,od.stock_use_yn,od.erp_link_date,
+						tid, od.status, method, total_price, date_ ,receipt_y, od.company_name, od.company_id,od.quick, od.invoice_no,od.order_from,od.delivery_status,od.set_group,od.sub_pname,od.product_type,od.due_date
+						(select IFNULL(delivery_price,'') as delivery_price from shop_order_delivery where o.oid = oid and od.company_id = company_id) as delivery_totalprice,
+						(select IFNULL(company_total,'') as company_total from shop_order_delivery where o.oid = oid and od.company_id = company_id ) as company_total,
+						(select IFNULL(delivery_pay_type,'') as delivery_pay_type from shop_order_delivery where o.oid = oid and od.company_id = company_id) as delivery_pay_type,
+						(case when od.option1 != 0 then pod.option_stock else p.stock end) as stock,
+						(case when od.option1 != 0 then pod.option_sell_ing_cnt else p.sell_ing_cnt end) as sell_ing_cnt,
+						(select regdate from shop_order_status where oid=od.oid and status=od.status or pid=od.pid order by regdate desc,pid desc limit 0,1) as status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.delivery_status order by regdate desc,pid desc limit 0,1) as delivery_status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.accounts_status order by regdate desc,pid desc limit 0,1) as ac_status_regdate,
+						DATE_FORMAT(DATE_ADD(case ac_delivery_type when 'DI' then od.di_date when 'DC' then od.dc_date else od.dc_date end,INTERVAL od.ac_expect_date DAY),'%Y-%m-%d') as ac_expect_date
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL." pod on (od.option1=pod.id) left join ".TBL_SHOP_PRODUCT." p on (p.id=od.pid) 
+						where o.oid = od.oid and o.oid = '".$db1->dt[oid]."' and od.company_id ='".$admininfo[company_id]."' 
+						$addWhere ORDER BY od.company_id DESC, od.status DESC
+						 ";
+						 //and od.product_type NOT IN (".implode(',',$sns_product_type).")
+			}else{
+				$sql = "SELECT o.oid,o.is_erp_link,o.is_erp_link_return, od.od_ix,od.pname,od.mimg, od.option_text, od.regdate, od.psprice, od.pcnt, od.ptprice,od.commission, uid as user_id,company_id,od.delivery_price,od.accounts_status,od.pcode,od.use_coupon,od.use_coupon_code,o.buserid,o.bmobile,o.rtel,o.rmobile,o.rmail,
+						o.delivery_price as pay_delivery_price,com_name,od.pid, rname, bname, mem_group,o.use_reserve_price,od.admin_message,od.delivery_method,od.stock_use_yn,od.erp_link_date,
+						tid, od.status, method, total_price, UNIX_TIMESTAMP(date) AS date,receipt_y, od.company_name, od.company_id,od.quick, od.invoice_no,od.order_from,od.delivery_status,od.set_group,od.sub_pname,od.product_type,od.due_date
+						(select IFNULL(delivery_price,'') as delivery_price from shop_order_delivery where o.oid = oid and od.company_id = company_id limit 1) as delivery_totalprice,
+						(select IFNULL(company_total,'') as company_total from shop_order_delivery where o.oid = oid and od.company_id = company_id ) as company_total,
+						(select IFNULL(delivery_pay_type,'') as delivery_pay_type from shop_order_delivery where o.oid = oid and od.company_id = company_id  limit 1) as delivery_pay_type,
+						(case when od.option1 != 0 then pod.option_stock else p.stock end) as stock,
+						(case when od.option1 != 0 then pod.option_sell_ing_cnt else p.sell_ing_cnt end) as sell_ing_cnt,
+						(select regdate from shop_order_status where oid=od.oid and status=od.status or pid=od.pid order by regdate desc,pid desc limit 0,1) as status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.delivery_status order by regdate desc,pid desc limit 0,1) as delivery_status_regdate,
+						(select regdate from shop_order_status where oid=od.oid and status=od.accounts_status order by regdate desc,pid desc limit 0,1) as ac_status_regdate,
+						DATE_FORMAT(DATE_ADD(case ac_delivery_type when 'DI' then od.di_date when 'DC' then od.dc_date else od.dc_date end,INTERVAL od.ac_expect_date DAY),'%Y-%m-%d') as ac_expect_date
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL." pod on (od.option1=pod.id) left join ".TBL_SHOP_PRODUCT." p on (p.id=od.pid) 
+						where o.oid = od.oid and o.oid = '".$db1->dt[oid]."' and od.company_id ='".$admininfo[company_id]."' 
+						$addWhere ORDER BY company_id DESC, od.status DESC
+						 ";
+						 //and od.product_type NOT IN (".implode(',',$sns_product_type).")
+			}
+		}
+
+		$ddb->query($sql);
+
+
+		$od_count = $ddb->total;
+
+		$status = getOrderStatus($db1->dt[status]);
+
+	$bcompany_id = '';
+	for($j=0;$j < $ddb->total;$j++){
+		$ddb->fetch($j);
+
+		if ($ddb->dt[method] == ORDER_METHOD_CARD)
+		{
+			if($ddb->dt[bank] == ""){
+				$method = "<label class='helpcloud' help_width='70' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_CARD)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_CARD.".gif' align='absmiddle'></label>";
+			}else{
+				$method = $db->dt[bank];
+			}
+			$receipt_y = "카드결제";
+		}elseif($ddb->dt[method] == ORDER_METHOD_BANK){
+			$method = "<label class='helpcloud' help_width='80' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_BANK)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_BANK.".gif' align='absmiddle'></label>";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_PHONE){
+			$method = "<label class='helpcloud' help_width='70' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_PHONE)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_PHONE.".gif' align='absmiddle'></label>";
+		}elseif($ddb->dt[method] == ORDER_METHOD_AFTER){
+			$method = "<label class='helpcloud' help_width='70' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_AFTER)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_AFTER.".gif' align='absmiddle'></label>";
+		}elseif($ddb->dt[method] == ORDER_METHOD_VBANK){
+			$method = "<label class='helpcloud' help_width='70' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_VBANK)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_VBANK.".gif' align='absmiddle'></label>";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_ICHE){
+			$method = "<label class='helpcloud' help_width='110' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_ICHE)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_ICHE.".gif' align='absmiddle'></label>";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_MOBILE){
+			$method = "<label class='helpcloud' help_width='70' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_MOBILE)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_MOBILE.".gif' align='absmiddle'></label>";
+		}elseif($ddb->dt[method] == ORDER_METHOD_ASCROW){
+			$method = "가상계좌[에스크로]";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_NOPAY){
+			$method = "무료결제";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_SAVEPRICE){
+			$method = "<label class='helpcloud' help_width='50' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_SAVEPRICE)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_SAVEPRICE.".gif' align='absmiddle'></label>";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_CASH){
+			$method = "<label class='helpcloud' help_width='50' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_CASH)."'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_CASH.".gif' align='absmiddle'></label>";
+			if($ddb->dt[receipt_y] == "Y"){
+				$receipt_y = "발행";
+			}else if($ddb->dt[receipt_y] == "N"){
+				$receipt_y = "미발행";
+			}
+		}elseif($ddb->dt[method] == ORDER_METHOD_BOX_ENCLOSE){
+			$method = "박스동봉";
+		}else{
+			$method = "-";
+			$receipt_y = "제휴사";
+		}
+
+		if($ddb->dt[delivery_pay_type] == "1"){
+			$delivery_pay_type = "선불";
+		}elseif($ddb->dt[delivery_pay_type] == "2"){
+			$delivery_pay_type = "착불";
+		}else{
+			$delivery_pay_type = "무료";
+		}
+
+		if($ddb->dt[use_reserve_price]>0) {
+			$method.=" - <label for='method_".ORDER_METHOD_RESERVE."' class='helpcloud' help_width='155' help_height='15' help_html='".getMethodStatus(ORDER_METHOD_RESERVE)." 사용금액 : ".number_format($ddb->dt[use_reserve_price])."P'><img src='../images/".$admininfo[language]."/s_order_method_".ORDER_METHOD_RESERVE.".gif' align='absmiddle'></label>";
+		}
+
+		$one_status = getOrderStatus($ddb->dt[status],$ddb->dt[method])."<input type='hidden' id='od_status_".str_replace("-","",$ddb->dt[oid])."' value='".$ddb->dt[status]."'>";
+
+		if($ddb->dt[gift] != ""){
+			$od_count_plus = 0;
+		}else{
+			$od_count_plus = 0;
+		}
+
+		$is_erp_link = $ddb->dt[is_erp_link];
+		$is_erp_link_return = $ddb->dt[is_erp_link_return];
+		
+		if($ddb->dt[is_erp_link] == "Y"){
+			$is_erp_link = '반영';
+		}else{
+			$is_erp_link = '미반영';
+		}
+
+		if($ddb->dt[is_erp_link_return] == "Y"){
+			$is_erp_link_return = '반영';
+		}else{
+			$is_erp_link_return = '미반영';
+		}
+
+		if($ddb->dt[erp_link_date] != "0000-00-00 00:00:00"){
+			$erp_link_date = $ddb->dt[erp_link_date];
+		}
+		
+	
+
+		$Contents .= "<tr height=28 >";
+		
+			$Contents .= "<td  class='list_box_td' nowrap align='center'><input type=checkbox name='od_ix[]' oid='".$ddb->dt[oid]."' set_group='".$ddb->dt[set_group]."' id='od_ix' value='".$ddb->dt[od_ix]."' ></td>";
+
+		if($ddb->dt[oid] != $b_oid){
+			if($admininfo[admin_level]==9){
+				$Contents .= "<td ".($ddb->dt[oid] != $b_oid ? "rowspan='".($od_count+$od_count_plus)."'":"")." class='list_box_td' align=center>".getOrderFromName($ddb->dt[order_from])."</td>";
+			}
+
+			$u_etc_info=get_order_user_info($ddb->dt[user_id]);
+
+			$Contents .= "<td ".($ddb->dt[oid] != $b_oid ? "rowspan='".($od_count+$od_count_plus)."'":"")." class='list_box_td' style='line-height:140%' align=center>
+						  ".$ddb->dt[regdate]."<br>
+						  <a href=\"../order/orders.read.php?oid=".$ddb->dt[oid]."&pid=".$ddb->dt[pid]."\" style='color:#007DB7;font-weight:bold;' class='small'>".$ddb->dt[oid]."</a>
+						".($ddb->dt[is_erp_link] == 'Y' ? "<br/>ERP매출 : ".$is_erp_link : "")."
+						".($ddb->dt[is_erp_link_return] == 'Y' ? "<br/>ERP반품 : ".$is_erp_link_return : "")."
+						".($ddb->dt[is_erp_link] == 'Y' ? "<br/>".$erp_link_date."<br>" : "")."
+
+						<br/>
+						<span style='cursor:pointer' class='helpcloud' help_width='230' help_height='100' help_html='주문자 <br/>ID/성명 : ".$ddb->dt[buserid]."/".$ddb->dt[bname]."<br/>핸드폰 : ".$ddb->dt[bmobile]." <br/>회원그룹 : ".$ddb->dt[mem_group]." <br/>최근로그인 : ".$u_etc_info["user_last"]." <br/>최근주문(30일) : ".$u_etc_info["user_order_cnt"]."건' />".Black_list_check($ddb->dt[user_id],$ddb->dt[bname])."</span> ".($ddb->dt[user_id] ? "<img src='../v3/images/".$_SESSION["admininfo"]["language"]."/btn_search.gif' align=absmiddle onclick=\"PopSWindow('../member/member_view.php?code=".$ddb->dt[user_id]."',950,500,'member_info')\"  style='cursor:pointer;'>" : "")."
+						/
+						<span style='cursor:pointer' class='helpcloud' help_width='230' help_height='80' help_html='수신자 <br/>성명 : ".$ddb->dt[rname]."<br/>연락처 : ".$ddb->dt[rtel]."<br/>핸드폰 : ".$ddb->dt[rmobile]."<br/>이메일 : ".$ddb->dt[rmail]."' />".$ddb->dt[rname]."</span>
+
+						  </td>";
+			/*
+			$Contents .= "<td ".($ddb->dt[oid] != $b_oid ? "rowspan='".($od_count+$od_count_plus)."'":"")." style='line-height:140%' align=center class='list_box_td'>
+						  ".($ddb->dt[uid] != "" ? "<a href=\"javascript:PopSWindow('../member/member_view.php?code=".$ddb->dt[uid]."',950,500,'member_info')\" >".Black_list_check($ddb->dt[uid],$ddb->dt[bname])."</a>":$ddb->dt[bname])."<span class='small'>(".$ddb->dt[mem_group].")</span> <br> ".$ddb->dt[rname]."<br>
+						  </td>";
+			*/
+		}
+
+			//$p_etc_info= get_order_product_info($ddb->dt[company_id],$ddb->dt[use_coupon_code]);
+
+			$Contents .= "<td class='list_box_td' style='padding-left:10px'>
+							<TABLE>
+								<TR>
+									<TD align='center'>
+									<a href='../".$folder_name."/goods_input.php?id=".$ddb->dt[pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $ddb->dt[pid], "m", $ddb->dt)."'  width=50 style='margin:5px;'></a><br/>";
+											
+											if($ddb->dt[product_type]=='21'||$ddb->dt[product_type]=='31'){
+											$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($ddb->dt[product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$ddb->dt[product_type].".gif' align='absmiddle' ></label> ";
+											}
+											if($ddb->dt[stock_use_yn]=='Y'){
+											$Contents .= "<label class='helpcloud' help_width='140' help_height='15' help_html='(WMS)재고관리 상품'><img src='../images/".$admininfo[language]."/s_inventory_use.gif' align='absmiddle' ></label>";
+											}
+
+						$Contents .= "
+									</TD>
+									<td width='5'></td>
+									<TD style='line-height:140%;text-align:left;'>";
+			if($admininfo[admin_level] == 9 && $admininfo[mall_use_multishop]){
+				$Contents .= "<b style='cursor:pointer' class='helpcloud' help_width='230' help_height='100' help_html='셀러명 : ".$ddb->dt[company_name]." <br/>사업자 번호 : ".$p_etc_info["com_number"]." <br/>담당자명 : ".$p_etc_info["customer_name"]." <br/>담당자전화번호 : ".$p_etc_info["customer_phone"]." <br/>담당자핸드폰번호 : ".$p_etc_info["customer_mobile"]." <br/>담당자이메일 : ".$p_etc_info["customer_mail"]."'>".($ddb->dt[company_name] ? $ddb->dt[company_name]:"-")."</b> <img src='../v3/images/".$_SESSION["admininfo"]["language"]."/btn_search.gif' align=absmiddle onclick=\"PopSWindow('../seller/seller_company.php?company_id=".$ddb->dt[company_id]."&mmode=pop',960,600,'brand');\"  style='cursor:pointer;'><br/>";
+			}
+						if($ddb->dt[product_type]=='99'){
+							$Contents .= "<b class='red' >".cut_str($ddb->dt[pname],150)."</b><br/>".cut_str($ddb->dt[sub_pname],80);
+						}else if($ddb->dt[product_type]=='21'||$ddb->dt[product_type]=='31'){
+							$Contents .= "<b class='blue' >".$ddb->dt[pname]."</b><br/>".cut_str($ddb->dt[sub_pname],80);
+						}else{
+							$Contents .= cut_str($ddb->dt[pname],150);
+						}
+
+						if($ddb->dt[pcode]){
+							$sql = "select gid from inventory_goods_unit where unit = '1' and gu_ix = '".$ddb->dt[pcode]."'";
+							$db->query($sql);
+							$db->fetch();
+							$gid = $db->dt[gid];
+							$Contents .= " &nbsp; / &nbsp;&nbsp;<a href=\"javascript:PoPWindow3('../inventory/inventory_goods_input.php?mmode=pop&gid=".$gid."',1100,900,'inventory_goods_info')\"><b><span style='color:#007DB7;font-weight:bold;'>".$gid."</span></b></a>";
+						}
+
+						$Contents .="
+									</TD>
+								</TR>
+							</TABLE>
+						</td>
+						<td class='' align='left'>".($ddb->dt[use_coupon]>0 ? "<label class='helpcloud' help_width='200' help_height='50' help_html='쿠폰번호 : ".$p_etc_info["cupon_no"]."<br/>쿠폰발행명 : ".$p_etc_info["publish_name"]."<br/>쿠폰사용금액 : ".number_format($ddb->dt[use_coupon])."원'><img src='../images/".$admininfo[language]."/s_use_coupon.gif'></label> " :"").strip_tags($ddb->dt[option_text])."</td>
+						<td class='list_box_td' align=center>".$currency_display[$admin_config["currency_unit"]]["front"]."".number_format($ddb->dt[psprice])." ".$currency_display[$admin_config["currency_unit"]]["back"]."</td>
+						<td class='list_box_td point' align=center>".number_format($ddb->dt[pcnt])."</td>";
+
+			if($bcompany_id != $ddb->dt[company_id]){
+				$sql = "SELECT COUNT(DISTINCT(od.od_ix)) AS com_cnt
+					FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+					where o.oid = od.oid and o.oid = '".$ddb->dt[oid]."'  AND od.company_id='".$ddb->dt[company_id]."' 
+					$addWhere $order_view_type_str ";
+					//AND od.product_type NOT IN (".implode(',',$sns_product_type).")
+
+				$od_db->query($sql);//$od_db는 상단에서 선언
+				$od_db->fetch();
+				$com_cnt=$od_db->dt["com_cnt"];
+
+				$Contents .="<td class='' align=center style='line-height:140%;' ".($bcompany_id != $ddb->dt[company_id] ? "rowspan='".$com_cnt."'":"")."
+				>".number_format($ddb->dt[delivery_totalprice])."<br>".$delivery_pay_type." </td>";
+			}
+
+			if($pre_type != ORDER_STATUS_WAREHOUSE_DELIVERY_READY && $pre_type != ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE && $pre_type != ORDER_STATUS_BUY_FINALIZED){
+				$Contents .="<td class='list_box_td ' align=center>".number_format($ddb->dt[stock])."<br/>/-".number_format($ddb->dt[sell_ing_cnt])."<br/>/".($ddb->dt[stock]-$ddb->dt[sell_ing_cnt] < 0 ? "<b class='red'>".number_format($ddb->dt[stock]-$ddb->dt[sell_ing_cnt])."</b>" : "-0")."</td>";
+			}
+
+			$Contents .="<td class='list_box_td point' align='center' nowrap>".$one_status.($ddb->dt[admin_message]!="" ? "<br><b>".$ddb->dt[admin_message]."</b>":"")."<br>".str_replace(" ","<br/>",$ddb->dt[status_regdate])."</td>";
+
+			if($admininfo[admin_level]==9 && $pre_type != ORDER_STATUS_DELIVERY_READY){
+				$Contents .="<td class='list_box_td ' align='center' nowrap>".getOrderStatus($ddb->dt[delivery_status])."<br>".str_replace(" ","<br/>",$ddb->dt[delivery_status_regdate])."</td>";
+			}
+
+if($pre_type == ORDER_STATUS_DELIVERY_READY){
+	$Contents .= "
+		<td align='center' class='list_box_td'>".($ddb->dt[due_date] ? substr($ddb->dt[due_date],0,4)."-".substr($ddb->dt[due_date],4,2)."-".substr($ddb->dt[due_date],6,2):"")."</td>";
+
+}elseif($pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE||$pre_type == ORDER_STATUS_DELIVERY_ING){
+	$Contents .= "
+		<td align='center' class='list_box_td'>
+			".DeliveryMethod("",$ddb->dt[delivery_method],"","text")." / ".deliveryCompanyList($ddb->dt[quick],"text")."
+			<br/>".$ddb->dt[invoice_no]." <img src='../v3/images/".$_SESSION["admininfo"]["language"]."/btn_search.gif' align=absmiddle onclick=\"searchGoodsFlow('".$ddb->dt[quick]."', '".str_replace("-","",$ddb->dt[invoice_no])."')\"  style='cursor:pointer;'>
+		</td>";
+		/*
+		$Contents .= "
+		<td align='center' class='list_box_td'>";
+		if($pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE||$pre_type == ORDER_STATUS_DELIVERY_ING){
+			 if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
+				$Contents.="
+				<img src='../images/".$admininfo["language"]."/btn_delivery_complete.gif' align=absmiddle onclick=\"ChangeStatus('status_update', '".$ddb->dt[oid]."', '".$ddb->dt[od_ix]."','".$pre_type."','".ORDER_STATUS_DELIVERY_COMPLETE."')\" style='cursor:pointer;'>";
+			}else{
+				$Contents.="
+				<a href=\"".$auth_update_msg."\"><img src='../images/".$admininfo["language"]."/btn_delivery_complete.gif' align=absmiddle style='cursor:pointer;'></a>";
+			}
+		}elseif($pre_type == ORDER_STATUS_DELIVERY_COMPLETE){
+			if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
+				$Contents .=  "<input type='button' value='구매확정' onclick=\"ChangeStatus('status_update', '".$ddb->dt[oid]."', '".$ddb->dt[od_ix]."','".$pre_type."','".ORDER_STATUS_BUY_FINALIZED."')\" /> <!--a href=\"orders.edit.php?oid=".$ddb->dt[oid]."&pid=".$ddb->dt[pid]."\"><img src='../images/".$admininfo["language"]."/btc_modify.gif' align=absmiddle  style='cursor:pointer;'></a-->";
+			}else{
+				$Contents .=  "<input type='button' value='구매확정' onclick=\"".$auth_update_msg."\" /> <!--a href=\"".$auth_update_msg."\"><img src='../images/".$admininfo["language"]."/btc_modify.gif' align=absmiddle  style='cursor:pointer;'></a-->";
+			}
+		}
+	$Contents.="</td>";
+	*/
+
+}elseif($pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY || $pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING || $pre_type == ORDER_STATUS_INCOM_COMPLETE || $pre_type == ORDER_STATUS_WAREHOUSE_DELIVERY_READY){
+			
+			$Contents .= "<td  class='list_box_td' align='center'  style='padding:3px;' >
+			".DeliveryMethod("delivery_method[".$ddb->dt[od_ix]."]",$ddb->dt[delivery_method],"onchange=\"SetDeliveryInfoCopy('delivery_method',$(this),'".$ddb->dt[product_type]."','".$ddb->dt[oid]."','".$ddb->dt[set_group]."');\" style='width:106px;' ","select")."
+			<br>
+			".deliveryCompanyList2("quick[".$ddb->dt[od_ix]."]"," style='margin-top:3px;width:106px;' onchange=\"SetDeliveryInfoCopy('quick',$(this),'".$ddb->dt[product_type]."','".$ddb->dt[oid]."','".$ddb->dt[set_group]."')\"",$ddb->dt[company_id],$ddb->dt[quick])."
+			<br>
+			<input type='text' name='deliverycode[".$ddb->dt[od_ix]."]' class=textbox   size=15 value='".$ddb->dt[invoice_no]."' validation=true title='송장번호' style='margin-top:3px;' onkeyup=\"SetDeliveryInfoCopy('deliverycode',$(this),'".$ddb->dt[product_type]."','".$ddb->dt[oid]."','".$ddb->dt[set_group]."')\" >
+			<br>
+			".(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U") ? "<img src='../images/".$admininfo["language"]."/btn_invoice.gif' align=absmiddle  style='margin-top:3px;cursor:pointer;' onclick=\"SelectDeliveryIng('".$ddb->dt[product_type]."','".$ddb->dt[oid]."','".$ddb->dt[set_group]."','".$ddb->dt[od_ix]."');\">" : "<a href=\"".$auth_update_msg."\"><img src='../images/".$admininfo["language"]."/btn_invoice.gif' align=absmiddle  style='margin-top:3px;cursor:pointer;'></a>" )."
+			</td>";
+
+}elseif($pre_type == ORDER_STATUS_DELIVERY_COMPLETE || $pre_type == ORDER_STATUS_BUY_FINALIZED){
+
+	$Contents .= "
+		<td align='center' class='list_box_td'>
+			".DeliveryMethod("",$ddb->dt[delivery_method],"","text")." / ".deliveryCompanyList($ddb->dt[quick],"text")."
+			<br/>".$ddb->dt[invoice_no]." <img src='../v3/images/".$_SESSION["admininfo"]["language"]."/btn_search.gif' align=absmiddle onclick=\"searchGoodsFlow('".$ddb->dt[quick]."', '".str_replace("-","",$ddb->dt[invoice_no])."')\"\"  style='cursor:pointer;'>
+		</td>
+		<td align='center' class='list_box_td'>".($ddb->dt[accounts_status] ? getOrderStatus($ddb->dt[accounts_status]) . "<br/>" . $ddb->dt[ac_status_regdate] : "-")."</td>";
+	if($pre_type == ORDER_STATUS_BUY_FINALIZED){
+		$Contents .= "
+		<td align='center' class='list_box_td'><span style='cursor:pointer;' class='helpcloud' help_width='130' help_height='100' help_html='총평점 : **** 95%<br/>상품평 : **** 90%<br/>상품평 : **** 91%<br/>설명평 : **** 92%<br/>배송평 : *** 80%<br/>포장평 : *** 75%'>준비중</span></td>";
+	}
+}
+		$Contents .= "</tr>";
+		$b_oid = $ddb->dt[oid];
+		$b_status = $ddb->dt[status];
+		$bcompany_id = $ddb->dt[company_id];
+	}
+	}
+}else{
+
+	if($pre_type==ORDER_STATUS_DELIVERY_READY)
+		$result_colpan="11";
+	elseif($pre_type==ORDER_STATUS_DELIVERY_COMPLETE || $pre_type == ORDER_STATUS_BUY_FINALIZED)
+		$result_colpan="13";
+	else	
+		$result_colpan="12";
+
+	$Contents .= "<tr height=50><td colspan='".$result_colpan."' align=center>조회된 결과가 없습니다.</td></tr>";
+}
+
+$Contents .= "
+	</table>";
+
+if($pre_type==ORDER_STATUS_DELIVERY_READY||$pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY){
+
+	$help_title = "
+	<nobr>
+		<select name='update_type'>
+			<!--option value='1'>검색한주문 전체에게</option-->
+			<option value='2'>선택한주문 전체에게</option>
+		</select>
+		<input type='radio' name='update_kind' id='update_kind_level0' value='level0' onclick=\"ChangeUpdateForm('help_text_level0');\" checked><label for='update_kind_level0'>출고처리상태변경</label>
+		<input type='radio' name='update_kind' id='update_kind_level1' value='level1' onclick=\"ChangeUpdateForm('help_text_level1');\" ><label for='update_kind_level1'>배송처리상태변경</label>
+		<input type='radio' name='update_kind' id='update_kind_level2' value='level2' onclick=\"ChangeUpdateForm('help_text_level2');\" ><label for='update_kind_level2'>구매/사입요청</label>
+		<input type='radio' name='update_kind' id='update_kind_level3' value='level3' onclick=\"ChangeUpdateForm('help_text_level3');\" ><label for='update_kind_level3'>주문출력하기</label>
+	</nobr>";
+
+	$help_text = "
+	<script type='text/javascript'>
+	<!--
+		function HelpTextChangeStatus(level,status){
+			$('#ht_'+level+'_reason').hide();
+			$('.ht_'+level+'_reason_'+status).show();
+			if(status=='DD'){
+				$('.ht_'+level+'_reason_'+status).find('.delay').attr('disabled',false);
+				$('.ht_'+level+'_reason_'+status).find('.delay').show();
+				$('.ht_'+level+'_reason_'+status).find('.common').hide();
+				$('.ht_'+level+'_reason_'+status).find('.common').attr('disabled',true);
+			}else{
+				$('.ht_'+level+'_reason_'+status).find('.common').attr('disabled',false);
+				$('.ht_'+level+'_reason_'+status).find('.common').show();
+				$('.ht_'+level+'_reason_'+status).find('.delay').hide();
+				$('.ht_'+level+'_reason_'+status).find('.delay').attr('disabled',true);
+			}
+			$('#ht_'+level+'_msg').hide();
+			$('.ht_'+level+'_msg_'+status).show();
+			$('#ht_'+level+'_delivery').hide();
+			$('.ht_'+level+'_delivery_'+status).show();
+		}
+
+		$(document).ready(function(){";
+		if($pre_type==ORDER_STATUS_DELIVERY_READY){
+			$help_text .= "HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_DELAY."');
+			$('#due_datepicker').datepicker({
+				//monthNames: ['년 1월','년 2월','년 3월','년 4월','년 5월','년 6월','년 7월','년 8월','년 9월','년 10월','년 11월','년 12월'],
+				dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+				//showMonthAfterYear:true,
+				dateFormat: 'yy-mm-dd',
+				buttonImageOnly: true,
+				buttonText: '달력'
+			});
+			";
+		}elseif($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY){
+			$help_text .= "HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."');";
+		}
+		$help_text .= "
+		});
+
+	//-->
+	</script>
+	<div style='padding:4px 0;'><img src='../images/dot_org.gif'> <b>결제/배송처리 상태 변경</b> <span class=small style='color:gray'>변경하고자 하는 결제/배송처리상태의 주문서를 선택하시고 저장 버튼을 클릭해주세요.</span></div>
+	<div id='help_text_level0'>
+	<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level0_status'>
+			<td class='input_box_title'> <b>출고처리상태</b></td>
+			<td class='input_box_item'> ";
+		if($pre_type==ORDER_STATUS_DELIVERY_READY){
+			$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."')\" checked><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."'  >".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY)."</label>";
+		}elseif($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY){
+			$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."')\" checked><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."'>".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING)."</label> ";
+			//$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_WDACC' value='WDACC' ><label for='level0_update_delivery_status_WDACC'  >출고요청 취소</label> ";
+		}
+		$help_text .= "
+			</td>
+		</tr>
+	</table>
+	</div>
+	<div id='help_text_level1' style='display:none'>
+	<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level1_status'>
+			<td class='input_box_title'> <b>처리상태</b></td>
+			<td class='input_box_item'>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_DELIVERY_DELAY."' value='".ORDER_STATUS_DELIVERY_DELAY."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_DELIVERY_DELAY."')\" checked><label for='level1_update_status_".ORDER_STATUS_DELIVERY_DELAY."'>".getOrderStatus(ORDER_STATUS_DELIVERY_DELAY)."</label> ";
+				if($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY){
+					$help_text .= "<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_DELIVERY_READY."' value='".ORDER_STATUS_DELIVERY_READY."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_DELIVERY_READY."')\" ><label for='level1_update_status_".ORDER_STATUS_DELIVERY_READY."'>".getOrderStatus(ORDER_STATUS_DELIVERY_READY)."</label> ";
+				}
+				$help_text .= "
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_CANCEL_COMPLETE."' value='".ORDER_STATUS_CANCEL_COMPLETE."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_CANCEL_COMPLETE."')\"><label for='level1_update_status_".ORDER_STATUS_CANCEL_COMPLETE."'>".getOrderStatus(ORDER_STATUS_CANCEL_COMPLETE)."</label>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_CANCEL_APPLY."' value='".ORDER_STATUS_CANCEL_APPLY."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_CANCEL_APPLY."')\"><label for='level1_update_status_".ORDER_STATUS_CANCEL_APPLY."'>".getOrderStatus(ORDER_STATUS_CANCEL_APPLY)."</label>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_INCOM_COMPLETE."' value='".ORDER_STATUS_INCOM_COMPLETE."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_INCOM_COMPLETE."')\"><label for='level1_update_status_".ORDER_STATUS_INCOM_COMPLETE."'>".getOrderStatus(ORDER_STATUS_INCOM_COMPLETE)."</label>
+			</td>
+		</tr>
+		<tr id='ht_level1_reason' class='ht_level1_reason_".ORDER_STATUS_DELIVERY_DELAY." ht_level1_reason_".ORDER_STATUS_CANCEL_COMPLETE." ht_level1_reason_".ORDER_STATUS_CANCEL_APPLY."'>
+			<td class='input_box_title'> <b>사유</b></td>
+			<td class='input_box_item'>
+				<select name='level1_reason_code' class='delay' style='font-size:12px;'>";
+					$help_text .= "<option value='' >사유</option>";
+					foreach($order_select_status_div['A']['DD']['DD'] as $key => $val){
+						$help_text .= "<option value='".$key."' >".$val[title]."</option>";
+					}
+					$help_text .= "
+				</select>
+				<select name='level1_reason_code' class='common' style='font-size:12px;display:none;' disabled>";
+					$help_text .= "<option value='' >사유</option>";
+					foreach($order_select_status_div['A']['IR']['CA'] as $key => $val){
+						$help_text .= "<option value='".$key."' >".$val[title]."</option>";
+					}
+					$help_text .= "
+				</select>
+				<span class='delay'>
+				 예상 발송일 : 
+				<img src='../images/".$admininfo["language"]."/calendar_icon.gif' align='absmiddle'> <input type='text' name='level1_due_date' class='textbox point_color' value='' style='height:20px;width:70px;text-align:center;' id='due_datepicker'>
+				</span>
+			</td>
+		</tr>
+		<tr id='ht_level1_msg' class='ht_level1_msg_".ORDER_STATUS_DELIVERY_DELAY." ht_level1_msg_".ORDER_STATUS_CANCEL_COMPLETE." ht_level1_msg_".ORDER_STATUS_CANCEL_APPLY."' >
+			<td class='input_box_title'> <b>기타</b></td>
+			<td class='input_box_item'>
+				 <input type=text name='level1_msg'  class='textbox' value='' style='width:350px;' >
+			</td>
+		</tr>
+	</table>
+	</div>
+	<div id='help_text_level2' style='display:none'>
+		<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level2_status'>
+			<td class='input_box_title'> <b>구매주문요청</b></td>
+			<td class='input_box_item'>
+				준비중입니다.
+			</td>
+		</tr>
+		<tr id='ht_level2_status'>
+			<td class='input_box_title'> <b>구매요청수량</b></td>
+			<td class='input_box_item'>
+				준비중입니다.
+			</td>
+		</tr>
+	</table>
+	</div>
+	<div id='help_text_level3' style='display:none'>
+		<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level3_status'>
+			<td class='input_box_title'> <b>주문출력하기</b></td>
+			<td class='input_box_item'>
+				<input type='radio' name='level3_status' id='level3_update_status_provider_print' value='provider_print' checked><label for='level3_update_status_provider_print'>공급자용</label> <input type='radio' name='level3_status' id='level3_update_status_buyer_print' value='buyer_print' ><label for='level3_update_status_buyer_print'>구매자용</label> <input type='radio' name='level3_status' id='level3_update_status_combo_print' value='combo_print' ><label for='level3_update_status_combo_print'>공급자+구매자용</label> <input type='radio' name='level3_status' id='level3_update_status_noprice_print' value='noprice_print' ><label for='level3_update_status_noprice_print'>가격 노출 X</label>
+				<br/>&nbsp;&nbsp; * <span class='small'>인쇄시 머릿글이나 바닦글 또는 여백을 설정하시고 싶으시면 옵션에 인쇄 -> 페이지 설정에서 설정해주시면됩니다. </span>
+				<br/>&nbsp;&nbsp; * <span class='small'>구분선이라 라인이 안나올시 배경색 및 이미지 인쇄 체크박스 체크 해주시면 됩니다.</span>
+				<!--span class='small'>주문이 인쇄가 안되거나 ActiveX 컨트롤이 설치가 안될때 수동으로 받아서 설치해 주시기 바랍니다. <input type='button' value='다운로드' onclick=\"location.href='./scriptx/ScriptX.msi'\" /> </span-->
+			</td>
+		</tr>
+	</table>
+	</div>
+	<table cellpadding=3 cellspacing=0 width=100% style='border:0px solid silver;'>
+		<tr height=50>
+            <td colspan=4 align=center>";
+            if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
+                $help_text .= "
+                <input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:pointer;border:0px;' >";
+            }else{
+                $help_text .= "
+                <a href=\"".$auth_update_msg."\"><img src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:pointer;border:0px;' ></a>";
+            }
+            $help_text .= "
+            </td>
+        </tr>
+	</table>";
+
+	$Contents .= HelpBox($help_title, $help_text,650);
+
+}elseif($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING||$pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_READY){//포장대기,출고대기
+
+	$help_title = "
+	<nobr>
+		<select name='update_type'>
+			<!--option value='1'>검색한주문 전체에게</option-->
+			<option value='2'>선택한주문 전체에게</option>
+		</select>
+		<input type='radio' name='update_kind' id='update_kind_level0' value='level0' onclick=\"ChangeUpdateForm('help_text_level0');\" checked><label for='update_kind_level0'>출고처리상태변경</label>
+		<input type='radio' name='update_kind' id='update_kind_level1' value='level1' onclick=\"ChangeUpdateForm('help_text_level1');\" ><label for='update_kind_level1'>배송처리상태변경</label>
+		<input type='radio' name='update_kind' id='update_kind_level2' value='level2' onclick=\"ChangeUpdateForm('help_text_level2');\" ><label for='update_kind_level2'>주문출력하기</label>
+		
+	</nobr>";
+
+	$help_text = "
+	<script type='text/javascript'>
+	<!--
+		function HelpTextChangeStatus(level,status){
+			$('#ht_'+level+'_reason').hide();
+			$('.ht_'+level+'_reason_'+status).show();
+			if(status=='DD'){
+				$('.ht_'+level+'_reason_'+status).find('.delay').attr('disabled',false);
+				$('.ht_'+level+'_reason_'+status).find('.delay').show();
+				$('.ht_'+level+'_reason_'+status).find('.common').hide();
+				$('.ht_'+level+'_reason_'+status).find('.common').attr('disabled',true);
+			}else{
+				$('.ht_'+level+'_reason_'+status).find('.common').attr('disabled',false);
+				$('.ht_'+level+'_reason_'+status).find('.common').show();
+				$('.ht_'+level+'_reason_'+status).find('.delay').hide();
+				$('.ht_'+level+'_reason_'+status).find('.delay').attr('disabled',true);
+			}
+			$('#ht_'+level+'_msg').hide();
+			$('.ht_'+level+'_msg_'+status).show();
+			$('#ht_'+level+'_delivery').hide();
+			$('.ht_'+level+'_delivery_'+status).show();";
+			
+			if($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_READY){
+				$help_text .= "
+					if(level=='level0' && status=='WDC'){
+						$('#ht_'+level+'_status').show();
+						$('#level0_update_status_DI').attr('checked',true);
+					}else if(level=='level0' && status!='WDC'){
+						$('#ht_'+level+'_status').hide();
+						$('#level0_update_status_DI').attr('checked',false);
+					}
+				";
+			}
+	$help_text .= "
+		}
+
+		$(document).ready(function(){
+				HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_DELAY."');
+				$('#due_datepicker').datepicker({
+				//monthNames: ['년 1월','년 2월','년 3월','년 4월','년 5월','년 6월','년 7월','년 8월','년 9월','년 10월','년 11월','년 12월'],
+				dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+				//showMonthAfterYear:true,
+				dateFormat: 'yy-mm-dd',
+				buttonImageOnly: true,
+				buttonText: '달력'
+			});
+		});
+
+	//-->
+	</script>
+	<div style='padding:4px 0;'><img src='../images/dot_org.gif'> <b>결제/배송처리 상태 변경</b> <span class=small style='color:gray'>변경하고자 하는 결제/배송처리상태의 주문서를 선택하시고 저장 버튼을 클릭해주세요.</span></div>
+	<div id='help_text_level0'>
+	<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level0_delivery_status'>
+			<td class='input_box_title'> <b>출고처리상태</b></td>
+			<td class='input_box_item'> ";
+			if($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING){
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."')\" checked ><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."'>".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_READY)."</label> ";
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."')\" ><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."'>".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY)."</label> ";
+				//$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_WDACC' value='WDACC' ><label for='level0_update_delivery_status_WDACC'  >출고요청 취소</label> ";
+			}elseif($pre_type==ORDER_STATUS_WAREHOUSE_DELIVERY_READY){
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."')\" checked><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."'  >송장입력</label> ";
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."')\" ><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."'  >".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE)."</label> ";
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."')\" ><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."'>".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING)."</label> ";
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."')\" ><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."'>".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY)."</label> ";
+				//$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_WDACC' value='WDACC' ><label for='level0_update_delivery_status_WDACC'  >출고요청 취소</label> ";
+			}
+		$help_text .= "
+			</td>
+		</tr>
+		<tr id='ht_level0_status' class='ht_level0_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."'>
+			<td class='input_box_title'> <b>배송처리상태</b></td>
+			<td class='input_box_item'> ";
+
+				$help_text .= "<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_ING."' value='".ORDER_STATUS_DELIVERY_ING."' ><label for='level0_update_status_".ORDER_STATUS_DELIVERY_ING."'  >".getOrderStatus(ORDER_STATUS_DELIVERY_ING)."</label>";
+
+		$help_text .= "
+			</td>
+		</tr>
+	</table>
+	</div>
+	<div id='help_text_level1' style='display:none'>
+	<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level1_status'>
+			<td class='input_box_title'> <b>처리상태</b></td>
+			<td class='input_box_item'> 
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_DELIVERY_DELAY."' value='".ORDER_STATUS_DELIVERY_DELAY."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_DELIVERY_DELAY."')\" checked><label for='level1_update_status_".ORDER_STATUS_DELIVERY_DELAY."'>".getOrderStatus(ORDER_STATUS_DELIVERY_DELAY)."</label>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_DELIVERY_READY."' value='".ORDER_STATUS_DELIVERY_READY."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_DELIVERY_READY."')\" ><label for='level1_update_status_".ORDER_STATUS_DELIVERY_READY."'>".getOrderStatus(ORDER_STATUS_DELIVERY_READY)."</label>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_CANCEL_COMPLETE."' value='".ORDER_STATUS_CANCEL_COMPLETE."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_CANCEL_COMPLETE."')\"><label for='level1_update_status_".ORDER_STATUS_CANCEL_COMPLETE."'>".getOrderStatus(ORDER_STATUS_CANCEL_COMPLETE)."</label>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_CANCEL_APPLY."' value='".ORDER_STATUS_CANCEL_APPLY."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_CANCEL_APPLY."')\"><label for='level1_update_status_".ORDER_STATUS_CANCEL_APPLY."'>".getOrderStatus(ORDER_STATUS_CANCEL_APPLY)."</label>
+				<input type='radio' name='level1_status' id='level1_update_status_".ORDER_STATUS_INCOM_COMPLETE."' value='".ORDER_STATUS_INCOM_COMPLETE."' onclick=\"HelpTextChangeStatus('level1','".ORDER_STATUS_INCOM_COMPLETE."')\"><label for='level1_update_status_".ORDER_STATUS_INCOM_COMPLETE."'>".getOrderStatus(ORDER_STATUS_INCOM_COMPLETE)."</label>
+			</td>
+		</tr>
+		<tr id='ht_level1_reason' class='ht_level1_reason_".ORDER_STATUS_DELIVERY_DELAY." ht_level1_reason_".ORDER_STATUS_CANCEL_COMPLETE." ht_level1_reason_".ORDER_STATUS_CANCEL_APPLY."'>
+			<td class='input_box_title'> <b>사유</b></td>
+			<td class='input_box_item'>
+				<select name='level1_reason_code' class='delay' style='font-size:12px;'>";
+					$help_text .= "<option value='' >사유</option>";
+					foreach($order_select_status_div['A']['DD']['DD'] as $key => $val){
+						$help_text .= "<option value='".$key."' >".$val[title]."</option>";
+					}
+					$help_text .= "
+				</select>
+				<select name='level1_reason_code' class='common' style='font-size:12px;display:none;' disabled>";
+					$help_text .= "<option value='' >사유</option>";
+					foreach($order_select_status_div['A']['IR']['CA'] as $key => $val){
+						$help_text .= "<option value='".$key."' >".$val[title]."</option>";
+					}
+					$help_text .= "
+				</select>
+				<span class='delay'>
+				 예상 발송일 : 
+				<img src='../images/".$admininfo["language"]."/calendar_icon.gif' align='absmiddle'> <input type='text' name='level1_due_date' class='textbox point_color' value='' style='height:20px;width:70px;text-align:center;' id='due_datepicker'>
+				</span>
+			</td>
+		</tr>
+		<tr id='ht_level1_msg' class='ht_level1_msg_".ORDER_STATUS_DELIVERY_DELAY." ht_level1_msg_".ORDER_STATUS_CANCEL_COMPLETE." ht_level1_msg_".ORDER_STATUS_CANCEL_APPLY."' >
+			<td class='input_box_title'> <b>기타</b></td>
+			<td class='input_box_item'>
+				 <input type=text name='level1_msg'  class='textbox' value='' style='width:350px;' >
+			</td>
+		</tr>
+	</table>
+	</div>
+	<div id='help_text_level2' style='display:none'>
+		<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>
+		<tr id='ht_level2_status'>
+			<td class='input_box_title'> <b>주문출력하기</b></td>
+			<td class='input_box_item'>
+				<input type='radio' name='level2_status' id='level2_update_status_provider_print' value='provider_print' checked><label for='level2_update_status_provider_print'>공급자용</label> <input type='radio' name='level2_status' id='level2_update_status_buyer_print' value='buyer_print' ><label for='level2_update_status_buyer_print'>구매자용</label> <input type='radio' name='level2_status' id='level2_update_status_combo_print' value='combo_print' ><label for='level2_update_status_combo_print'>공급자+구매자용</label> <input type='radio' name='level2_status' id='level2_update_status_noprice_print' value='noprice_print' ><label for='level2_update_status_noprice_print'>가격 노출 X</label>
+				<br/>&nbsp;&nbsp; * <span class='small'>인쇄시 머릿글이나 바닦글 또는 여백을 설정하시고 싶으시면 옵션에 인쇄 -> 페이지 설정에서 설정해주시면됩니다. </span>
+				<br/>&nbsp;&nbsp; * <span class='small'>구분선이라 라인이 안나올시 배경색 및 이미지 인쇄 체크박스 체크 해주시면 됩니다.</span>
+				<!--span class='small'>주문이 인쇄가 안되거나 ActiveX 컨트롤이 설치가 안될때 수동으로 받아서 설치해 주시기 바랍니다. <input type='button' value='다운로드' onclick=\"location.href='./scriptx/ScriptX.msi'\" /> </span-->
+			</td>
+		</tr>
+	</table>
+	</div>
+	<table cellpadding=3 cellspacing=0 width=100% style='border:0px solid silver;'>
+		<tr height=50>
+            <td colspan=4 align=center>";
+            if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
+                $help_text .= "
+                <input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:pointer;border:0px;' >";
+            }else{
+                $help_text .= "
+                <a href=\"".$auth_update_msg."\"><img src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:pointer;border:0px;' ></a>";
+            }
+            $help_text .= "
+            </td>
+        </tr>
+	</table>";
+
+	$Contents .= HelpBox($help_title, $help_text,520);
+
+}elseif($pre_type==ORDER_STATUS_INCOM_COMPLETE||$pre_type==ORDER_STATUS_DELIVERY_ING||$pre_type == ORDER_STATUS_DELIVERY_COMPLETE||$pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE){
+	$help_title = "
+	<nobr>
+		<select name='update_type'>
+			<!--option value='1'>검색한주문 전체에게</option-->
+			<option value='2'>선택한주문 전체에게</option>
+		</select>
+		<input type='radio' name='update_kind' id='update_kind_level0' value='level0' onclick=\"ChangeUpdateForm('help_text_level0');\" checked><label for='update_kind_level0'>배송처리상태변경</label>
+	</nobr>";
+
+	$help_text = "
+	<script type='text/javascript'>
+	<!--
+		function HelpTextChangeStatus(level,status){
+			$('#ht_'+level+'_reason').hide();
+			$('.ht_'+level+'_reason_'+status).show();
+			$('#ht_'+level+'_msg').hide();
+			$('.ht_'+level+'_msg_'+status).show();
+			$('#ht_'+level+'_delivery').hide();
+			$('.ht_'+level+'_delivery_'+status).show();
+			";
+
+			if($pre_type==ORDER_STATUS_DELIVERY_ING){
+
+			$help_text .= "
+			if(status=='DR'){
+				$('#ht_level0_delivery').find('input').each(function(){
+					$(this).attr('checked',false);
+				})
+				$('#ht_level0_delivery').find('input:first').each(function(){
+					$(this).attr('checked',true);
+				})
+				$('#ht_level0_msg').find('input').each(function(){
+					$(this).attr('checked',false);
+				})
+				$('#ht_level0_msg').find('input:first').each(function(){
+					$(this).attr('checked',true);
+				})
+			}else{
+				$('#ht_level0_msg').find('input').each(function(){
+					$(this).attr('checked',false);
+				})
+			}";
+
+			}
+
+		$help_text .= "
+		}
+
+		$(document).ready(function(){";
+		if($pre_type==ORDER_STATUS_INCOM_COMPLETE){
+			$help_text .= "HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_READY."');";
+		}elseif($pre_type==ORDER_STATUS_DELIVERY_ING||$pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE){
+			if($invoice_no_bool=="Y"){
+				$help_text .= "HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_ING."');";
+			}else{
+				$help_text .= "HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_COMPLETE."');";
+			}
+		}elseif($pre_type==ORDER_STATUS_DELIVERY_COMPLETE){
+			$help_text .= "HelpTextChangeStatus('level0','".ORDER_STATUS_BUY_FINALIZED."');";
+		}
+		$help_text .= "
+		});
+
+	//-->
+	</script>
+	<div style='padding:4px 0;'><img src='../images/dot_org.gif'> <b>결제/배송처리 상태 변경</b> <span class=small style='color:gray'>변경하고자 하는 결제/배송처리상태의 주문서를 선택하시고 저장 버튼을 클릭해주세요.</span></div>
+	<div id='help_text_level0'>
+	<table cellpadding=3 cellspacing=0 width=100% class='input_table_box' >
+		<col width=170>
+		<col width=*>";
+		if($pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE){
+			$help_text .= "
+			<tr id='ht_level0_delivery_status'>
+				<td class='input_box_title'> <b>출고처리상태</b></td>
+				<td class='input_box_item'> ";
+	$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."')\" checked><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."'  >".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE)."</label> ";
+			$help_text .= "
+				</td>
+			</tr>";
+		}
+		$help_text .= "
+		<tr id='ht_level0_status'>
+			<td class='input_box_title'> <b>배송처리상태</b></td>
+			<td class='input_box_item'> ";
+if($pre_type==ORDER_STATUS_INCOM_COMPLETE){
+	$help_text .= "<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_READY."' value='".ORDER_STATUS_DELIVERY_READY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_READY."')\" checked><label for='level0_update_status_".ORDER_STATUS_DELIVERY_READY."'  >송장입력완료</label>
+	<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_ING."' value='".ORDER_STATUS_DELIVERY_ING."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_ING."')\"><label for='level0_update_status_".ORDER_STATUS_DELIVERY_ING."'  >".getOrderStatus(ORDER_STATUS_DELIVERY_ING)."</label>";
+}elseif($pre_type==ORDER_STATUS_DELIVERY_ING||$pre_type ==ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE){
+	if($invoice_no_bool=="Y"){
+		$help_text .= "<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_ING."' value='".ORDER_STATUS_DELIVERY_ING."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_ING."')\" checked><label for='level0_update_status_".ORDER_STATUS_DELIVERY_ING."'  >".getOrderStatus(ORDER_STATUS_DELIVERY_ING)."</label>";
+	}else{
+		$help_text .= "<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_COMPLETE."' value='".ORDER_STATUS_DELIVERY_COMPLETE."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_COMPLETE."')\" checked><label for='level0_update_status_".ORDER_STATUS_DELIVERY_COMPLETE."'  >".getOrderStatus(ORDER_STATUS_DELIVERY_COMPLETE)."</label> ";
+		$help_text .= "<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_READY."' value='".ORDER_STATUS_DELIVERY_READY."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_READY."')\" ><label for='level0_update_status_".ORDER_STATUS_DELIVERY_READY."'  >".getOrderStatus(ORDER_STATUS_DELIVERY_READY)."</label>";
+	}
+}elseif($pre_type==ORDER_STATUS_DELIVERY_COMPLETE){
+
+	$help_text .= "<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_BUY_FINALIZED."' value='".ORDER_STATUS_BUY_FINALIZED."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_BUY_FINALIZED."')\" checked><label for='level0_update_status_".ORDER_STATUS_BUY_FINALIZED."'  >".getOrderStatus(ORDER_STATUS_BUY_FINALIZED)."</label> 
+	<input type='radio' name='level0_status' id='level0_update_status_".ORDER_STATUS_DELIVERY_ING."' value='".ORDER_STATUS_DELIVERY_ING."' onclick=\"HelpTextChangeStatus('level0','".ORDER_STATUS_DELIVERY_ING."')\" ><label for='level0_update_status_".ORDER_STATUS_DELIVERY_ING."'  >".getOrderStatus(ORDER_STATUS_DELIVERY_ING)."</label>";
+}
+		$help_text .= "
+			</td>
+		</tr>";
+	if($pre_type==ORDER_STATUS_DELIVERY_ING){
+		$help_text .= "
+		<tr id='ht_level0_delivery' class='ht_level0_delivery_".ORDER_STATUS_DELIVERY_READY."' style='display:none;'>
+			<td class='input_box_title'> <b>출고처리상태</b></td>
+			<td class='input_box_item'> ";
+				$help_text .= "<input type='radio' name='level0_delivery_status' id='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' value='".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' checked ><label for='level0_update_delivery_status_".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."'>".getOrderStatus(ORDER_STATUS_WAREHOUSE_DELIVERY_READY)."</label> ";
+		$help_text .= "
+			</td>
+		</tr>
+		<tr id='ht_level0_msg' class='ht_level0_msg_".ORDER_STATUS_DELIVERY_READY."' style='display:none;'>
+			<td class='input_box_title'> <b>송장번호상태</b></td>
+			<td class='input_box_item'> 
+				<input type='radio' name='delete_invoice_yn' id='delete_invoice_n' value='N' checked ><label for='delete_invoice_n'>송장번호 유지</label> 
+				<input type='radio' name='delete_invoice_yn' id='delete_invoice_y' value='Y' ><label for='delete_invoice_y'>송장번호 삭제</label> ";
+		$help_text .= "
+			</td>
+		</tr>";
+	}
+	$help_text .= "
+	</table>
+	</div>
+	<div id='help_text_level1' style='display:none'></div>
+	<div id='help_text_level2' style='display:none'></div>
+	<table cellpadding=3 cellspacing=0 width=100% style='border:0px solid silver;'>
+		<tr height=50>
+            <td colspan=4 align=center>";
+            if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
+                $help_text .= "
+                <input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:pointer;border:0px;' >";
+            }else{
+                $help_text .= "
+                <a href=\"".$auth_update_msg."\"><img src='../images/".$admininfo["language"]."/b_save.gif' border=0 style='cursor:pointer;border:0px;' ></a>";
+            }
+            $help_text .= "
+            </td>
+        </tr>
+	</table>";
+
+	$Contents .= HelpBox($help_title, $help_text,450);
+}
+
+if($QUERY_STRING == "nset=$nset&page=$page"){
+	$query_string = str_replace("nset=$nset&page=$page","",$QUERY_STRING) ;
+}else{
+	$query_string = str_replace("nset=$nset&page=$page&","","&".$QUERY_STRING) ;
+}
+
+$Contents = str_replace("{total_sum}",$total_sum,$Contents) ;
+
+$Contents .= "
+</form>
+
+<table width='100%' border='0' cellpadding='0' cellspacing='0' align='center'>
+  <tr height=40>
+    <td colspan='10' align='center'>&nbsp;".page_bar($total, $page, $max,$query_string,"")."&nbsp;</td>
+  </tr>
+</table>
+<form name='lyrstat'>
+	<input type='hidden' name='opend' value=''>
+</form>";
+
+$Script = "
+<script language='javascript'>
+function ToggleOrder(type){
+	if(type == 'WDR'){
+		if($('#view_wdr_order').attr('checked') == true || $('#view_wdr_order').attr('checked') == 'checked'){		
+			
+			$.cookie('view_wdr_order', '1', {expires:1,domain:document.domain, path:'/', secure:0});
+		}else{		
+			$.cookie('view_wdr_order', '0', {expires:1,domain:document.domain, path:'/', secure:0});
+		}
+	}else if(type == 'project'){
+		if($('#view_project_job').attr('checked') == true || $('#view_project_job').attr('checked') == 'checked'){		
+			$.cookie('view_project_job', '1', {expires:1,domain:document.domain, path:'/', secure:0});
+		}else{		
+			$.cookie('view_project_job', '0', {expires:1,domain:document.domain, path:'/', secure:0});
+		}
+	}
+	document.location.reload();
+}
+</script>
+";
+
+$P = new LayOut();
+if($view_type == "offline_order"){
+	$P->strLeftMenu = offline_order_menu();
+}else if($view_type == 'sc_order'){
+	$P->strLeftMenu = sns_menu();
+}else{
+	$P->strLeftMenu = order_menu();
+}
+$P->OnloadFunction = "ChangeOrderDate(document.search_frm);";//MenuHidden(false);
+$P->addScript = "<script language='javascript' src='../order/orders.goods_list.js'></script>\n<script language='javascript' src='../include/DateSelect.js'></script>\n".$Script;
+$P->Navigation = "배송관리 > $title_str";
+$P->title = $title_str;
+$P->strContents = $Contents;
+echo $P->PrintLayOut();
+
+
+function OrderSummary($status, $title){
+	return false;
+	$mdb = new Database;
+
+	$vdate = date("Ymd", time());
+	$today = date("Ymd", time());
+	$firstday = date("Ymd", time()-86400*date("w"));
+	$lastday = date("Ymd", time()+86400*(6-date("w")));
+
+	if($status == "IR"){
+	$sql = "select '구분      ','입금예정 ', '입금예정금액','입금확인건수(카드결제 미포함)', '입금확인금액 '
+			union
+			Select '".date("m/d")." 금일 ',
+			IFNULL(sum(case when status = '".ORDER_STATUS_INCOM_READY."'  then 1 else '0' end),0) as incom_ready_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_INCOM_READY."') then ptprice else '0' end),0) as incom_ready_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_INCOM_COMPLETE."'  then 1 else '0' end),0) as incom_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_INCOM_COMPLETE."')  then ptprice else '0' end),0) as incom_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00")."' AND '".date("Y-m-d 23:59:59")."'
+			union
+			Select '최근1개월',
+			IFNULL(sum(case when status = '".ORDER_STATUS_INCOM_READY."'  then 1 else '0' end),0) as incom_ready_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_INCOM_READY."') then ptprice else '0' end),0) as incom_ready_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_INCOM_COMPLETE."'  then 1 else '0' end),0) as incom_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_INCOM_COMPLETE."')  then ptprice else '0' end),0) as incom_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2)-30,substr($vdate,0,4)))."' and '".date("Y-m-d 23:59:59")."' ";
+	}else if($status == "CA"){
+	$sql = "select '구분      ','취소신청 ', '취소신청금액','취소완료건수', '취소완료금액 '
+			union
+			Select '".date("m/d")." 금일 ',
+			IFNULL(sum(case when status = '".ORDER_STATUS_CANCEL_APPLY."'  then 1 else '0' end),0) as cancel_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_CANCEL_APPLY."') then ptprice else '0' end),0) as cancel_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_CANCEL_COMPLETE."'  then 1 else '0' end),0) as cancel_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_CANCEL_COMPLETE."')  then ptprice else '0' end),0) as cancel_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00")."' AND '".date("Y-m-d 23:59:59")."'
+			union
+			Select '최근1개월',
+			IFNULL(sum(case when status = '".ORDER_STATUS_CANCEL_APPLY."'  then 1 else '0' end),0) as cancel_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_CANCEL_APPLY."') then ptprice else '0' end),0) as cancel_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_CANCEL_COMPLETE."'  then 1 else '0' end),0) as cancel_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_CANCEL_COMPLETE."')  then ptprice else '0' end),0) as cancel_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2)-30,substr($vdate,0,4)))."' and '".date("Y-m-d 23:59:59")."' ";
+	}else if($status == "EA"){
+	$sql = "select '구분      ','교환신청 ', '교환신청금액','교환완료(회수완료)건수', '교환완료(회수완료)금액 '
+			union
+			Select '".date("m/d")." 금일 ',
+			IFNULL(sum(case when status = '".ORDER_STATUS_EXCHANGE_APPLY."'  then 1 else '0' end),0) as exchange_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_EXCHANGE_APPLY."') then ptprice else '0' end),0) as exchange_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_EXCHANGE_COMPLETE."'  then 1 else '0' end),0) as exchange_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_EXCHANGE_COMPLETE."')  then ptprice else '0' end),0) as exchange_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00")."' AND '".date("Y-m-d 23:59:59")."'
+			union
+			Select '최근1개월',
+			IFNULL(sum(case when status = '".ORDER_STATUS_EXCHANGE_APPLY."'  then 1 else '0' end),0) as exchange_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_EXCHANGE_APPLY."') then ptprice else '0' end),0) as exchange_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_EXCHANGE_COMPLETE."'  then 1 else '0' end),0) as exchange_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_EXCHANGE_COMPLETE."')  then ptprice else '0' end),0) as exchange_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2)-30,substr($vdate,0,4)))."' and '".date("Y-m-d 23:59:59")."' ";
+	}else if($status == "RA"){
+	$sql = "select '구분      ','반품신청 ', '반품신청금액','반품완료건수', '반품완료금액 '
+			union
+			Select '".date("m/d")." 금일 ',
+			IFNULL(sum(case when status = '".ORDER_STATUS_RETURN_APPLY."'  then 1 else '0' end),0) as return_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_RETURN_APPLY."') then ptprice else '0' end),0) as return_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_RETURN_COMPLETE."'  then 1 else '0' end),0) as return_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_RETURN_COMPLETE."')  then ptprice else '0' end),0) as return_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00")."' AND '".date("Y-m-d 23:59:59")."'
+			union
+			Select '최근1개월',
+			IFNULL(sum(case when status = '".ORDER_STATUS_RETURN_APPLY."'  then 1 else '0' end),0) as return_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_RETURN_APPLY."') then ptprice else '0' end),0) as return_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_RETURN_COMPLETE."'  then 1 else '0' end),0) as return_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_RETURN_COMPLETE."')  then ptprice else '0' end),0) as return_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2)-30,substr($vdate,0,4)))."' and '".date("Y-m-d 23:59:59")."' ";
+	}else if($status == "FA"){
+	$sql = "select '구분      ','환불대기 ', '환불예정금액','환불완료건수', '환불완료금액 '
+			union
+			Select '".date("m/d")." 금일 ',
+			IFNULL(sum(case when status = '".ORDER_STATUS_REFUND_APPLY."'  then 1 else '0' end),0) as refund_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_REFUND_APPLY."') then ptprice else '0' end),0) as refund_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_REFUND_COMPLETE."'  then 1 else '0' end),0) as refund_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_REFUND_COMPLETE."')  then ptprice else '0' end),0) as refund_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00")."' AND '".date("Y-m-d 23:59:59")."'
+			union
+			Select '최근1개월',
+			IFNULL(sum(case when status = '".ORDER_STATUS_REFUND_APPLY."'  then 1 else '0' end),0) as refund_apply_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_REFUND_APPLY."') then ptprice else '0' end),0) as refund_apply_price,
+			IFNULL(sum(case when status = '".ORDER_STATUS_REFUND_COMPLETE."'  then 1 else '0' end),0) as refund_complete_cnt,
+			IFNULL(sum(case when status in ('".ORDER_STATUS_REFUND_COMPLETE."')  then ptprice else '0' end),0) as refund_complete_price
+			from ".TBL_SHOP_ORDER_DETAIL." where regdate between '".date("Y-m-d 00:00:00",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2)-30,substr($vdate,0,4)))."' and '".date("Y-m-d 23:59:59")."' ";
+	}else{
+		return;
+	}
+
+	$mdb->query($sql);
+	$datas = $mdb->fetchall();
+	//$datas = $mdb->getrows();
+
+	$mstring = "<table width=100%  border=0><form name='search_frm' method='get' action=''>
+				<tr height=25>
+					<td style='border-bottom:2px solid #efefef'>";
+if($status == "IR"){
+		$mstring .= "<img src='../images/dot_org.gif' align=absmiddle> <b>최근 입금예정 현황</b>";
+}else if($status == "CA"){
+		$mstring .= "<img src='../images/dot_org.gif' align=absmiddle> <b>최근 취소신청 현황</b>";
+}else if($status == "EA"){
+		$mstring .= "<img src='../images/dot_org.gif' align=absmiddle> <b>최근 교환신청 현황</b>";
+}else if($status == "RA"){
+		$mstring .= "<img src='../images/dot_org.gif' align=absmiddle> <b>최근 반품신청 현황</b>";
+}else if($status == "FA"){
+		$mstring .= "<img src='../images/dot_org.gif' align=absmiddle> <b>최근 환불 현황</b>";
+}
+	$mstring .= "	</td>
+				</tr>
+				<tr>
+					<td align='left' colspan=2 height=100 width='100%' valign=top style='padding-top:5px;'>
+					<table cellpadding=3 cellspacing=1 width='100%' border='0' bgcolor=silver>
+						<col width='20%'>
+						<col width='20%'>
+						<col width='20%'>
+						<col width='20%'>
+						<col width='20%'>
+						";
+				for($i=0;$i<count($datas);$i++){
+				if($i == 0){
+					$mstring .= "
+						<tr height=30 ".($i == 0 ? "bgcolor=#efefef  align='center'":"bgcolor=#ffffff  align='right'").">
+							<th bgcolor='#efefef' align='center'>".$datas[$i][0]." </th>
+							<td style='padding-right:15px;'> ".$datas[$i][1]."</td>
+							<td style='padding-right:15px;'> ".$datas[$i][2]."</td>
+							<td style='padding-right:15px;'> ".$datas[$i][3]." </td>
+							<td style='padding-right:15px;'> ".$datas[$i][4]." </td>
+						</tr>";
+				}else{
+					$mstring .= "
+						<tr height=30 ".($i == 0 ? "bgcolor=#efefef  align='center'":"bgcolor=#ffffff  align='right'").">
+							<th bgcolor='#efefef' align='center'>".$datas[$i][0]." </th>
+							<td style='padding-right:15px;'> ".number_format($datas[$i][1])." 건</td>
+							<td style='padding-right:15px;'> ".number_format($datas[$i][2])." 원</td>
+							<td style='padding-right:15px;'> ".number_format($datas[$i][3])." 건</td>
+							<td style='padding-right:15px;'> ".number_format($datas[$i][4])." 원</td>
+						</tr>";
+				}
+				}
+				$mstring .= "
+						<!--tr bgcolor=#ffffff height=30 align='right'>
+							<th bgcolor='#efefef' align='center'>최근 30일 </th>
+							<td style='padding-right:15px;'>15건</td>
+							<td style='padding-right:15px;'>3400,000 원</td>
+							<td style='padding-right:15px;'> - </td>
+							<td style='padding-right:15px;'> - </td>
+						</tr-->
+					</table>
+					</td>
+				</tr>
+				<tr>
+					<td style='padding:5px 0px;text-align:right;'>* 위 통계는 주문일 기준으로 작성 됩니다.</td>
+				</tr>
+			</table>";
+	return $mstring;
+}
+?>

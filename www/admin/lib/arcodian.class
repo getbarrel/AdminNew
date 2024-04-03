@@ -1,0 +1,174 @@
+<?
+Class Arcodian{
+		var $Area01;
+		var $Area02;
+		var $Area03;
+		var $Area04;
+		var $SubID;
+		
+		function Arcodian()
+		{
+			$this->Area01 = "";
+			$this->Area02 = "";
+			$this->Area03 = "";
+			$this->Area04 = "";
+			$this->SubID = "SM11464243Sub";
+		}
+		function AcodianControl(){
+		
+		$mstring = "
+		<LINK REL='stylesheet' HREF='./lib/css/arcodian.css' TYPE='text/css'>
+		
+		<SCRIPT language=javascript id=clientEventHandlersJS>
+		 <!--
+		 var SMinitiallyOpenSub11464 = '".$this->SubID."'; 
+		 var SMheightToOpen11464 = 125; 
+		 var SMspeed11464 = 1; 
+		 var SMstep11464 = 20; 
+		 var SMableToCloseSub11464 = false; 
+		 var SMobjOpen11464 = null; 
+		 var SMobj11464 = null; 
+		 var SMtimer11464 = null; 
+		 var SMopening11464 = false; 
+		 var SMisWorking11464 = false; 
+		 var SMtmpNeedOpen11464 = 0; 
+		 var SMtmpNeedClose11464 = 0; 
+		 var SMToOpen11464 = -1; 
+		 
+		
+		
+		 
+		 
+		 
+		 
+		function SMpoc11464(SMsubName,SMsubID) 
+		{ 
+			if(SMsubID == 'SM114641'){
+				SMheightToOpen11464 = 150;
+			}
+			if(SMsubID == 'SM1146487'){
+				SMheightToOpen11464 = 75;
+			}
+			if(SMsubID == 'SM11464176'){
+				SMheightToOpen11464 = 0;
+			}
+			if(SMsubID == 'SM11464243'){
+				//SMheightToOpen11464 = 150;
+				SMheightToOpen11464 = 125;
+			}
+			if(SMsubID == 'SM11464332'){
+				SMheightToOpen11464 = 125;
+			}
+			
+		(document.getElementById('SM114641' + 'I')).src = './basic/image/arrow_blue.gif';
+		(document.getElementById('SM1146487' + 'I')).src = './basic/image/arrow_blue.gif';
+		//(document.getElementById('SM11464176' + 'I')).src = './basic/image/arrow_blue.gif';
+		(document.getElementById('SM11464243' + 'I')).src = './basic/image/arrow_blue.gif';
+		(document.getElementById('SM11464332' + 'I')).src = './basic/image/arrow_blue.gif';
+		
+		
+		
+		
+		SMToOpen11464 = parseInt(SMheightToOpen11464); 
+		
+			if(SMisWorking11464 == false) 
+			{ 
+				SMobj11464 = document.getElementById(SMsubName); 
+				if(SMinitiallyOpenSub11464 != '') 
+				{ 
+					SMobjOpen11464 = document.getElementById(SMinitiallyOpenSub11464); 
+					SMinitiallyOpenSub11464 = ''; 
+					
+				} 
+				if(SMobjOpen11464 != null) 
+				{ 
+					SMtmpNeedClose11464 = parseInt(SMobjOpen11464.style.height); 
+				} 
+				SMtimer11464 = window.setInterval(SMda11464, SMspeed11464); 
+				(document.getElementById(SMsubID + 'I')).src = './basic/image/arrow_blue1.gif';
+			} 
+		} 
+		
+		function SMpoc211464(SMsubName, toOpen) { SMToOpen11464 = parseInt(toOpen); if(SMisWorking11464 == false) { SMobj11464 = document.getElementById(SMsubName); if(SMinitiallyOpenSub11464 != '') { SMobjOpen11464 = document.getElementById(SMinitiallyOpenSub11464); SMinitiallyOpenSub11464 = ''; } if(SMobjOpen11464 != null) { SMtmpNeedClose11464 = parseInt(SMobjOpen11464.style.height); } SMtimer11464 = window.setInterval(SMda11464, SMspeed11464); } } function SMda11464() { if(SMobjOpen11464 == null) { SMoo11464(); } else if(SMobjOpen11464 == SMobj11464) { if(SMableToCloseSub11464 == true) { SMco11464(); } else { window.clearInterval(SMtimer11464); } } else { SMoo211464(); } } function SMoo11464() { SMisWorking11464 = true; SMobj11464.style.display = 'block'; if(SMtmpNeedOpen11464 + SMstep11464 <= SMToOpen11464) { SMobj11464.style.height = SMtmpNeedOpen11464 + SMstep11464; SMtmpNeedOpen11464 = SMtmpNeedOpen11464 + SMstep11464; } else { window.clearInterval(SMtimer11464); SMobj11464.style.height = SMToOpen11464; SMobjOpen11464 = SMobj11464; SMtmpNeedOpen11464 = 0; SMisWorking11464 = false; SMToOpen11464 = -1; } } function SMco11464() { SMisWorking11464 = true; if(SMtmpNeedClose11464 - SMstep11464 < SMstep11464) { window.clearInterval(SMtimer11464); SMobjOpen11464.style.display = 'none'; SMobjOpen11464.style.height = 1; SMobjOpen11464 = null; SMisWorking11464 = false; SMtmpNeedClose11464 = 0; } else { SMobjOpen11464.style.height = SMtmpNeedClose11464 - SMstep11464; } SMtmpNeedClose11464 = SMtmpNeedClose11464 - SMstep11464; } function SMoo211464() { SMisWorking11464 = true; SMobj11464.style.display = 'block'; if(SMtmpNeedOpen11464 + SMstep11464 <= SMToOpen11464) { SMobj11464.style.height = SMtmpNeedOpen11464 + SMstep11464; SMtmpNeedOpen11464 = SMtmpNeedOpen11464 + SMstep11464; } if(SMtmpNeedClose11464 - SMstep11464 >= 1) { SMobjOpen11464.style.height = SMtmpNeedClose11464 - SMstep11464; SMtmpNeedClose11464 = SMtmpNeedClose11464 - SMstep11464; } else { SMobjOpen11464.style.display = 'none'; if(SMtmpNeedOpen11464 + SMstep11464 > SMToOpen11464 && SMtmpNeedClose11464 - SMstep11464 < 1) { window.clearInterval(SMtimer11464); SMobj11464.style.height = SMToOpen11464; SMobjOpen11464.style.display = 'none'; SMobjOpen11464.style.height = 1; SMobjOpen11464 = null; SMobjOpen11464 = SMobj11464; SMtmpNeedOpen11464 = 0; SMtmpNeedClose11464 = 0; SMisWorking11464 = false; SMToClose11464 = -1; } } } 
+		function SMcs11464(SMobj, SMstyle, SMimage){ 
+			if(SMstyle != ''){ 
+				SMobj.className = SMstyle; 
+			} 
+			if(SMimage != ''){ 
+				(document.getElementById(SMobj.id + 'I')).src = SMimage;  
+			} 
+		}
+		//-->
+		</SCRIPT>
+		
+		
+						          
+				<TABLE cellSpacing=0 cellPadding=0 border=0 bgcolor=#6699cc width=100% ><!--style='border:1px solid gray'-->
+				   <TR>
+				    <TD>
+				      <DIV class=SM_p11464 id=SM11464243 onmouseover=\"SMcs11464(this, 'SM_po11464', '')\" onclick=\"SMpoc11464('SM11464243Sub','SM11464243')\" onmouseout=\"SMcs11464(this, 'SM_p11464', '')\">							      
+					      <IMG id=SM11464243I src='./basic/image/arrow_blue.gif' border=0>&nbsp;&nbsp; 제품정보</DIV>							      
+					      <DIV class=SM_cb11464 id=SM11464243Sub style='DISPLAY: ".(($this->SubID == 'SM11464243Sub') ? 'block':'none')."; OVERFLOW: hidden; WIDTH: 100%; POSITION: relative; TOP: 0px; HEIGHT: 125px'>							      
+					      <DIV class=SM_c11464 id=SM11464286Sub286 onmouseover=\"SMcs11464(this, 'SM_co11464', '')\" onmouseout=\"SMcs11464(this, 'SM_c11464', '')\">".$this->Area01."</DIV>					      
+					      <DIV class=SMEmptyDiv11464></DIV>
+				      </DIV>
+				     </TD>
+				  </TR>
+				  <TR>
+				    <TD>
+				      <DIV class=SM_p11464 id=SM114641 onmouseover=\"SMcs11464(this, 'SM_po11464', '')\" onclick=\"SMpoc11464('SM114641Sub','SM114641')\" onmouseout=\"SMcs11464(this, 'SM_p11464', '')\">
+				      <IMG id=SM114641I src='./basic/image/arrow_blue.gif' border=0>&nbsp;&nbsp;카테고리 등록</DIV>
+				      <DIV class=SM_cb11464 id=SM114641Sub style='DISPLAY: ".(($this->SubID == 'SM114641Sub') ? 'block':'none')."; OVERFLOW: hidden; WIDTH: 100%; POSITION: relative; TOP: 0px; HEIGHT: 0px'>            							      
+				      <DIV class=SM_c11464 id=SM1146430Sub30 onmouseover=\"SMcs11464(this, 'SM_co11464', '')\" onmouseout=\"SMcs11464(this, 'SM_c11464', '')\">".$this->Area02." </DIV>
+				      </DIV>
+				      </TD>
+				  </TR>
+				  <TR>
+				    <TD>
+				      <DIV class=SM_p11464 id=SM11464176 
+				      onmouseover=\"SMcs11464(this, 'SM_po11464', '')\" 
+				      onclick=\"SMpoc11464('SM11464176Sub','SM11464176')\" 
+				      onmouseout=\"SMcs11464(this, 'SM_p11464', '')\"><IMG 
+				      id=SM11464176I src='./basic/image/arrow_blue.gif' border=0>&nbsp;&nbsp;옵션추가</DIV>
+				      <DIV class=SM_cb11464 id=SM11464176Sub 
+				      style='DISPLAY: ".(($this->SubID == 'SM11464176Sub') ? 'block':'none')."; OVERFLOW: hidden; WIDTH: 100%; POSITION: relative; TOP: 0px; HEIGHT: 75px'>
+				      <A href='/UI/CP/CP_user_regdit.asp?SubID=SM11464176Sub'>
+				      <DIV class=SM_c11464 id=SM11464186Sub186 onmouseover=\"SMcs11464(this, 'SM_co11464', '')\" onmouseout=\"SMcs11464(this, 'SM_c11464', '')\">&nbsp;&nbsp;&nbsp;".$this->Area03."</DIV></A>							      
+				      </DIV>
+				    </TD>
+				   </TR>
+				   <TR>
+				    <TD>
+				    
+				      <DIV class=SM_p11464 id=SM1146487 
+				      onmouseover=\"SMcs11464(this, 'SM_po11464', '')\" 
+				      onclick=\"SMpoc11464('SM1146487Sub','SM1146487')\" 
+				      onmouseout=\"SMcs11464(this, 'SM_p11464', '')\"><IMG 
+				      id=SM1146487I src='./basic/image/arrow_blue.gif' border=0>&nbsp;&nbsp;맞춤쇼핑 등록 </DIV>
+				      <DIV class=SM_cb11464 id=SM1146487Sub 
+				      style='DISPLAY: ".(($this->SubID == 'SM1146487Sub') ? 'block':'none')."; OVERFLOW: hidden; WIDTH: 100%; POSITION: relative; TOP: 0px; HEIGHT: 0px'>
+				      </DIV></TD></TR>
+				  
+				
+				  <TR>
+				    <TD>
+				      <DIV class=SM_p11464 id=SM11464332 
+				      onmouseover=\"SMcs11464(this, 'SM_po11464', '')\" 
+				      onclick=\"SMpoc11464('SM11464332Sub','SM11464332')\" 
+				      onmouseout=\"SMcs11464(this, 'SM_p11464', '')\"><IMG 
+				      id=SM11464332I src='./basic/image/arrow_blue.gif' border=0>&nbsp;&nbsp;이미지 추가</DIV>
+				      <DIV class=SM_cb11464 id=SM11464332Sub 
+				      style='DISPLAY: ".(($this->SubID == 'SM11464245Sub') ? 'block':'none')."; OVERFLOW: hidden; WIDTH: 100%; POSITION: relative; TOP: 0px; HEIGHT: 150px'>
+				      
+				      <A href='/admin/news.asp?SubID=SM11464245Sub'>
+				      <DIV class=SM_c11464 id=SM11464264Sub264 onmouseover=\"SMcs11464(this, 'SM_co11464', '')\" 
+				      onmouseout=\"SMcs11464(this, 'SM_c11464', '')\">".$this->Area04." </DIV></A>							      
+				      </TD></TR>
+				
+				</TBODY>
+			</TABLE>";
+		          
+		    return  $mstring;      		
+		}
+}
+?>

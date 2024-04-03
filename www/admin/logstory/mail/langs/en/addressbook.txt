@@ -1,0 +1,25 @@
+; ***************************************** ;
+; Address Book 			            ;
+; ***************************************** ;
+
+### edit/display
+
+adr_title					= Address book
+adr_name					= Name
+adr_email					= E-mail
+adr_street					= Street
+adr_city					= City
+adr_state					= State
+adr_work					= Work
+adr_back					= Back
+adr_save					= Save
+
+###list
+adr_name_hea					= Name
+adr_email_hea					= E-Mail
+adr_edit_hea					= Edit
+adr_expo_hea					= Export
+adr_dele_hea					= Delete
+adr_new_entry					= New Entry
+
+

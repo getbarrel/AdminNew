@@ -1,0 +1,25 @@
+; ***************************************** ;
+; Compose                                   ;
+; ***************************************** ;
+
+to_hea					= An:
+cc_hea					= CC:
+bcc_hea					= BCC:
+subject_hea				= Betreff:
+address_tip				= Adressbuch
+
+attach_hea				= Anhänge:
+attch_add_new				= Neuen Anhang hinzufügen
+attch_name_hea				= Name
+attch_size				= Größe
+attch_type_hea				= Typ
+attch_dele_hea				= Löschen
+attch_no_hea				= Keine Anhänge vorhanden
+
+add_signature				= Signatur anfügen
+send_text				= Senden
+
+result_error				= Fehler: Ihre E-Mail konnte nicht gesendet werden
+result_success				= Ihre E-Mail wurde erfolgreich versandt
+nav_continue				= Weiter
+nav_back				= Zurück

@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<title>UebiMiau</title>
+	<link rel="stylesheet" href="themes/castillocentral/webmail.css.php" type="text/css">
+	<script language="JavaScript" src="themes/castillocentral/webmail.js" type="text/javascript"></script>
+
+<!--%UM_JS%-->
+
+</head>
+
+<body bgcolor="#ffffff" text="#FFFFFF" link="#FFFFFF" vlink="#FFFFFF" alink="#FFFFFF">
+
+<table cellspacing=0 cellpadding=2 border=0 align=center bgcolor=White width=700><tr><td align="center">
+	<img src="images/castillocentral/logo_cc.gif" border=0 alt="CastilloCentral"><br>
+	<img src="images/castillocentral/header.gif" border="0">
+</td></tr></table>
+
+<table width="700" border="0" cellspacing="0" cellpadding="2" align="center" bgcolor=white>
+	<tr>
+		<form name=composeForm method=post action="newmsg.php" onSubmit="return false;">
+		<input type=hidden name=tipo value=edit>
+		<input type=hidden name=is_html value="<!--%UM_IS_HTML%-->">
+		<input type=hidden name=sid value="<!--%UM_SID%-->">
+		<input type=hidden name=lid value="<!--%UM_LID%-->">
+		<input type=hidden name=folder value="<!--%UM_CURRENT_FOLDER%-->">
+		<input type=hidden name=sig value="<!--%UM_SIG%-->">
+		<input type=hidden name=textmode value="<!--%UM_TEXTMODE%-->">
+		<td valign=top width="15%">
+
+			<table cellspacing=1 cellpadding=3 width="100%" border=0><tr align="center">
+
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:goinbox()">
+					<img src="images/castillocentral/inbox.gif" border=0><br><!--%messages_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:folderlist()">
+					<img src="images/castillocentral/folders.gif" border=0><br><!--%folders_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:search()">
+					<img src="images/castillocentral/search.gif" border=0><br><!--%search_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:addresses()">
+					<img src="images/castillocentral/address.gif" border=0><br><!--%address_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:emptytrash()">
+					<img src="images/castillocentral/trash.gif" border=0><br><!--%empty_trash_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:prefs()">
+					<img src="images/castillocentral/preferences.gif" border=0><br><!--%prefs_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:goend()">
+					<img src="images/castillocentral/logout.gif" border=0><br><!--%logoff_mnu%--></a></td>
+
+			</tr></table>
+
+		</td></tr><tr>
+
+		<td bgcolor=white valign=top>
+			<table width="100%" border=0 cellspacing=1 cellpadding=0 >
+				<tr bgcolor=white>
+					<td width="26%" height="18" class="headerright"><!--%to_hea%--> &nbsp;<a href="javascript:addrpopup()"><img src="images/castillocentral/bookmark_it.gif" width="15" height="12" border="0" alt="<!--%address_tip%-->"></a> &nbsp;</td>
+					<td class="default">&nbsp;<!--%UM_TO%--></td>
+				</tr>	
+				<tr bgcolor=white>
+					<td height="18" class="headerright"><!--%cc_hea%--> &nbsp;<a href="javascript:addrpopup()"><img src="images/castillocentral/bookmark_it.gif" width="15" height="12" border="0" alt="<!--%address_tip%-->"></a> &nbsp;</td>
+					<td class="default">&nbsp;<!--%UM_CC%--></td>
+				</tr>	
+				<tr bgcolor=white>
+					<td height="18" class="headerright"><!--%bcc_hea%--> &nbsp;<a href="javascript:addrpopup()"><img src="images/castillocentral/bookmark_it.gif" width="15" height="12" border="0" alt="<!--%address_tip%-->"></a> &nbsp;</td>
+					<td class="default">&nbsp;<!--%UM_BCC%--></td>
+				</tr>	
+				
+				<tr bgcolor=white>
+					<td height="18" class="headerright"><!--%subject_hea%--> &nbsp;</td>
+					<td class="default">&nbsp;<!--%UM_SUBJECT%--></td>
+				</tr>	
+
+				<tr bgcolor=white>
+					<td height="18" class="headerright"><!--%attach_hea%--> &nbsp;</td>
+					<td>
+
+						<table width="100%" border=0 cellspacing=1 cellpadding=0>
+							<!--%UM_ATTACH_BEGIN%-->
+							<tr>
+								<td width="45%" class="headers"><!--%attch_name_hea%--></td>
+								<td width="15%" class="headerright"><!--%attch_size%--> &nbsp;</td>
+								<td width="30%" class="headers"><!--%attch_type_hea%--></td>
+								<td width="10%" class="headers"><!--%attch_dele_hea%--></td>
+							</tr>
+							<!--%UM_AT_LOOP_BEGIN%-->
+							<tr>
+								<td width="50%" class="default"> &nbsp;<!--%UM_AT_NAME%--></td>
+								<td width="10%" class="right"><!--%UM_AT_SIZE%--> &nbsp;</td>
+								<td width="30%" class="default"> &nbsp;<!--%UM_AT_TYPE%--></td>
+								<td width="10%" class="default"> &nbsp;<a href="<!--%UM_AT_DEL%-->">OK</a></td>
+							</tr>
+							<!--%UM_AT_LOOP_END%-->
+
+							<!--%UM_ATTACH_END%-->
+
+							<!--%UM_NO_ATTACH_BEGIN%-->
+							<tr>
+								<td width="100%" class="headers" colspan=3> &nbsp;<!--%attch_no_hea%--></td>
+							</tr>
+							<!--%UM_NO_ATTACH_END%-->
+						</table>
+						<table width="100%" border=0 cellspacing=1 cellpadding=0>
+							<tr>
+								<td width="100%" class="default"> &nbsp;<a href="javascript:upwin()" class="navigation"><!--%attch_add_new%--></a></td>
+							</tr>
+						</table>
+					</td>
+				</tr>	
+				<tr>
+					<td class="default">&nbsp;</td>
+					<td class="default"><!--%UM_TEXT_EDITOR%--></td>
+				</tr>
+				<!--%UM_IF_ADD_SIG_BEGIN%-->	
+				<tr>
+					<td  class="headerright"><!--%add_signature%--> &nbsp;</td>
+					<td class="default"><input type=checkbox name=cksig onClick="addsig()"></td>
+				</tr>
+				<!--%UM_IF_ADD_SIG_END%-->
+				<tr>
+					<td class="default">&nbsp;</td>
+					<td class="default"><input type=button name=bt_enviar value="<!--%send_text%-->" onClick=enviar() class=button></td>
+				</tr>	
+			</table>
+		</td>
+		</form>
+	</tr>
+</table>
+
+<table cellspacing=0 cellpadding=2 border=0 align=center bgcolor=White width=700><tr><td align="center">
+	<img src="images/castillocentral/footer.gif" border="0">
+</td></tr></table>
+
+</body>
+</html> 

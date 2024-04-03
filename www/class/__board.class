@@ -1,0 +1,573 @@
+<?
+include("$DOCUMENT_ROOT/class/database.class");
+include("$DOCUMENT_ROOT/bbs/bbs.lib.php");
+
+
+Class MsBoard
+{
+	var $bbs_templete_web_path;	
+	var $bbs_template_path;
+	var $bbs_table_name;
+	var $bbs_config;
+	var $bbs_title;
+	var $bbs_admin_mode;
+	
+
+	function MsBoard($pbbs_table_name=""){
+		global $DOCUMENT_ROOT, $ss_bbs_table_name;
+	
+		if($pbbs_table_name == ""){
+			$this->bbs_table_name = $ss_bbs_table_name;			
+		}else{
+			$this->bbs_table_name = $pbbs_table_name;
+			$ss_bbs_table_name = $pbbs_table_name;
+			session_register(ss_bbs_table_name);
+		}
+		
+		$this->bbs_admin_mode = false;
+		
+	}
+	
+	function MsBoardConfigration(){
+		global $DOCUMENT_ROOT;
+		
+		$config_db = new Database();	
+		
+		if($this->bbs_admin_mode){
+			$config_db->query("Select 'admin' as board_tmp_ename, board_name, mc.* from bbs_manage_config mc , bbs_templete t where t.bt_ix = mc.board_templete_code and board_ename = '".eregi_replace("bbs_","",$this->bbs_table_name)."' ");		
+			$config_db->fetch();
+			$this->bbs_config = $config_db;		
+		}else{
+			$config_db->query("Select board_tmp_ename, board_name, mc.* from bbs_manage_config mc , bbs_templete t where t.bt_ix = mc.board_templete_code and board_ename = '".eregi_replace("bbs_","",$this->bbs_table_name)."' ");		
+			$config_db->fetch();
+			$this->bbs_config = $config_db;			
+		}
+		
+			$this->bbs_templete_web_path = "/bbs/bbs_templet/".$config_db->dt[board_tmp_ename]."/";
+			$this->bbs_template_path = "$DOCUMENT_ROOT/bbs/bbs_templet/".$config_db->dt[board_tmp_ename];
+			$this->bbs_templete_web_path = "/bbs/bbs_templet/".$config_db->dt[board_tmp_ename]."/";
+			$this->bbs_title = $config_db->dt[board_name];
+	
+	}
+	
+	
+	function PrintMsBoardList($comp=""){
+		global $HTTP_URL;
+		global $search_word, $esn, $ess, $esc;
+		
+		
+		
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			$bbs_list_template = $this->bbs_template_path."/bbs_list.htm";
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+			$bbs_list_template = $this->bbs_template_path."/faq_list.htm";
+		}
+		
+		$tcontent = load_template($bbs_list_template);
+		$bbs_tmp   = get_tags("{{BBS_LIST_LOOP_START}}","{{BBS_LIST_LOOP_END}}",$tcontent);		
+		$loop_tmp = $bbs_tmp["re-content"];
+		
+		
+		
+		$db = new Database();
+		$where = "";
+		
+		if($search_word != "" && $esn == "on"){
+			if($where == ""){
+				$where .= " where (";	
+			}else{
+				$where .= " or ";	
+			}
+			$where .= " bbs_name LIKE '%$search_word%'";
+		}
+		if($search_word != "" && $ess == "on"){
+			if($where == ""){
+				$where .= " where (";	
+			}else{
+				$where .= " or ";	
+			}
+			$where .= " bbs_subject LIKE '%$search_word%'";
+		}
+		 if($search_word != "" && $esc == "on"){
+		 	if($where == ""){
+				$where .= " where (";	
+			}else{
+				$where .= " or ";	
+			}
+			
+			$where .= " bbs_contents LIKE '%$search_word%'";
+		}
+		
+		if($where == ""){
+			$where .= " where ";	
+		}else{
+			$where .= ") and ";	
+		}
+		$where .= "  comp = '$comp' ";
+		
+		
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			$db->query("Select bbs_ix from ".$this->bbs_table_name." $where ");
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+			$db->query("Select bbs_ix from ".$this->bbs_table_name."  ");
+		}
+		
+		$total = $db->total;
+		
+		
+		$max = 10;
+		
+		if($db->total){
+		
+		
+			if ($page == ''){
+				$start = 0;
+				$page  = 1;
+			}else{
+				$start = ($page - 1) * $max;
+			}
+		
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$db->query("Select *, case when regdate > DATE_SUB(now(), interval 3 day) then 1 else 0 end as new from ".$this->bbs_table_name." $where order by regdate desc LIMIT $start, $max ");
+			}else if($this->bbs_config->dt[board_style] == "faq"){
+				$db->query("Select * from ".$this->bbs_table_name."  order by regdate desc LIMIT $start, $max ");
+			}
+			
+			for($i=0;$i<$db->total;$i++){
+				$db->fetch($i);		
+				$no = $total - ($page - 1) * $max - $i;
+			
+				
+				if($db->dt[bbs_hidden] == "1"){
+					if($db->dt[mem_ix] == $user[mem_ix] || $user[mem_level] == "9"){
+						$link = "bbs_read.php?comp=$comp&article_no=".$no."&page=$page&bbs_ix=".$db->dt[bbs_ix];
+					}else{
+						$link = "javascript:alert('비밀글은 본인 이외에는 열람하실 수 없습니다.');";
+					}
+				}else{
+					$link = "bbs_read.php?comp=$comp&article_no=".$no."&page=$page&bbs_ix=".$db->dt[bbs_ix];
+				}
+	
+				if($search_word != "" && $ess == "on"){
+					$bbs_subject = str_replace($search_word,"<b style='#FF5A00'>$search_word</b>",$db->dt[bbs_subject]);
+				}else{
+					$bbs_subject = $db->dt[bbs_subject];
+				}
+				
+				if($search_word != "" && $esn == "on"){
+					$bbs_name = str_replace($search_word,"<b style='#FF5A00'>$search_word</b>",$db->dt[bbs_name]);
+				}else{
+					$bbs_name = $db->dt[bbs_name];
+				}
+			
+			
+				$loop_tmp_ing = $loop_tmp;
+				
+				$bbs_subject = "<table border='0' cellpadding='0' cellspacing='0'>
+			                    <tr>
+			                      <td>".($db->dt[bbs_hidden] == "1" ? "<img src='".$this->bbs_templete_web_path."icon/key.gif' align=absmiddle>&nbsp;&nbsp; ":"")."<a href=\"$link\">".$bbs_subject." </a> ".($db->dt[bbs_re_cnt] != 0 ? "<img src='".$this->bbs_templete_web_path."icon/icon_reply.gif' border='0' align=absmiddle>":"")." <font class='eboard_recount'> [".$db->dt[bbs_re_cnt]."] </font>".CheckNewContents($db->dt['new'], $this->bbs_templete_web_path)."</td>
+			                    </tr>
+			                  </table>";
+			                  
+			                  
+			                  
+			        $bbd_name = "<a href='mailto:".$db->dt[bbs_email]."'>".$bbs_name." </a>";
+			        $bbs_date = str_replace("-",".",substr($db->dt[regdate],0,10));
+			        $bbs_hit = $db->dt[bbs_hit];
+			        
+			        $loop_tmp_ing = eregi_replace("{{BBS_A}}",$db->dt[bbs_a], $loop_tmp_ing);
+			        $loop_tmp_ing = eregi_replace("{{BBS_Q}}",$db->dt[bbs_q], $loop_tmp_ing);
+			        
+			        
+				$loop_tmp_ing = eregi_replace("{{BBS_NO}}","$no", $loop_tmp_ing);
+				$loop_tmp_ing = eregi_replace("{{BBS_IX}}",$db->dt[bbs_ix], $loop_tmp_ing);
+				$loop_tmp_ing = eregi_replace("{{BBS_SUBJECT}}",$bbs_subject, $loop_tmp_ing);
+				$loop_tmp_ing = eregi_replace("{{BBS_NAME}}",$bbd_name, $loop_tmp_ing);
+				$loop_tmp_ing = eregi_replace("{{BBS_DATE}}",$bbs_date, $loop_tmp_ing);
+				$loop_tmp_ing = eregi_replace("{{BBS_HIT}}",$bbs_hit, $loop_tmp_ing);
+				
+				
+			
+				$loop_tmp_result .= $loop_tmp_ing;
+			}//for 
+		
+			$bbs_paging = bbs_page_bar($total, $page, $max,$HTTP_URL,$this->bbs_templete_web_path, "&comp=".$comp);
+			
+		}else{
+			
+			$bbs_contents_nothing = "
+			<tr onMouseOver=\"this.style.backgroundColor='#F0EEE5'\" onMouseOut=\"this.style.backgroundColor=''\">
+				<td height=50 colspan=11 align=center> 입력된 글이 없습니다.</td>               
+			</tr>
+			<tr>
+				<td colspan='11' height='1' bgcolor='#D3CAC0'></td>
+			</tr>";
+			$loop_tmp_result = $bbs_contents_nothing;
+		}
+		
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			if($this->bbs_config->dt[board_user_write_auth_yn] == "Y" || ($this->bbs_admin_mode && $this->bbs_config->dt[board_admin_write_auth_yn] == Y )){
+				$bbs_button_write = "<a href='bbs_write.php?comp=$comp'><img src='".$this->bbs_templete_web_path."icon/btc_write.gif' border='0'></a>";
+			}
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+			//if($this->bbs_config->dt[board_user_write_auth_yn] == "Y" || ($this->bbs_admin_mode && $this->bbs_config->dt[board_admin_write_auth_yn] == Y )){
+				$bbs_button_write = "<a href='bbs_write.php?comp=$comp'><img src='".$this->bbs_templete_web_path."icon/btc_write.gif' border='0'></a>";
+			//}
+		}
+		
+		
+		
+		$tcontent = substr($tcontent,0,$bbs_tmp["ab-begin"]).$loop_tmp_result.substr($tcontent,$bbs_tmp["ab-end"],strlen($tcontent));
+		
+		
+		
+		/*        
+		if ($user[mem_ix] == ""){
+		$bbs_button_login ="<img src='img/0.gif' width='2' height='1'><a href='javascript:displaySub(login);' ><img src='".$this->bbs_templete_web_path."icon/btc_login.gif' border='0'></a>";
+		}else{
+		$bbs_button_login ="<img src='img/0.gif' width='2' height='1'><a href='/myecard/login.act.php?act=bbslogout' target=act><img src='".$this->bbs_templete_web_path."icon/btc_logout.gif' border='0'></a>";
+		}
+		
+		*/
+		
+		
+		
+		
+		
+		
+		//$tcontent = eregi_replace("{{BBS_TITLE}}",$this->bbs_title, $tcontent);
+		
+		$tcontent = eregi_replace("{{BBS_ARTICLE_TOTAL}}",number_format($total,0), $tcontent);
+		$tcontent = eregi_replace("{{BBS_CURRENT_PAGE}}",number_format(ceil($total/$max),0), $tcontent);
+		$tcontent = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $tcontent);
+		$tcontent = eregi_replace("{{BBS_PAGING}}",$bbs_paging, $tcontent);
+		$tcontent = eregi_replace("{{BBS_BUTTON_WRITE}}",$bbs_button_write, $tcontent);
+		$tcontent = eregi_replace("{{BBS_BUTTON_LOGIN}}",$bbs_button_login, $tcontent);
+		
+		
+		
+		return $tcontent;
+	}
+	
+	
+	function PrintMsBoardRead($article_no, $bbs_ix, $page, $comp=""){
+		$db = new Database();
+		$cdb = new Database();
+		$ndb = new Database();
+		
+		$db->query("update ".$this->bbs_table_name." set bbs_hit = bbs_hit+1 where bbs_ix = '$bbs_ix' and comp ='$comp'");	
+		$db->query("Select *, case when regdate > DATE_SUB(now(), interval 3 day) then 1 else 0 end as new  from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' and comp ='$comp'");
+		$db->fetch();
+		
+		
+		
+		//TEMPLETE LOAD		
+		$bbs_read_template = $this->bbs_template_path."/bbs_read.htm";
+		
+		$tcontent = load_template($bbs_read_template);
+		$bbs_login_template = $this->bbs_template_path."/shop_bbs_login.htm";
+		$login_tmp = load_template($bbs_login_template);
+		$login_tmp = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $login_tmp);
+		
+		$tcontent = eregi_replace("{{BBS_TITLE}}",$this->bbs_title, $tcontent);
+		$tcontent = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $tcontent);
+		$tcontent = eregi_replace("{{BBS_LOGIN_TEMPLETE}}",$login_tmp, $tcontent);
+		$tcontent = eregi_replace("{{ARTICLE_NO}}",$article_no, $tcontent);
+		$tcontent = eregi_replace("{{BBS_IX}}",$bbs_ix, $tcontent);
+		$tcontent = eregi_replace("{{BBS_HIT}}",$db->dt[bbs_hit], $tcontent);
+		$tcontent = eregi_replace("{{BBS_NAME}}",$db->dt[bbs_name], $tcontent);
+		$tcontent = eregi_replace("{{BBS_EMAIL}}",$db->dt[bbs_email], $tcontent);
+		$tcontent = eregi_replace("{{BBS_SUBJECT}}",$db->dt[bbs_subject], $tcontent);
+		$tcontent = eregi_replace("{{BBS_REGDATE}}",$db->dt[regdate], $tcontent);
+		$tcontent = eregi_replace("{{BBS_CONTENTS}}",$db->dt[bbs_contents], $tcontent);
+		$tcontent = eregi_replace("{{BBS_RE_CNT}}",$db->dt[bbs_re_cnt], $tcontent);
+		$tcontent = eregi_replace("{{BBS_NEW}}",CheckNewContents($db->dt["new"],$this->bbs_templete_web_path), $tcontent);
+		$tcontent = eregi_replace("{{MEM_IX}}",$user[mem_ix], $tcontent);
+		$tcontent = eregi_replace("{{MEM_NAME}}",$user[mem_name], $tcontent);
+		$tcontent = eregi_replace("{{MEM_MAIL}}",$user[mem_mail], $tcontent);
+		$tcontent = eregi_replace("{{BBS_TABLE_NAME}}",$this->bbs_table_name, $tcontent);
+		$tcontent = eregi_replace("{{BBS_COMP}}",$comp, $tcontent);
+		
+		
+		if($user[mem_name] != ""){
+		$tcontent = eregi_replace("{{MEM_WRITE_AUTH}}","readonly", $tcontent);	
+		}else{
+		$tcontent = eregi_replace("{{MEM_WRITE_AUTH}}","", $tcontent);	
+		}
+		
+		/*
+		if ($user[mem_ix] == ""){
+		                $login_button ="<img src='../img/0.gif' width='2' height='1'><a href='#bt' onClick='javascript:displaySub(login);'><img src='".$this->bbs_templete_web_path."icon/btc_login.gif' border='0'></a>";
+		}else{
+		               	$login_button ="<img src='../img/0.gif' width='2' height='1'><a href='/myecard/login.act.php?act=bbslogout' target=act><img src='".$this->bbs_templete_web_path."icon/btc_logout.gif' border='0'></a>";
+		}
+		*/
+		
+		
+		if($this->bbs_config->dt[board_user_write_auth_yn] == "Y"){
+			$write_button = "<img src='../img/0.gif' width='2' height='1'><a href='bbs_write.php'><img src='".$this->bbs_templete_web_path."icon/btc_write.gif' border='0'></a>";
+		}
+		
+		if($this->bbs_config->dt[board_comment_yn] == "Y"){
+			$comment_button = "<a href='javascript:displaySub(reply)'><img src='".$this->bbs_templete_web_path."icon/btc_read_reply.gif' border='0'></a>";
+		}
+		$tcontent = eregi_replace("{{BTN_COMMENT}}",$comment_button, $tcontent);
+		$tcontent = eregi_replace("{{BTN_WRITE}}",$write_button, $tcontent);
+		$tcontent = eregi_replace("{{BTN_LOGIN_LOGOUT}}",$login_button, $tcontent);
+		
+		
+		//if($user[mem_level] >= 8 || $user[mem_ix] == $db->dt[mem_ix] || checkOwner($comp,$user[mem_ix])){
+		if(false){
+			$delete_fuction = "BBS_Delete();";	
+			if($user[mem_ix] == $db->dt[mem_ix]){
+				$modify_function = "document.location.href='bbs_modify.php?bbs_ix=$bbs_ix&comp=$comp'";
+			}else{
+				$modify_function = "displaySub(pass_modify);";
+			}
+		}else{
+			$delete_fuction = "displaySub(pass_del);";
+			$modify_function = "displaySub(pass_modify);";
+		}
+		
+		$tcontent = eregi_replace("{{BBS_DELETE_FUNCTION}}",$delete_fuction, $tcontent);
+		$tcontent = eregi_replace("{{BBS_MODIFY_FUNCTION}}",$modify_function, $tcontent);
+		$tcontent = eregi_replace("{{BBS_PAGE}}",number_format($page,0), $tcontent);
+		
+		
+		$comment_list_tmp   = get_tags("{{COMMENT_LOOP_START}}","{{COMMENT_LOOP_END}}",$tcontent);  // COMMENT LOOP 나누기
+		$comment_loop_tmp = $comment_list_tmp["re-content"];  // COMMENET LOOP GET
+		
+		
+		$cdb->query("Select * from ".$this->bbs_table_name."_comment where comp = '$comp' and bbs_ix = '$bbs_ix' order by regdate asc ");
+		
+		if($cdb->total){	
+			for($i=0;$i<$cdb->total;$i++){
+				$cdb->fetch($i);
+				
+				$comment_loop_tmp_ing =  $comment_loop_tmp;	
+				$comment_loop_tmp_ing = eregi_replace("{{COMMENT_LOOP_I}}",$i, $comment_loop_tmp_ing);
+				$comment_loop_tmp_ing = eregi_replace("{{CMT_IX}}",$cdb->dt[cmt_ix], $comment_loop_tmp_ing);
+				$comment_loop_tmp_ing = eregi_replace("{{CMT_NAME}}",$cdb->dt[cmt_name], $comment_loop_tmp_ing);
+				$comment_loop_tmp_ing = eregi_replace("{{CMT_EMAIL}}",$cdb->dt[cmt_email], $comment_loop_tmp_ing);
+				$comment_loop_tmp_ing = eregi_replace("{{CMT_REGDATE}}",$cdb->dt[regdate], $comment_loop_tmp_ing);
+				$comment_loop_tmp_ing = eregi_replace("{{CMT_CONTENTS}}",$cdb->dt[cmt_contents], $comment_loop_tmp_ing);
+				
+						
+				$comment_loop_tmp_retult .= $comment_loop_tmp_ing;
+			}	
+			
+			
+		}
+		$tcontent = substr($tcontent,0,$comment_list_tmp["ab-begin"]).$comment_loop_tmp_retult.substr($tcontent,$comment_list_tmp["ab-end"],strlen($tcontent));
+		
+		$next_list_tmp   = get_tags("{{NEXT_LIST_LOOP_START}}","{{NEXT_LIST_LOOP_END}}",$tcontent);
+		$next_loop_tmp = $next_list_tmp["re-content"];
+		
+		$ndb->query("Select *, case when regdate > DATE_SUB(now(), interval 3 day) then 1 else 0 end as new  from ".$this->bbs_table_name." where comp = '$comp' and bbs_ix > '$bbs_ix' order by bbs_ix asc LIMIT 2 ");
+		if($ndb->total){
+			for($i=0;$i<$ndb->total;$i++){
+				if($ndb->total >1){
+					$ndb->fetch(1-$i);
+				}else{
+					$ndb->fetch($i);
+				}
+				
+				$next_loop_tmp_ing =  $next_loop_tmp;	
+				
+				$next_loop_tmp_ing = eregi_replace("{{NEXT_LIST_LOOP_LINK}}","bbs_read.php?comp=$comp&article_no=".($article_no+2-$i)."&bbs_ix=".$ndb->dt[bbs_ix], $next_loop_tmp_ing);
+				$next_loop_tmp_ing = eregi_replace("{{NEXT_LIST_LOOP_BBS_SUBJECT}}",$ndb->dt[bbs_subject], $next_loop_tmp_ing);
+				$next_loop_tmp_ing = eregi_replace("{{NEXT_LIST_LOOP_BBS_RE_CNT}}",$ndb->dt[bbs_re_cnt], $next_loop_tmp_ing);
+				$next_loop_tmp_ing = eregi_replace("{{NEXT_LIST_LOOP_BBS_NEW}}",CheckNewContents($ndb->dt["new"],$this->bbs_templete_web_path), $next_loop_tmp_ing);
+				$next_loop_tmp_ing = eregi_replace("{{NEXT_LIST_LOOP_ARTICLE_NO}}",number_format($article_no+2-$i,0), $next_loop_tmp_ing);
+				
+				$next_loop_tmp_ing_result .= $next_loop_tmp_ing;
+				
+			}
+			
+		}
+		
+		$tcontent = substr($tcontent,0,$next_list_tmp["ab-begin"]).$next_loop_tmp_ing_result.substr($tcontent,$next_list_tmp["ab-end"],strlen($tcontent));
+		
+		
+		
+		$before_list_tmp   = get_tags("{{BEFORE_LIST_LOOP_START}}","{{BEFORE_LIST_LOOP_END}}",$tcontent);
+		$before_loop_tmp = $before_list_tmp["re-content"];
+		$ndb->query("Select *, case when regdate > DATE_SUB(now(), interval 3 day) then 1 else 0 end as new  from ".$this->bbs_table_name." where comp = '$comp' and bbs_ix < '$bbs_ix' order by bbs_ix desc LIMIT 2 ");
+		if($ndb->total){
+			for($i=0;$i<$ndb->total;$i++){
+				$ndb->fetch($i);	
+				
+				$before_loop_tmp_ing =  $before_loop_tmp;	
+				
+				$before_loop_tmp_ing = eregi_replace("{{BEFORE_LIST_LOOP_LINK}}","bbs_read.php?comp=$comp&article_no=".($article_no+2-$i)."&bbs_ix=".$ndb->dt[bbs_ix], $before_loop_tmp_ing);
+				$before_loop_tmp_ing = eregi_replace("{{BEFORE_LIST_LOOP_BBS_SUBJECT}}",$ndb->dt[bbs_subject], $before_loop_tmp_ing);
+				$before_loop_tmp_ing = eregi_replace("{{BEFORE_LIST_LOOP_BBS_RE_CNT}}",$ndb->dt[bbs_re_cnt], $before_loop_tmp_ing);
+				$before_loop_tmp_ing = eregi_replace("{{BEFORE_LIST_LOOP_BBS_NEW}}",CheckNewContents($ndb->dt["new"], $this->bbs_templete_web_path), $before_loop_tmp_ing);
+				$before_loop_tmp_ing = eregi_replace("{{BEFORE_LIST_LOOP_ARTICLE_NO}}",number_format($article_no-$i-1,0), $before_loop_tmp_ing);
+				
+				$before_loop_tmp_ing_result .= $before_loop_tmp_ing;
+			}
+			
+		}
+		
+		
+		$tcontent = substr($tcontent,0,$before_list_tmp["ab-begin"]).$before_loop_tmp_ing_result.substr($tcontent,$before_list_tmp["ab-end"],strlen($tcontent));
+		
+		
+		//$tcontent = eregi_replace($comment_loop_tmp,"", $tcontent);
+		
+		//echo $comment_loop_tmp;
+		return $tcontent;
+	}
+	
+	
+	function PrintMsBoardModify($bbs_ix, $article_no, $page, $comp=""){
+		$db = new Database();
+	
+		$db->query("Select * from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix'");
+		$db->fetch();
+		
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			$bbs_write_template =  $this->bbs_template_path."/bbs_modify.htm";
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+			$bbs_write_template =  $this->bbs_template_path."/faq_modify.htm";
+		}
+		
+		$tcontent = load_template($bbs_write_template);
+		$bbs_login_template = $this->bbs_template_path."/shop_bbs_login.htm";
+		$login_tmp = load_template($bbs_login_template);
+		$login_tmp = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $login_tmp);
+		
+		$tcontent = eregi_replace("{{BBS_TITLE}}",$this->bbs_title, $tcontent);
+		$tcontent = eregi_replace("{{BBS_LOGIN_TEMPLETE}}",$login_tmp, $tcontent);
+		$tcontent = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $tcontent);
+		$tcontent = eregi_replace("{{MEM_NAME}}",$user[mem_name], $tcontent);
+		$tcontent = eregi_replace("{{MEM_MAIL}}",$user[mem_mail], $tcontent);
+		if($this->bbs_config->dt[board_file_yn] == "Y"){
+			$tcontent = eregi_replace("{{BBS_FILEUPLOAD_DISPLAY}}","style='display:block'", $tcontent);
+		}else{
+			$tcontent = eregi_replace("{{BBS_FILEUPLOAD_DISPLAY}}","style='display:none'", $tcontent);
+		}
+		
+		
+		if ($user[mem_ix] == ""){
+		                $login_button ="<img src='../img/0.gif' width='2' height='1'><a href='#bt' onClick='javascript:displaySub(login);'><img src='".$this->bbs_templete_web_path."icon/btc_login.gif' border='0'></a>";
+		}else{
+		               	$login_button ="<img src='../img/0.gif' width='2' height='1'><a href='/myecard/login.act.php?act=bbslogout' target=act><img src='".$this->bbs_templete_web_path."icon/btc_logout.gif' border='0'></a>";
+		}
+		
+		
+		$tcontent = eregi_replace("{{BBS_A}}",$db->dt[bbs_a], $tcontent);
+		$tcontent = eregi_replace("{{BBS_Q}}",$db->dt[bbs_q], $tcontent);
+		if($db->dt[bbs_contents_type] == 0){
+			$tcontent = eregi_replace("{{BBS_CONTENTS_TYPE_TEXT}}"," checked", $tcontent);
+			$tcontent = eregi_replace("{{BBS_CONTENTS_TYPE_HTML}}","", $tcontent);
+		}else{
+			$tcontent = eregi_replace("{{BBS_CONTENTS_TYPE_TEXT}}","", $tcontent);
+			$tcontent = eregi_replace("{{BBS_CONTENTS_TYPE_HTML}}"," checked", $tcontent);
+		}
+			        
+		$tcontent = eregi_replace("{{BTN_LOGIN_LOGOUT}}",$login_button, $tcontent);
+		$tcontent = eregi_replace("{{BBS_NAME}}",$db->dt[bbs_name], $tcontent);
+		$tcontent = eregi_replace("{{BBS_EMAIL}}",$db->dt[bbs_email], $tcontent);
+		$tcontent = eregi_replace("{{BBS_SUBJECT}}",$db->dt[bbs_subject], $tcontent);
+		$tcontent = eregi_replace("{{BBS_CONTENTS}}",$db->dt[bbs_contents], $tcontent);
+		$tcontent = eregi_replace("{{ARTICLE_NO}}",$article_no, $tcontent);
+		$tcontent = eregi_replace("{{BBS_IX}}",$bbs_ix, $tcontent);
+		$tcontent = eregi_replace("{{BBS_PAGE}}",$page, $tcontent);
+		$tcontent = eregi_replace("{{BBS_TABLE_NAME}}",$this->bbs_table_name, $tcontent);
+		$tcontent = eregi_replace("{{BBS_COMP}}",$comp, $tcontent);
+		
+		return $tcontent;
+	}
+	
+	
+	function PrintMsBoardWrite($comp=""){
+	
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			$bbs_write_template = $this->bbs_template_path."/bbs_write.htm";		
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+			$bbs_write_template = $this->bbs_template_path."/faq_write.htm";		
+		}
+		
+		$tcontent = load_template($bbs_write_template);
+		$bbs_login_template = $this->bbs_template_path."/shop_bbs_login.htm";
+		$login_tmp = load_template($bbs_login_template);
+		
+		$tcontent = eregi_replace("{{BBS_TITLE}}",$this->bbs_title, $tcontent);
+		$tcontent = eregi_replace("{{BBS_LOGIN_TEMPLETE}}",$login_tmp, $tcontent);
+		$tcontent = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $tcontent);
+		$tcontent = eregi_replace("{{MEM_NAME}}",$user[mem_name], $tcontent);
+		$tcontent = eregi_replace("{{MEM_MAIL}}",$user[mem_mail], $tcontent);
+		$tcontent = eregi_replace("{{BBS_TABLE_NAME}}",$this->bbs_table_name, $tcontent);
+		$tcontent = eregi_replace("{{BBS_COMP}}",$comp, $tcontent);
+		
+		if($this->bbs_config->dt[board_file_yn] == "Y"){
+			$tcontent = eregi_replace("{{BBS_FILEUPLOAD_DISPLAY}}","style='display:block'", $tcontent);
+		}else{
+			$tcontent = eregi_replace("{{BBS_FILEUPLOAD_DISPLAY}}","style='display:none'", $tcontent);
+		}
+		
+		if($this->bbs_config->dt[board_hidden_yn] == "Y"){
+			$tcontent = eregi_replace("{{BBS_HIDDEN_DISPLAY}}","style='display:block'", $tcontent);
+		}else{
+			$tcontent = eregi_replace("{{BBS_HIDDEN_DISPLAY}}","style='display:none'", $tcontent);
+		}
+		
+		
+		if ($user[mem_ix] == ""){
+		                $login_button ="<img src='../img/0.gif' width='2' height='1'><a href='#bt' onClick='javascript:displaySub(login);'><img src='".$this->bbs_templete_web_path."icon/btc_login.gif' border='0'></a>";
+		}else{
+		               	$login_button ="<img src='../img/0.gif' width='2' height='1'><a href='/myecard/login.act.php?act=bbslogout' target=act><img src='".$this->bbs_templete_web_path."icon/btc_logout.gif' border='0'></a>";
+		}
+		
+		$tcontent = eregi_replace("{{BTN_LOGIN_LOGOUT}}",$login_button, $tcontent);
+		
+		return $tcontent;
+	
+	}
+	
+	function PrintMsBoardResponse($bbs_ix, $article_no, $page){
+		$db = new Database();
+	
+		$db->query("Select * from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix'");
+		$db->fetch();
+		
+		
+		$bbs_write_template =  $this->bbs_template_path."/bbs_response.htm";
+		$tcontent = load_template($bbs_write_template);
+		$bbs_login_template = $this->bbs_template_path."/shop_bbs_login.htm";
+		$login_tmp = load_template($bbs_login_template);
+		$login_tmp = eregi_replace("{{BBS_TEMPLETE_PATH}}",$this->bbs_templete_web_path, $login_tmp);
+		
+		$tcontent = eregi_replace("{{BBS_TITLE}}",$this->bbs_title, $tcontent);
+		$tcontent = eregi_replace("{{BBS_LOGIN_TEMPLETE}}",$login_tmp, $tcontent);
+		$tcontent = eregi_replace("{{BBS_TEMPLETE_PATH}}","./shop_bbs_templete/basic/", $tcontent);
+		$tcontent = eregi_replace("{{MEM_NAME}}",$user[mem_name], $tcontent);
+		$tcontent = eregi_replace("{{MEM_MAIL}}",$user[mem_mail], $tcontent);
+		$tcontent = eregi_replace("{{BBS_TABLE_NAME}}",$this->bbs_table_name, $tcontent);
+		
+		
+		
+		if ($user[mem_ix] == ""){
+		                $login_button ="<img src='../img/0.gif' width='2' height='1'><a href='#bt' onClick='javascript:displaySub(login);'><img src='".$this->bbs_templete_web_path."icon/btc_login.gif' border='0'></a>";
+		}else{
+		               	$login_button ="<img src='../img/0.gif' width='2' height='1'><a href='/myecard/login.act.php?act=bbslogout' target=act><img src='".$this->bbs_templete_web_path."icon/btc_logout.gif' border='0'></a>";
+		}
+		
+		$tcontent = eregi_replace("{{BTN_LOGIN_LOGOUT}}",$login_button, $tcontent);
+		$tcontent = eregi_replace("{{BBS_NAME}}",$db->dt[bbs_name], $tcontent);
+		$tcontent = eregi_replace("{{BBS_EMAIL}}",$db->dt[bbs_email], $tcontent);
+		$tcontent = eregi_replace("{{BBS_SUBJECT}}",$db->dt[bbs_subject], $tcontent);
+		$tcontent = eregi_replace("{{BBS_CONTENTS}}",$db->dt[bbs_contents], $tcontent);
+		$tcontent = eregi_replace("{{ARTICLE_NO}}",$article_no, $tcontent);
+		$tcontent = eregi_replace("{{BBS_IX}}",$bbs_ix, $tcontent);
+		$tcontent = eregi_replace("{{BBS_PAGE}}",$page, $tcontent);
+
+		
+		return $tcontent;
+	}
+	
+	
+}
+?>

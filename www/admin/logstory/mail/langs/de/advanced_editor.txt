@@ -1,0 +1,33 @@
+; ***************************************** ;
+; Advanced Editor		            ;
+; ***************************************** ;
+
+adv_warning_text_mode			= Um die Tools der Symbolleiste zu verwenden, deaktivieren Sie bitte die Option "<!--%view_source%-->"       
+adv_type_path				= Geben Sie eine URL ein:
+
+
+format_paragraph			= Absatz
+format_h1				= Überschrift 1
+format_h2				= Überschrift 2
+format_h3				= Überschrift 3
+format_h4				= Überschrift 4
+format_h5				= Überschrift 5
+format_h6				= Überschrift 6
+format_pre				= Vorformatiert
+format_clear_all			= Standard
+
+format_font				= Schriftart
+format_size				= Größe
+
+format_color				= Farbe
+format_back				= Hintergrund
+color_red				= Rot
+color_blue				= Blau
+color_green				= Grün
+color_black				= Schwarz
+color_yellow				= Gelb
+color_white				= Weiss
+
+view_source				= Quelltext anzeigen
+text_mode				= Nur-Text
+clear_format				= Formatierungen löschen

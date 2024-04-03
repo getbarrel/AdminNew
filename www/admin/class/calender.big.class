@@ -1,0 +1,781 @@
+<?
+
+// PHP Calendar Class Version 1.4 (5th March 2001)
+//  
+// Copyright David Wilkinson 2000 - 2001. All Rights reserved.
+// 
+// This software may be used, modified and distributed freely
+// providing this copyright notice remains intact at the head 
+// of the file.
+//
+// This software is freeware. The author accepts no liability for
+// any loss or damages whatsoever incurred directly or indirectly 
+// from the use of this script. The author of this software makes 
+// no claims as to its fitness for any purpose whatsoever. If you 
+// wish to use this software you should first satisfy yourself that 
+// it meets your requirements.
+//
+// URL:   http://www.cascade.org.uk/software/php/calendar/
+// Email: davidw@cascade.org.uk
+
+
+class Calendar
+{
+    /*
+        Constructor for the Calendar class
+    */
+    var $LinkPage;
+    var $thisday;
+    var $SelectReport;
+    var $Schedule;
+    
+    function Calendar()
+    {
+    	$this->thisday = date("Ymd", time());
+    	$this->SelectReport = "1";
+	$this->Schedule = "";
+    }
+    
+    
+    /*
+        Get the array of strings used to label the days of the week. This array contains seven 
+        elements, one for each day of the week. The first entry in this array represents Sunday. 
+    */
+    function getDayNames()
+    {
+        return $this->dayNames;
+    }
+    
+
+    /*
+        Set the array of strings used to label the days of the week. This array must contain seven 
+        elements, one for each day of the week. The first entry in this array represents Sunday. 
+    */
+    function setDayNames($names)
+    {
+        $this->dayNames = $names;
+    }
+    
+    /*
+        Get the array of strings used to label the months of the year. This array contains twelve 
+        elements, one for each month of the year. The first entry in this array represents January. 
+    */
+    function getMonthNames()
+    {
+        return $this->monthNames;
+    }
+    
+    /*
+        Set the array of strings used to label the months of the year. This array must contain twelve 
+        elements, one for each month of the year. The first entry in this array represents January. 
+    */
+    function setMonthNames($names)
+    {
+        $this->monthNames = $names;
+    }
+    
+    
+    
+    /* 
+        Gets the start day of the week. This is the day that appears in the first column
+        of the calendar. Sunday = 0.
+    */
+      function getStartDay()
+    {
+        return $this->startDay;
+    }
+    
+    /* 
+        Sets the start day of the week. This is the day that appears in the first column
+        of the calendar. Sunday = 0.
+    */
+    function setStartDay($day)
+    {
+        $this->startDay = $day;
+    }
+    
+    
+    /* 
+        Gets the start month of the year. This is the month that appears first in the year
+        view. January = 1.
+    */
+    function getStartMonth()
+    {
+        return $this->startMonth;
+    }
+    
+    /* 
+        Sets the start month of the year. This is the month that appears first in the year
+        view. January = 1.
+    */
+    function setStartMonth($month)
+    {
+        $this->startMonth = $month;
+    }
+    
+    
+    /*
+        Return the URL to link to in order to display a calendar for a given month/year.
+        You must override this method if you want to activate the "forward" and "back" 
+        feature of the calendar.
+        
+        Note: If you return an empty string from this function, no navigation link will
+        be displayed. This is the default behaviour.
+        
+        If the calendar is being displayed in "year" view, $month will be set to zero.
+    */
+    function getCalendarLink($month, $year, $day=""){
+    	
+        return "JavaScript:ViewReport('".$this->LinkPage."','".$year.$this->SetZefoFill(2,"0",$month).$day."')";
+    }
+    
+    /*
+        Return the URL to link to  for a given date.
+        You must override this method if you want to activate the date linking
+        feature of the calendar.
+        
+        Note: If you return an empty string from this function, no navigation link will
+        be displayed. This is the default behaviour.
+    */
+    function getDateLink($day, $month, $year)
+    {    
+    	$LinkDay = $year.$this->SetZefoFill(2,"0",$month).$this->SetZefoFill(2,"0",$day);
+    	//if($this->thisday >= $LinkDay){
+    	if(true){
+    	
+        	//return $this->LinkPage."?vdate=".$LinkDay;
+        	return "JavaScript:ViewReport('".$this->LinkPage."','".$LinkDay."')";
+        }else{
+        	return "";
+        }
+    }
+    
+    function SetZefoFill($nchar,$fillstr,$nValue){
+    	if (strlen($nValue) == $nchar){
+    		return $nValue;
+    	}else{
+    		
+    		return str_repeat($fillstr,$nchar-strlen($nValue)).$nValue;
+    	}
+    }
+
+
+    /*
+        Return the HTML for the current month
+    */
+    function getCurrentMonthView()
+    {
+        $d = getdate(time());
+        return $this->getMonthView($d["mon"], $d["year"]);
+    }
+    
+
+    /*
+        Return the HTML for the current year
+    */
+    function getCurrentYearView()
+    {
+        $d = getdate(time());
+        return $this->getYearView($d["year"]);
+    }
+    
+    
+    /*
+        Return the HTML for a specified month
+    */
+    function getWeekView($month, $year)
+    {
+	$this->SelectReport = 2;
+        return $this->getWeekHTML($month, $year);
+    }
+
+    function getMonthView($month, $year)
+    {
+        return $this->getMonthHTML($month, $year);
+    }
+    
+
+    /*
+        Return the HTML for a specified year
+    */
+    function getYearView($year)
+    {
+        return $this->getYearHTML($year);
+    }
+    
+    
+    
+    /********************************************************************************
+    
+        The rest are private methods. No user-servicable parts inside.
+        
+        You shouldn't need to call any of these functions directly.
+        
+    *********************************************************************************/
+
+
+    /*
+        Calculate the number of days in a month, taking into account leap years.
+    */
+    function getDaysInMonth($month, $year)
+    {
+        if ($month < 1 || $month > 12)
+        {
+            return 0;
+        }
+   
+        $d = $this->daysInMonth[$month - 1];
+   
+        if ($month == 2)
+        {
+            // Check for leap year
+            // Forget the 4000 rule, I doubt I'll be around then...
+        
+            if ($year%4 == 0)
+            {
+                if ($year%100 == 0)
+                {
+                    if ($year%400 == 0)
+                    {
+                        $d = 29;
+                    }
+                }
+                else
+                {
+                    $d = 29;
+                }
+            }
+        }
+    
+        return $d;
+    }
+
+
+    /*
+        Generate the HTML for a given month
+    */
+    function getMonthHTML($m, $y, $showYear = 1)
+    {
+        $s = "";
+        $line = 0;
+        
+        $a = $this->adjustDate($m, $y);
+        $month = $a[0];
+        $year = $a[1];        
+        
+    	$daysInMonth = $this->getDaysInMonth($month, $year);
+    	$date = getdate(mktime(12, 0, 0, $month, 1, $year));
+    	//echo $date['wday']; 
+    	
+    	//$first = 1;
+    	$first = $date["wday"];
+    	$monthName = $this->monthNames[$month - 1];
+    	
+    	$prev = $this->adjustDate($month - 1, $year);
+    	$next = $this->adjustDate($month + 1, $year);
+    	
+    	if ($showYear == 1)
+    	{
+    	    $prevMonth = $this->getCalendarLink($prev[0], $prev[1],"01");
+    	    $nextMonth = $this->getCalendarLink($next[0], $next[1],"07");
+    	}
+    	else
+    	{
+    	    $prevMonth = "";
+    	    $nextMonth = "";
+    	}
+    	
+    	$header = $monthName . (($showYear > 0) ? " " . $year : "");
+    	//echo "test".$this->LinkPage;
+	//exit;
+
+	if($_GET["vdate"] != ""){
+		$today = getdate(mktime(0,0,0,substr($_GET["vdate"],4,2),substr($_GET["vdate"],6,2),substr($_GET["vdate"],0,4)));
+	}else{
+		$today = getdate(time());
+	}
+
+
+    	$s .= "<table cellpadding=0 cellspacing=0 class=\"calendar_main_header\">\n";
+    	$s .= "<tr>\n";
+    	$s .= "		<td align=\"center\" valign=\"top\" colspan=7 style='padding:0px'>\n";
+    	$s .= "		<table cellpadding=0 cellspacing=0 width=100%>\n";
+    	$s .= "		<tr>\n";    	
+    	if(substr_count($this->LinkPage,"SelectReport") > 0 && $_GET["&SelectReport"] != ""){
+		$link_str = str_replace("&SelectReport=".$this->SelectReport."","&SelectReport=1",$this->LinkPage);
+		$link_str = str_replace("&vdate=".$_GET["vdate"]."","",$link_str);
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".$link_str."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',1)\">월</td>\n";
+	}else{
+		$link_str = $this->LinkPage."&SelectReport=1";
+		$link_str = str_replace("&vdate=".$_GET["vdate"]."","",$link_str);
+    	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".$link_str."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',1)\">월</td>\n";
+	}
+	if(substr_count($this->LinkPage,"SelectReport") > 0  && $_GET["&SelectReport"] != ""){
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".str_replace("SelectReport=".$this->SelectReport."","SelectReport=2",$this->LinkPage)."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',2)\">주</td>\n";
+	}else{
+    	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".$this->LinkPage."&SelectReport=2"."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',2)\">주</td>\n";
+	}
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' onclick='ChangeReport(3)'>일</td>\n";  
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:85%' >&nbsp;</td>\n";  
+    	$s .= "		</tr>\n";
+    	$s .= "		</table>\n";
+    	$s .= "		</td>\n";
+    	$s .= "</tr>\n";
+	$s .= "<tr>\n";
+    	$s .= "<td align=\"center\" valign=\"top\">" . (($prevMonth == "") ? "&nbsp;" : "<a href=\"".str_replace("JavaScript:","JavaScript:ChangeReport($this->SelectReport);",$prevMonth)."\" class='calendar_hader_a'>&lt;&lt;</a>")  . "</td>\n";
+    	
+    	$link = $this->getDateLink(1, $month, $year);
+    	$s .= (($link == "") ? "<td align=\"center\" valign=\"top\" class=\"calendarHeaderDisp\" colspan=\"5\">$header</td>\n" : "<td align=\"center\" valign=\"top\" class=\"calendarHeaderDisp\" colspan=\"5\"><a href=\"".str_replace("JavaScript:","JavaScript:ChangeReport(3);",$link)."\"  class='calendar_hader_a'>$header</a></td>\n");
+    	$s .= "<td align=\"center\" valign=\"top\">" . (($nextMonth == "") ? "&nbsp;" : "<a href=\"".str_replace("JavaScript:","JavaScript:ChangeReport($this->SelectReport);",$nextMonth)."\"  class='calendar_hader_a'>&gt;&gt;</a>")  . "</td>\n";
+    	$s .= "</tr>\n";
+    	
+    	$s .= "<tr>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\" style='color:red;'>" . $this->dayNames[($this->startDay)%7] . "</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+1)%7] . "</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+2)%7] . "</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+3)%7] . "</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+4)%7] . "</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+5)%7] . "</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\" style='color:blue;'>" . $this->dayNames[($this->startDay+6)%7] . "</td>\n";
+    	$s .= "</tr>\n";
+    	
+    	// We need to work out what date to start at so that the first appears in the correct column
+    	$d = $this->startDay + 1 - $first;
+    	while ($d > 1)
+    	{
+    	    $d -= 7;
+    	}
+
+        // Make sure we know when today is, so that we can use a different CSS style
+        
+    	
+    	while ($d <= $daysInMonth)
+    	{
+    	    $s .= "<tr>\n";       
+    	    
+    	    for ($i = 0; $i < 7; $i++)
+    	    {
+        	    $class = ($year == $today["year"] && $month == $today["mon"] && $d == $today["mday"]) ? "calendarToday" : "calendar";
+    	        $s .= "<td class=\"$class\" style='overflow:hidden;' id='week$line'align=\"right\" valign=\"top\" ondblclick=\"PopSWindow('work_add.php?mmode=pop&sdate=".$year.$month.str_pad($d,2,"0",STR_PAD_LEFT)."',680,750,'member_info');\"><!-- onMouseout=\"mouseOnTD2('$line',false);\" onmouseover=\"mouseOnTD2('$line',true);\" -->";       
+    	        if ($d > 0 && $d <= $daysInMonth)
+    	        {
+    	            $link = $this->getDateLink($d, $month, $year);
+    	            $s .= (($link == "") ? $d : "<a href=\"$link\"  class='calendar_a'>$d</a><br>");
+		
+			$s .= "<table border=0 cellpadding=2 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >
+				";
+			//echo $year.$month.str_pad($d,2,"0",STR_PAD_LEFT);
+			//exit;
+			
+			$d = str_pad($d,2,"0",STR_PAD_LEFT);
+			
+			if(is_array($this->Schedule[$year.$month.$d])){
+				//print_r($this->Schedule[$year.$month.$d]);
+				//exit;
+				foreach($this->Schedule[$year.$month.$d] as $key => $value){
+				//print_r($value);
+				//exit;
+					$s .= "<tr><td nowrap> ".$value["work_title"]."</td></tr>";
+				}
+			}
+			$s .= "</table>";
+
+    	        }
+    	        else
+    	        {
+    	            $s .= "&nbsp;";
+    	        }
+      	        $s .= "</td>\n";       
+        	    $d++;
+    	    }
+    	    $s .= "</tr>\n";   
+    	    $line = ++$line;
+    	    
+    	}
+    	
+    	
+    	$s .= "</table>\n";
+    	
+    	return $s;  	
+    }
+
+    function getWeekHTML($m, $y, $showYear = 1)
+    {
+	
+        $s = "";
+        $line = 0;
+        
+        $a = $this->adjustDate($m, $y);
+        $month = $a[0];
+        $year = $a[1];        
+        
+    	$daysInMonth = $this->getDaysInMonth($month, $year);
+    	$date = getdate(mktime(12, 0, 0, $month, 1, $year));
+    	//echo $date['wday']; 
+    	
+    	//$first = 1;
+    	$first = $date["wday"];
+    	$monthName = $this->monthNames[$month - 1];
+    	
+    	$prev = $this->adjustDate($month - 1, $year);
+    	$next = $this->adjustDate($month + 1, $year);
+    	
+    	if ($showYear == 1)
+    	{
+    	    $prevMonth = $this->getCalendarLink($prev[0], $prev[1],"01");
+    	    $nextMonth = $this->getCalendarLink($next[0], $next[1],"07");
+    	}
+    	else
+    	{
+    	    $prevMonth = "";
+    	    $nextMonth = "";
+    	}
+    	
+    	$header = $monthName . (($showYear > 0) ? " " . $year : "");
+    	//echo "test".$this->LinkPage;
+	//exit;
+
+	//echo $_GET["vdate"];
+	if($_GET["vdate"] != ""){
+		$today_timestamp = mktime(0,0,0,substr($_GET["vdate"],4,2),substr($_GET["vdate"],6,2),substr($_GET["vdate"],0,4));
+		$today = getdate($today_timestamp);
+	}else{
+		$today = getdate(time());
+	}
+
+
+    	$s .= "<table cellpadding=0 cellspacing=0 class=\"calendar_main_header\">\n";
+    	$s .= "<tr>\n";
+    	$s .= "		<td align=\"center\" valign=\"top\" colspan=8 style='padding:0px'>\n";
+    	$s .= "		<table cellpadding=0 cellspacing=0 width=100%>\n";
+    	$s .= "		<tr>\n";    	
+    	if(substr_count($this->LinkPage,"SelectReport") > 0  && $_GET["&SelectReport"] != ""){
+		$link_str = str_replace("&SelectReport=".$this->SelectReport."","&SelectReport=1",$this->LinkPage);
+		$link_str = str_replace("&vdate=".$_GET["vdate"]."","",$link_str);
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".$link_str."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',1)\">월</td>\n";
+	}else{
+		$link_str = $this->LinkPage."&SelectReport=1";
+		$link_str = str_replace("&vdate=".$_GET["vdate"]."","",$link_str);
+    	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".$link_str."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',1)\">월</td>\n";
+	}
+	if(substr_count($this->LinkPage,"SelectReport") > 0  && $_GET["&SelectReport"] != ""){
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".str_replace("SelectReport=".$this->SelectReport."","SelectReport=2",$this->LinkPage)."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',2)\">주</td>\n";
+	}else{
+    	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' ><a href=\"javascript:ChangeCalendar('".$this->LinkPage."&SelectReport=2"."', '".($today["year"].str_pad($today["mon"],2,"0",STR_PAD_LEFT).str_pad($today["mday"],2,"0",STR_PAD_LEFT))."',2)\">주</td>\n";
+	}
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:5%' onclick='ChangeReport(3)'>일</td>\n";  
+	$s .= "		<td align=\"center\" class=\"calendar_main\" style='width:85%' colspan=5 >&nbsp;</td>\n";  
+    	$s .= "		</tr>\n";
+    	$s .= "		</table>\n";
+    	$s .= "		</td>\n";
+    	$s .= "</tr>\n";
+	$s .= "<tr>\n";
+    	$s .= "<td align=\"center\" valign=\"top\">
+		" . (($prevMonth == "") ? "&nbsp;" : "<a href=\"".str_replace("JavaScript:","JavaScript:ChangeReport($this->SelectReport);",$prevMonth)."\" class='calendar_hader_a'>&lt;&lt;</a>")  . "</td>\n";
+    	
+    	$link = $this->getDateLink(1, $month, $year);
+    	$s .= (($link == "") ? "<td align=\"center\" valign=\"top\" class=\"calendarHeaderDisp\" colspan=\"6\">$header</td>\n" : "<td align=\"center\" valign=\"top\" class=\"calendarHeaderDisp\" colspan=\"6\"><a href=\"".str_replace("JavaScript:","JavaScript:ChangeReport(3);",$link)."\"  class='calendar_hader_a'>$header</a></td>\n");
+    	$s .= "<td align=\"center\" valign=\"top\">" . (($nextMonth == "") ? "&nbsp;" : "<a href=\"".str_replace("JavaScript:","JavaScript:ChangeReport($this->SelectReport);",$nextMonth)."\"  class='calendar_hader_a'>&gt;&gt;</a>")  . "</td>\n";
+    	$s .= "</tr>\n";
+    	
+	$d = $this->startDay + 1 - $first;
+    	while ($d > 1)
+    	{
+    	    $d -= 7;
+    	}	
+
+    	$s .= "<tr>\n";
+	$s .= "<td align=\"center\" class=\"calendarHeader\" style='width:50px;'>&nbsp;시간 </td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\" style='color:red;'>" . $this->dayNames[($this->startDay)%7] . " ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]),$today[year]))." </td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+1)%7] . " ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]+1),$today[year]))."</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+2)%7] . " ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]+2),$today[year]))."</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+3)%7] . " ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]+3),$today[year]))."</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+4)%7] . " ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]+4),$today[year]))."</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\">" . $this->dayNames[($this->startDay+5)%7] . " ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]+5),$today[year]))."</td>\n";
+    	$s .= "<td align=\"center\" class=\"calendarHeader\" style='color:blue;'>" . $this->dayNames[($this->startDay+6)%7] . "  ".date("m-d",mktime(0,0,0,$today[mon],($today[mday]+6),$today[year]))."</td>\n";
+    	$s .= "</tr>\n";
+    	
+    	// We need to work out what date to start at so that the first appears in the correct column
+    	
+
+        // Make sure we know when today is, so that we can use a different CSS style
+        
+    	//$max_work_cnt = array();
+    	for($j=-1;$j < 24;$j++){
+		
+
+		
+	    	   
+	$d = $this->startDay + 1 - $first;
+    	while ($d > 1)
+    	{
+    	    $d -= 7;
+    	}	
+    	    for ($i = 0; $i < 7; $i++)
+    	    {
+		if($j==-1){
+			$class = "calendarHeader";
+		}else{
+        		$class = ($year == $today["year"] && $month == $today["mon"] && $d == $today["mday"]) ? "calendarToday" : "calendar";
+		}
+		if($i==0){
+
+		$s .= "<tr >\n";       
+			if($j==-1){
+				$s .= "<td class=\"$class\" style='height:200px;width:50px;' nowrap>&nbsp;</td>";
+			}else{
+				$s .= "<td class=\"$class\" style='height:70px;width:50px;padding:5 0 0 5;font-size:17px;vertical-align:top;' nowrap>".str_pad($j,2,"0",STR_PAD_LEFT).":00</td>";
+			}
+		}
+    	        $s .= "<td class=\"$class\" style='overflow:hidden;' id='week$line' align=\"left\" valign=\"top\" ondblclick=\"PopSWindow('work_add.php?mmode=pop&sdate=".$year.$month.str_pad($d,2,"0",STR_PAD_LEFT)."&stime=".str_pad($j,2,"0",STR_PAD_LEFT)."',680,750,'member_info');\"><!-- onMouseout=\"mouseOnTD2('$line',false);\" onmouseover=\"mouseOnTD2('$line',true);\" -->";       
+    	       // if ($d > 0 && $d <= $daysInMonth)
+    	       // {
+    	            $link = $this->getDateLink($d, $month, $year);
+    	            //$s .= (($link == "") ? $d : "<a href=\"$link\"  class='calendar_a'>$d</a><br>");
+		
+
+			
+			$d = str_pad($d,2,"0",STR_PAD_LEFT);
+			//echo $year.$month.$d.str_pad($j,2,"0",STR_PAD_LEFT)."<br>";
+			//exit;
+			//print_r($this->Schedule[$year.$month.$d.str_pad($j,2,"0",STR_PAD_LEFT)]);
+			//exit;
+			if($j == -1){
+				$this_day = date("Ymd",mktime(0,0,0,substr($_GET["vdate"],4,2),substr($_GET["vdate"],6,2)+$i,substr($_GET["vdate"],0,4))).str_pad(0,2,"0",STR_PAD_LEFT);
+			}else{
+				$this_day = date("Ymd",mktime(0,0,0,substr($_GET["vdate"],4,2),substr($_GET["vdate"],6,2)+$i,substr($_GET["vdate"],0,4))).str_pad($j,2,"0",STR_PAD_LEFT);
+			}
+			//print_r($this->Schedule);
+			//echo $this_day."<br>";
+			if(is_array($this->Schedule[$this_day])){
+				if($j == -1 ){
+					if($j == -1){
+						//$s .= "<div style='border:0px solid blue;width:100%;float:left;'>";
+						$s .= "&nbsp;<div style='position:absolute;width:100%;float:left;'>";
+					}else{
+						$s .= "&nbsp;<div style='position:absolute;width:100%;float:left;'>";
+					}
+				}else{
+					$s .= "&nbsp;<div style='position:absolute;width:100%;float:left;'>";
+				}
+				$before_job_cnt=0;
+				foreach($this->Schedule[$this_day] as $key => $value){
+					//echo count($this->Schedule[$this_day]);
+					
+					if($j == -1 || $value["sdate"] != $value["dday"]){
+						if($value[dtime] == "00:00" || $value["sdate"] != $value["dday"]){
+							$start_time = split(":",$value[stime]);
+							$end_time = split(":",$value[dtime]);
+
+							if($value["sdate"] != $value["dday"]){
+								$width = "208%";
+								$width = 104+104*(substr($value[dday],-2) - substr($value[sdate],-2));
+								$width = $width."%";
+							}else{
+								$width = "104%";
+							}
+							if($value[work_title]=="" && $j == -1){
+								$s .= "<div style='margin:1px;float:left;z-index:2;left:-8px;top:-3px;border:0px solid red;position:relative;width:95%;height:26px;'>&nbsp;</div>";
+							}else if($j == -1 && $value["sdate"] != $value["dday"]){
+							$s .= "
+								<div style='margin:1px;padding:3px;left:-7px;top:-4px;float:left;z-index:2;background-color:#efefef;border:1px solid gray;position:relative;width:".$width.";height:25px;'>
+								<table border=0 cellpadding=0 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >
+									<col width='60px;'>
+									<col width='*'>
+									<col width='60px;'>";
+								$s .= "<tr><td >".substr($value[sdate],-2)."일 ".$value[stime]."</td><td style='line-height:140%'>".$value[work_title]."</td><td >".substr($value[dday],-2)."일 ".$value[dtime]."</td></tr>";
+							$s .= "</table></div>";
+							}else if($value[stime] == "00:00" && $value[dtime] == "00:00" && $value["sdate"] == $value["dday"]){
+							$s .= "<div style='margin:1px;padding:3px;left:-7px;top:-4px;float:left;z-index:2;background-color:#efefef;border:1px solid gray;position:relative;width:".$width.";height:25px;'>
+								<table border=0 cellpadding=0 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >
+									<!--col width='35px;'-->
+									<col width='*'>";
+								$s .= "<tr><!--td valign=top>".$value[stime]."</td--><td style='line-height:140%'>".$value[work_title]."</td></tr>";
+							$s .= "</table></div>";
+							}
+						}else{
+							$s .= "<table border=0 cellpadding=0 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >";				
+							$s .= "</table>";
+						}
+					}else{
+						if($value[dtime] != "00:00"){
+							$start_time = split(":",$value[stime]);
+							$end_time = split(":",$value[dtime]);
+							if($value[work_title]==""){
+								$s .= "<div style='float:left;z-index:2;left:-9px;top:-5px;border:0px solid red;position:relative;width:width_".$i.";height:75px;'>&nbsp;</div>";
+							}else{
+								if($value["sdate"] == $value["dday"]){
+									$s .= "
+										<div style='float:left;z-index:2;left:-9px;top:-5px;background-color:#efefef;border:1px solid gray;position:relative;width:width_".$i.";height:".(75*($end_time[0]-$start_time[0]))."px;'>
+										<table border=0 cellpadding=0 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >
+											<!--col width='35px;'-->
+											<col width='*'>";
+										$s .= "<tr><!--td valign=top>".$value[stime]."</td--><td style='line-height:140%'>".$value[stime]."~".$value[dtime]."<br>".$value[work_title]."</td></tr>";
+									$s .= "</table></div>";
+								}
+							}
+						}else{
+							$s .= "<table border=0 cellpadding=0 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >";				
+							$s .= "<tr><td></td></tr>";
+							$s .= "</table>";
+						}
+					}
+					if($value[stime] != $value[dtime]){
+						$before_job_cnt++;
+					}
+
+				}
+				if($j == -1){
+					$s .= "</div>";
+				}else{
+					$s .= "</div>";
+				}
+			}else{
+				$s .= "<table border=0 cellpadding=2 cellspacing=0 style='width:100%;text-align:left;table-layout:fixed;' >";				
+				$s .= "</table>";
+			}
+			
+
+    	       /*}
+    	        else
+    	        {
+    	            //$s .= "&nbsp;";
+		    $s .= (($link == "") ? $d : "<a href=\"$link\"  class='calendar_a'>$d</a><br>");
+    	        }
+		*/
+      	        $s .= "</td>\n";  
+		//echo $i;
+		if($j > 0 && $max_work_cnt[$i] < count($this->Schedule[$this_day])){
+			
+			$max_work_cnt[$i] = count($this->Schedule[$this_day]);
+			//echo $max_work_cnt[$i]."<br>";
+		}
+		
+		
+		if($j == 23 && $max_work_cnt[$i] > 0){
+		  // echo $i.":::".$max_work_cnt[$i]."<br>";
+			$s = str_replace("width:width_".$i,"width:".(96/$max_work_cnt[$i])."%",$s);
+		}
+
+		if($i == 6){
+			
+			$s .= "</tr>\n";
+			//$max_work_cnt[$i] = 0;
+		}
+        	    $d++;
+    	    }
+    	
+
+    	 }   
+    	
+    	
+    	
+    	$s .= "</table>\n";
+    	
+    	return $s;  	
+    }
+    
+    
+    /*
+        Generate the HTML for a given year
+    */
+    function getYearHTML($year)
+    {
+        $s = "";
+    	$prev = $this->getCalendarLink(0, $year - 1);
+    	$next = $this->getCalendarLink(0, $year + 1);
+        
+        $s .= "<table class=\"calendar\" border=\"0\">\n";
+        $s .= "<tr>";
+    	$s .= "<td align=\"center\" valign=\"top\" align=\"left\">" . (($prev == "") ? "&nbsp;" : "<a href=\"$prev\"  class='calendar_a'>&lt;&lt;</a>")  . "</td>\n";
+        $s .= "<td class=\"calendarHeader\" valign=\"top\" align=\"center\">" . (($this->startMonth > 1) ? $year . " - " . ($year + 1) : $year) ."</td>\n";
+    	$s .= "<td align=\"center\" valign=\"top\" align=\"right\">" . (($next == "") ? "&nbsp;" : "<a href=\"$next\"  class='calendar_a'>&gt;&gt;</a>")  . "</td>\n";
+        $s .= "</tr>\n";
+        $s .= "<tr>";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(0 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(1 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(2 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "</tr>\n";
+        $s .= "<tr>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(3 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(4 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(5 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "</tr>\n";
+        $s .= "<tr>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(6 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(7 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(8 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "</tr>\n";
+        $s .= "<tr>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(9 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(10 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "<td class=\"calendar\" valign=\"top\">" . $this->getMonthHTML(11 + $this->startMonth, $year, 0) ."</td>\n";
+        $s .= "</tr>\n";
+        $s .= "</table>\n";
+        
+        return $s;
+    }
+
+    /*
+        Adjust dates to allow months > 12 and < 0. Just adjust the years appropriately.
+        e.g. Month 14 of the year 2001 is actually month 2 of year 2002.
+    */
+    function adjustDate($month, $year)
+    {
+        $a = array();  
+        $a[0] = $month;
+        $a[1] = $year;
+        
+        while ($a[0] > 12)
+        {
+            $a[0] -= 12;
+            $a[1]++;
+        }
+        
+        while ($a[0] <= 0)
+        {
+            $a[0] += 12;
+            $a[1]--;
+        }
+        
+        return $a;
+    }
+
+    /* 
+        The start day of the week. This is the day that appears in the first column
+        of the calendar. Sunday = 0.
+    */
+    var $startDay = 0;
+
+    /* 
+        The start month of the year. This is the month that appears in the first slot
+        of the calendar in the year view. January = 1.
+    */
+    var $startMonth = 1;
+
+    /*
+        The labels to display for the days of the week. The first entry in this array
+        represents Sunday.
+    */
+    var $dayNames = array("일", "월", "화", "수", "목", "금", "토");
+    
+    /*
+        The labels to display for the months of the year. The first entry in this array
+        represents January.
+    */
+    var $monthNames = array("January", "February", "March", "April", "May", "June",
+                            "July", "August", "September", "October", "November", "December");
+                            
+                            
+    /*
+        The number of days in each month. You're unlikely to want to change this...
+        The first entry in this array represents January.
+    */
+    var $daysInMonth = array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+    
+}
+
+
+
+?>
+

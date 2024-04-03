@@ -1,0 +1,50 @@
+<?
+
+set_time_limit(9999999);
+
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/openapi/openapi.lib.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/sellertool/sellertool.lib.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/include/global_util.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/include/lib.function.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/include/admin.util.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/inventory/inventory.lib.php");
+
+$db = new Database;
+$sql = "select mall_ix,mall_data_root, mall_type from shop_shopinfo  where mall_div = 'B'  ";
+$db->query($sql);
+$db->fetch();
+
+$admininfo[mall_ix] = $db->dt[mall_ix];
+$admininfo[mall_data_root] = $db->dt[mall_data_root];
+$admininfo[admin_level] = 9;
+$admininfo[language] = 'korea';
+$admininfo[mall_type] = $db->dt[mall_type];
+$admin_config[mall_data_root] = $db->dt[mall_data_root];
+
+$startTime = date("YmdHi",strtotime("-1 hours"));
+$endTime = date("YmdHi");
+
+//30분마다
+//$startTime = "201409250000";
+//$endTime = "201409252300";
+
+//하프클럽
+/*
+getOrderList('halfclub',$startTime,$endTime);
+getCancelApplyOrderList('halfclub',$startTime,$endTime);
+getReturnApplyOrderList('halfclub',$startTime,$endTime);
+getDeliveryCancelApplyOrderList('halfclub',$startTime,$endTime);
+*/
+
+//옥션
+getOrderList('auction',$startTime,$endTime);
+//sellerToolUpdateOrderStatus(ORDER_STATUS_DELIVERY_ING,'400187');
+//getCancelApplyOrderList('auction',$startTime,$endTime);
+//sellerToolUpdateOrderStatus(ORDER_STATUS_CANCEL_COMPLETE,'400175');
+//getDeliveryCancelApplyOrderList('auction',$startTime,$endTime);
+//getReturnApplyOrderList('auction',$startTime,$endTime);
+//sellerToolUpdateOrderStatus(ORDER_STATUS_RETURN_COMPLETE,'400175');
+//getExchangeApplyOrderList('auction',$startTime,$endTime);
+
+//setOrderReturnDefer('auction');
+?>

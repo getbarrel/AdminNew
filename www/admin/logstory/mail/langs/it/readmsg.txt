@@ -1,0 +1,27 @@
+; ***************************************** ;
+; Reading a message                         ;
+; ***************************************** ;
+
+next_mnu					= Prossimo
+previous_mnu					= Precedente
+back_mnu					= Indietro
+reply_mnu					= Rispondi
+reply_all_mnu					= Rispondi a tutti
+forward_mnu					= Inoltra
+headers_mnu					= Intestazione
+move_mnu					= Sposta in
+delete_mnu					= Cancella
+
+from_hea					= Da:
+to_hea						= A:
+cc_hea						= CC:
+date_hea					= Data:
+subject_hea					= Oggetto:
+attach_hea					= Allegati:
+
+attch_name_hea					= Nome
+attch_force_hea					= Scarica
+attch_type_hea					= Tipo
+attch_size_hea					= Dimensione
+
+catch_address					= Aggiungi l'indirizzo del mittente nella rubrica

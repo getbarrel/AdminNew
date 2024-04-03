@@ -1,0 +1,9 @@
+
+; ***************************************** ;
+; Error			                    ;
+; ***************************************** ;
+
+err_title			= Error
+err_msg				= An error occurred in your session <br><br>Please login again:
+err_system_msg			= System message: 
+err_exit			= Login again

@@ -1,0 +1,1269 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: moon
+ * Date: 2019-04-01
+ * Time: 오후 3:56
+ */
+if (!class_exists('SmsData'))
+{ // 클래스선언이 없으면...
+
+    class SmsData {
+
+
+
+        public function __construct(){
+
+
+        }
+
+        function sendInsert($send_data){
+            global $sms_db;
+
+            $data_key = array('send_name','sms_div');
+
+
+
+            if(trim($send_data['msg_body']) != ""){
+
+                $msg_body = str_replace("\r", "",$send_data['msg_body']);
+                $text_encoding = mb_detect_encoding($msg_body, "EUC-KR, UTF-8, ASCII,CP949");
+
+                if($text_encoding){
+                    $message_len = mb_strwidth($msg_body,$text_encoding);
+                }else{
+                    $message_len = strlen($msg_body);
+                }
+
+                $dest_phone_len = strlen($send_data['dest_phone']);
+
+
+                $msg_body_utf8 = iconv("CP949", "utf-8", $send_data['msg_body']);
+                $dest_name_utf8 = iconv("CP949", "utf-8", $send_data['dest_name']);
+                $send_name_utf8 = iconv("CP949", "utf-8", $send_data['send_name']);
+                $sms_div_utf8 = iconv("CP949", "utf-8", $send_data['sms_div']);
+                $sms_send_type_utf8 = iconv("CP949", "utf-8", $send_data['sms_send_type']);
+
+
+                $cmid = uniqid(rand());
+                //LMS일떄
+                if(empty($send_data['send_type'])){
+                    if($message_len > 80){
+                        //syslog(LOG_INFO,'SMS->LMS change / Greater than 80 bytes');
+                        $send_type = 3;
+                        $k_next_type = 5;
+                    }else{
+                        $send_type = 1;
+                        $k_next_type = 4;
+                    }
+                }else{
+                    $send_type = $send_data['send_type'];
+                    $k_next_type = 5;
+                }
+
+                if($send_data['send_time'] == 0 || $send_data['send_time'] == ''){
+                    $send_time	= date('Y-m-d H:i:s');
+                }else{
+                    $send_time	= $send_data['send_time'];
+                }
+
+                if($send_type	== 6){
+                    //syslog(LOG_INFO,'send to LMS');
+                    //즉시발송 일때 현재날짜로 발송
+
+
+                    $sql = "INSERT 
+                                msg_queue 
+                            SET
+                                msg_type = '6',                           
+                                dstaddr = '".$send_data['dest_phone']."',
+                                callback = '".$send_data['send_phone']."',
+                                stat = '0',
+                                subject = '".$send_data['send_title']."',
+                                sender_key = 'bcb6ec71a59a43acfca91dec164103cfc7bc6ba2',
+                                k_template_code = '".$send_data['templete_code']."',
+                                k_next_type  = $k_next_type,
+                                k_attach = '".$send_data['btn_code']."',
+                                text = '".$msg_body_utf8."',
+                                request_time = '".$send_time."',
+                                opt_post = '".$send_name_utf8."',
+                                opt_name = '".$dest_name_utf8."',
+                                
+                                ext_col1 = '".$send_data['send_host']."',
+                                ext_col3 = '".$send_data['msg_code']."',
+                                ext_col4 = '".$send_data['dest_code']."'
+                            ";
+                    //ext_col0 = '".$sms_send_type_utf8."', 컴럼 타입 문제로 제거
+
+                    //$sms_db->query($sql);
+
+
+                }else if($send_type == 3){
+                    $sql = "INSERT 
+                                msg_queue 
+                            SET
+                                msg_type = '3',                           
+                                dstaddr = '".$send_data['dest_phone']."',
+                                callback = '".$send_data['send_phone']."',
+                                stat = '0',
+                                subject = '".$send_data['send_title']."',
+                                text = '".$msg_body_utf8."',
+                                request_time = '".$send_time."',
+                                opt_post = '".$send_name_utf8."',
+                                opt_name = '".$dest_name_utf8."',
+                               
+                                ext_col1 = '".$send_data['send_host']."',
+                                ext_col3 = '".$send_data['msg_code']."',
+                                ext_col4 = '".$send_data['dest_code']."'
+                            ";
+                    //ext_col0 = '".$sms_send_type_utf8."', 컴럼 타입 문제로 제거
+                    //$sms_db->query($sql);
+                }else{
+
+
+                    $sql = "INSERT 
+                                msg_queue 
+                            SET
+                                msg_type = '1',                           
+                                dstaddr = '".$send_data['dest_phone']."',
+                                callback = '".$send_data['send_phone']."',
+                                stat = '0',
+                                subject = '".$send_data['send_title']."',
+                                text = '".$msg_body_utf8."',
+                                request_time = '".$send_time."',
+                                opt_post = '".$send_name_utf8."',
+                                opt_name = '".$dest_name_utf8."',
+                               
+                                ext_col1 = '".$send_data['send_host']."',
+                                ext_col3 = '".$send_data['msg_code']."',
+                                ext_col4 = '".$send_data['dest_code']."'
+                            ";
+                    //ext_col0 = '".$sms_send_type_utf8."', 컴럼 타입 문제로 제거
+                    //$sms_db->query($sql);
+
+                }
+                $mysql_hostname = '10.41.224.102';
+                $mysql_username = 'barrel_prod';
+                $mysql_password = 'barrel!#@$prod';
+                $mysql_database = 'msg';
+
+                $connect = mysql_connect($mysql_hostname, $mysql_username, $mysql_password, $mysql_table) or die("MySQL 서버에 연결할 수 없습니다.");
+                /*if ($connect) {
+                    echo "[연결성공]<br/>";
+                } else {
+                    echo "[연결실패]<br/>";
+                }*/
+
+                mysql_query("SET NAMES UTF8");
+
+                mysql_select_db($mysql_database, $connect);
+
+                mysql_query($sql);
+            }
+        }
+
+
+        function getSMSProductLogData($send_data,$table=""){
+            global $sms_db,$page;
+            $mstring = "";
+            $total = 0;
+
+            if($send_data['search_info']){
+                $unserialize_search_value = unserialize(urldecode($send_data['search_info']));
+
+                extract($unserialize_search_value);
+            }
+
+
+            //검색 기본옵션;
+            $where	= "";
+
+            $max = 20; //페이지당 갯수
+
+            if ($page == ''){
+                $start = 0;
+                $page  = 1;
+            }else{
+                $start = ($page - 1) * $max;
+            }
+
+            if ($startDate == ""){
+                $before7day = mktime(0, 0, 0, date("m")  , date("d")-7, date("Y"));
+
+                $startDate = date("Y-m-d", $before7day);
+                $endDate = date("Y-m-d");
+            }
+
+            if($mode != "search"){
+                //$where .= "and date_format(request_time,'%Y-%m-%d') between '".$startDate."' and '".$endDate."' ";
+                $where .= "and request_time between '$startDate 00:00:00' and '$endDate 23:59:59' ";
+            }
+
+            //셀렉트 테이블명
+            if(!$table){
+                $table = "msg_result";
+            }
+
+
+
+            //기본 그룹핑 칼럼명(ext_col3: 발송코드)
+            $group	= "ext_col0";
+
+            //발송일자 검색
+            if($orderdate && $mode == "search"){
+//			$where .= "and date_format(request_time,'%Y-%m-%d') between '".$startDate."' and '".$endDate."' ";
+                $where .= "and request_time between '$startDate 00:00:00' and '$endDate 23:59:59' ";
+            }
+
+            //조건검색
+            $send_type = "A";
+            if($send_type == "A"){
+                $where .= " and ext_col0 = 'A' ";
+            }else if($send_type == "M"){
+                $where .= " and ext_col0 = 'M' ";
+            }
+
+            //데이터 유무 판단 쿼리
+            $sql = "select count(*) as smscount from ".$table." GROUP BY $group ";
+
+            $sms_db->query($sql);
+            if($sms_db->total){
+                $sms_db->fetch();
+                $smscount = $sms_db->dt['smscount'];
+            }  else {
+                $smscount = 0;
+            }
+
+            if($smscount == 0)
+            {
+                $mstring .= " <table style='BORDER-COLLAPSE: collapse' borderColor=#cccccc cellSpacing=0 cellPadding=0 width='100%' border=1>
+				<tr align=middle height=25>					
+					<td colspan='6'>데이터가 없습니다.</td>
+				</tr>";
+                $mstring .= "</table>";
+            } else {
+
+                //발송 성공. 실패 개수 구하기 2013-07-01 이학봉
+                if($send_type == "R"){
+                    $sql = "select count(mseq) as total, sum(if(result = '100',1,0)) as complate_sms , sum(if(result = '100',0,1)) as return_sms from msg_queue where 1 $where group by $group";
+                }else{
+                    $sql = "select count(mseq) as total, sum(if(result = '100',1,0)) as complate_sms , sum(if(result = '100',0,1)) as return_sms from ".$table." where 1 $where group by $group";
+                }
+
+                $sms_db->query($sql);
+                $sms_data = $sms_db->fetchall();
+
+                //전체발송 개수
+                if(count($sms_data) > 0){
+                    $total = 0;
+                    $complate_sms = 0;
+                    $return_sms = 0;
+                    if(is_array($sms_data)){
+                        foreach($sms_data as $key=>$val){
+                            $total = $total + $val['total'];
+                            $complate_sms = $complate_sms + $val['complate_sms'];
+                            $return_sms = $return_sms + $val['return_sms'];
+                        }
+                    }
+                }else{
+                    $total = 0;
+                    $complate_sms = 0;
+                    $return_sms = 0;
+                }
+
+
+
+
+                $mstring = "	<Script Language='JavaScript' src='http://sms.mallstory.com/js/sms.design.js'></Script>
+
+			<table border='0' cellspacing='0' cellpadding='0' width='100%'>
+				<tr>
+					<td align='lfet'>
+						전체 발송 건수 : <b>".number_format($total)."건</b> 성공 : <b class='blue'>".number_format($complate_sms)."건</b> 실패 : <b class='red'>".number_format($return_sms)."건</b>
+					</td>					
+				</tr>
+			</table>
+			<table width='100%' cellpadding=3 cellspacing=0 border='0' align='left'  class='list_table_box'>
+			<tr height='28' bgcolor='#ffffff'>
+				<td width='5%' align='center' class='m_td'><font color='#000000'><b>순번</b></font></td>
+				<td width='10%' align='center' class='m_td'><font color='#000000'><b>발송요청일/<br />발송일</font></td>
+				<td width='15%' align='center' class=m_td ><font color='#000000'><b>문자구분</b></font></td>
+				<td width='15%' align='center' class=m_td ><font color='#000000'><b>발송요청</b></font></td>
+				<td width='15%' align='center' class=m_td ><font color='#000000'><b>실패</b></font></td>
+				<td width='15%' align='center' class=m_td ><font color='#000000'><b>성공</b></font></td>
+				<td width='5%' align='center' class=m_td><font color='#000000'><b>총SMS발송건수<br />(LMS*3건)</b></font></td>
+			</tr>
+						";
+
+                if($send_type == "R"){
+
+                    $sql = "SELECT * , count(*) as tsum, 
+                    count(if(msg_type='1',1,NULL)) as stotal, 
+                    count(if(msg_type='3',1,NULL)) as ltotal,
+                    count(if(msg_type='6',1,NULL)) as ktotal,
+					count(if(result = 100,1,NULL)) as ssum, 
+					count(if(result != 100,1,NULL)) as fsum, 
+					count(if(result = 100 && msg_type=3,1,NULL)) as slms, 
+					count(if(result != 100 && msg_type=3,1,NULL)) as flms,
+					count(if(result = 100 && msg_type=1,1,NULL)) as ssms, 
+					count(if(result != 100 && msg_type=1,1,NULL)) as fsms,
+					count(if(result = 100 && msg_type=6,1,NULL)) as skakao, 
+					count(if(result != 100 && msg_type=6,1,NULL)) as fkakao,
+					msg_type, date_format(save_time, '%Y-%m-%d') as date, request_time,save_time, ext_col0 as send, ext_col1 as domain,
+					'shop_account' as account, ext_col3 as sender_id, opt_name as receiver_name, text, result as result_code
+					FROM msg_queue 
+					WHERE 1
+					$where
+					GROUP BY $group";
+
+                }else{
+
+                    $sql = "SELECT * , count(*) as tsum, 
+                    count(if(msg_type='1',1,NULL)) as stotal, 
+                    count(if(msg_type='3',1,NULL)) as ltotal,
+                    count(if(msg_type='6',1,NULL)) as ktotal,
+					count(if(result = 100,1,NULL)) as ssum, 
+					count(if(result != 100,1,NULL)) as fsum, 
+					count(if(result = 100 && msg_type=3,1,NULL)) as slms, 
+					count(if(result != 100 && msg_type=3,1,NULL)) as flms,
+					count(if(result = 100 && msg_type=1,1,NULL)) as ssms, 
+					count(if(result != 100 && msg_type=1,1,NULL)) as fsms,
+					count(if(result = 100 && msg_type=6,1,NULL)) as skakao, 
+					count(if(result != 100 && msg_type=6,1,NULL)) as fkakao,
+					msg_type, date_format(save_time, '%Y-%m-%d') as date, request_time,save_time, ext_col0 as send, ext_col1 as domain,
+					'shop_account' as account, ext_col3 as sender_id, opt_name as receiver_name, text, result as result_code
+					FROM ".$table." 
+					WHERE 1
+					$where
+					GROUP BY $group";
+                }
+
+                $sms_db->query($sql);
+
+                $no = $total -(($page-1)*$max);
+
+                if($total){
+
+                    for($i=0;$i < $sms_db->total;$i++){
+
+                        $sms_db->fetch($i);
+
+                        $sms_total			=	$sms_db->dt['stotal'];
+                        $lms_total			=	$sms_db->dt['ltotal'];
+                        $kakao_total		=	$sms_db->dt['ktotal'];
+                        $msg_ok_total		=	$sms_db->dt['ssum'];
+                        $msg_fail_total		=	$sms_db->dt['fsum'];
+                        $msg_total			=	$sms_db->dt['tsum'];
+                        $sms_ok_total		=	$sms_db->dt['ssms'];
+                        $lms_ok_total		=	$sms_db->dt['slms'];
+                        $kakao_ok_total		=	$sms_db->dt['skakao'];
+                        $sms_fail_total		=	$sms_db->dt['fsms'];
+                        $lms_fail_total		=	$sms_db->dt['flms'];
+                        $kakao_fail_total			=	$sms_db->dt['fkakao'];
+
+                        //실제 차감건
+                        $charge_cnt	=	$sms_ok_total+ $lms_ok_total *3;
+
+                        //SMS 발송 성공율
+                        if(!empty($sms_ok_total) && !empty($sms_total)){
+                            $sms_sper	=	substr($sms_ok_total / $sms_total * 100 , 0 , 5);
+                        }else{
+                            $sms_sper	= 0;
+                        }
+                        //SMS 발송 실패율
+                        if(!empty($sms_fail_total) && !empty($sms_total)){
+                            $sms_fper	=	substr($sms_fail_total / $sms_total * 100 , 0 , 5);
+                        }else{
+                            $sms_fper	= 0;
+                        }
+                        //LMS 발송 성공율
+                        if(!empty($lms_ok_total) && !empty($lms_total)){
+                            $lms_sper	=	substr($lms_ok_total / $lms_total * 100 , 0 , 5);
+                        }else{
+                            $lms_sper	= 0;
+                        }
+                        //LMS 발송 실패율
+                        if(!empty($lms_fail_total) && !empty($lms_total)){
+                            $lms_fper	=	substr($lms_fail_total / $lms_total * 100 , 0 , 5);
+                        }else{
+                            $lms_fper	= 0;
+                        }
+                        //MSG 발송 성공율
+                        if(!empty($msg_ok_total) && !empty($msg_total)){
+                            $msg_sper	=	substr($msg_ok_total / $msg_total * 100 , 0 , 5);
+                        }else{
+                            $msg_sper	= 0;
+                        }
+                        //MSG 발송 실패율
+                        if(!empty($msg_fail_total) && !empty($msg_total)){
+                            $msg_fper	=	substr($msg_fail_total / $msg_total * 100 , 0 , 5);
+                        }else{
+                            $msg_fper	= 0;
+                        }
+                        //KAKAO 발송 성공율
+                        if(!empty($kakao_ok_total) && !empty($kakao_total)){
+                            $kakao_sper	=	substr($kakao_ok_total / $kakao_total * 100 , 0 , 5);
+                        }else{
+                            $kakao_sper	= 0;
+                        }
+                        //KAKAO 발송 실패율
+                        if(!empty($kakao_fail_total) && !empty($kakao_total)){
+                            $kakao_fper	=	substr($kakao_fail_total / $kakao_total * 100 , 0 , 5);
+                        }else{
+                            $kakao_fper	= 0;
+                        }
+
+                        $mstring .= "	<tr height='28'>
+								<td align='center' rowspan='4'>".$no."</input></td>
+								<td align='center' rowspan='4'>".substr($sms_db->dt['request_time'],0,10)."<br /><b>".substr($sms_db->dt['save_time'],0,10)."<br />".$sms_db->dt['ext_col3']."</b></td>
+								<td align='center'><b>SMS</b></td>
+								<td align='right' style='padding-right:3%'><b>".$sms_total."</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:red'>".$sms_fail_total." / ".$sms_fper."%</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:blue'>".$sms_ok_total." / ".$sms_sper."%</b></td>
+								<td align='center' rowspan='4'>".$charge_cnt."건</td>								
+							  </tr> 
+							  <tr>
+								<td align='center'><b>LMS</b></td>
+								<td align='right' style='padding-right:3%'><b>".$lms_total."</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:red'>".$lms_fail_total." / ".$lms_sper."%</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:blue'>".$lms_ok_total." / ".$lms_fper."%</b></td>
+							  </tr>
+							  <tr>
+								<td align='center'><b>KAKAO</b></td>
+								<td align='right' style='padding-right:3%'><b>".$kakao_total."</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:red'>".$kakao_fail_total." / ".$kakao_sper."%</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:blue'>".$kakao_ok_total." / ".$kakao_fper."%</b></td>
+							  </tr>
+							  <tr>
+								<td align='center'><b>합계</b></td>
+								<td align='right' style='padding-right:3%'><b>".$msg_total."</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:red'>".$msg_fail_total." / ".$msg_fper."%</b></td>
+								<td align='right' style='padding-right:3%'><b style='color:blue'>".$msg_ok_total." / ".$msg_sper."%</b></td>
+							  </tr>
+								";
+                        $no--;
+                    }
+
+                }else{
+                    $mstring .= "	<tr  height=30  align='center'>
+								<td colspan='16'>데이터가없습니다.</td>
+							</tr>";
+                }
+                $mstring .= "</table>";
+            }
+            $mstring .= "<TABLE james style='BORDER-COLLAPSE: collapse' borderColor=#ffffff cellSpacing=0 cellPadding=0 width='100%' border=1>
+						<tr height=50 bgcolor=#ffffff><td align=center>".page_bar($total, $page, $max,  "&max=$max&license=$license&regdate=$regdate&mall_domain_key=$mall_domain_key&send_date=$send_date&search_type=$search_type&search_text=$search_text&startDate=$startDate&endDate=$endDate")."</td></tr>
+					</table>";
+            return $mstring;
+        }
+
+        function getSMSSendLogTable(){
+
+        global $sms_db;
+
+        $sql = "SHOW TABLES LIKE 'msg_result%'";
+        $sms_db->query($sql);
+
+        $tables = $sms_db->fetchall();
+        $getName = array();
+        if(is_array($tables)){
+            foreach($tables as $key=>$val){
+                $getName[] = str_replace('msg_result_','',$val['Tables_in_msg (msg_result%)']);
+            }
+        }
+
+        return $getName;
+
+
+        exit;
+/*
+        $mysql_hostname = '10.41.224.102';
+        $mysql_username = 'barrel_prod';
+        $mysql_password = 'barrel!#@$prod';
+        $mysql_database = 'msg';
+
+        $connect = mysql_connect($mysql_hostname, $mysql_username, $mysql_password, $mysql_table) or die("MySQL 서버에 연결할 수 없습니다.");
+
+        mysql_query("SET NAMES UTF8");
+
+        mysql_select_db($mysql_database, $connect);
+
+        $sql = "SHOW TABLES LIKE 'msg_result%'";
+        $result = mysql_query($sql);
+
+        while ($row = mysql_fetch_array($result, MYSQL_NUM)) {
+            $getName[] = str_replace('msg_result_','',$row[0]);
+        }
+
+        return $getName;
+*/
+        }
+
+        function getSMSProductLogDetailData($send_data,$table=""){
+            global $sms_db ,$page;
+
+            if(!$table) {
+                $table = "msg_result";
+            }
+
+            $where = "";
+            $count_where = "";
+            $mstring = "";
+            $total = 0;
+            if(empty($send_data['date_type'])){
+                $date_type="request_time";
+            }
+
+            if(!empty($send_data['code'])){
+                $where .= "and ext_col4 = '".$send_data['code']."'";
+            }
+
+            //검색어 POST받아서 나눔
+            if($send_data['search_info']){
+                $unserialize_search_value = unserialize(urldecode($send_data['search_info']));
+
+                extract($unserialize_search_value);
+            }
+
+
+            //검색 1주일단위 디폴트
+            if ($startDate == ""){
+                $before7day = mktime(0, 0, 0, date("m")  , date("d")-7, date("Y"));
+
+                $startDate = date("Y-m-d", $before7day);
+                $endDate = date("Y-m-d");
+
+            }
+
+            if($mode != "search"){
+                //$where .= "and date_format(".$date_type.",'%Y-%m-%d') between '".$startDate."' and '".$endDate."' ";
+                $where .= "and ".$date_type." between '$startDate 00:00:00' and '$endDate 23:59:59' ";
+            }
+
+            $max = 20; //페이지당 갯수
+
+            if ($page == ''){
+                $start = 0;
+                $page  = 1;
+            }else{
+                $start = ($page - 1) * $max;
+            }
+
+            if($orderdate){
+                //$where .= "and date_format(".$date_type.",'%Y-%m-%d') between '".$startDate."' and '".$endDate."' ";
+                $where .= "and ".$date_type." between '$startDate 00:00:00' and '$endDate 23:59:59' ";
+            }
+
+            //발송구분
+            if(is_array($send_type)){
+                for($i=0;$i < count($send_type);$i++){
+                    if($send_type[$i] != ""){
+                        if($send_type_str == ""){
+                            $send_type_str .= "'".$send_type[$i]."'";
+                            $page_search_send_type .= "&send_type[]=".$send_type[$i]."";
+                        }else{
+                            $send_type_str .= ",'".$send_type[$i]."' ";
+                            $page_search_send_type .= "&send_type[]=".$send_type[$i]."&";
+                        }
+                    }
+                }
+
+                if($send_type_str != ""){
+                    $where .= " AND ext_col0 in ($send_type_str) ";
+                }
+            }else{
+                if($send_type){
+                    $where .= " AND ext_col0 = '$send_type' ";
+                    $page_search_send_type .= "&send_type=".$send_type."";
+                }
+            }
+
+            //SMS/LMS 구분
+            if(is_array($sms_type)){
+                for($i=0;$i < count($sms_type);$i++){
+                    if($sms_type[$i] != ""){
+                        if($sms_type_str == ""){
+                            $sms_type_str .= "'".$sms_type[$i]."'";
+                            $page_search_sms_type .= "&sms_type[]=".$sms_type[$i]."";
+                        }else{
+                            $sms_type_str .= ",'".$sms_type[$i]."' ";
+                            $page_search_sms_type .= "&sms_type[]=".$sms_type[$i]."&";
+                        }
+                    }
+                }
+
+                if($sms_type_str != ""){
+                    $where .= " AND msg_type in ($sms_type_str) ";
+                }
+            }else{
+                if($sms_type){
+                    $where .= " AND msg_type = '$sms_type' ";
+                    $page_search_sms_type .= "&sms_type[]=".$sms_type[$i]."";
+                }
+            }
+
+            //발송타입 구분
+            if(is_array($message_type)){
+                for($i=0;$i < count($message_type);$i++){
+                    //if($message_type[$i] != ""){
+                    if($message_type_str == ""){
+                        $message_type_str .= "'".$message_type[$i]."'";
+                        $page_search_message_type .= "&message_type[]=".$message_type[$i]."";
+                    }else{
+                        $message_type_str .= ",'".$message_type[$i]."' ";
+                        $page_search_message_type .= "&message_type[]=".$message_type[$i]."&";
+                    }
+                    //}
+                }
+
+                if($message_type_str != ""){
+                    $where .= " AND ext_col3 in ($message_type_str) ";
+                }
+            }else{
+                if($message_type){
+                    $where .= " AND ext_col3 = '$message_type' ";
+                    $page_search_message_type .= "&message_type[]=".$message_type[$i]."";
+                }
+            }
+
+            if($success_type != ""){
+                if(count($success_type) == "2"){
+
+                }else{
+                    if($success_type[0] == "100"){
+                        $where .= " AND result = '100' ";
+                    }else{
+                        $where .= " AND (result != '100' or result is null) ";
+                    }
+                }
+            }
+
+            if(is_array($success_type)){
+                for($i=0;$i < count($success_type);$i++){
+                    if($success_type[$i] != ""){
+                        if($success_type_str == ""){
+                            $page_search_success_type .= "&success_type[]=".$success_type[$i]."";
+                        }else{
+                            $page_search_success_type .= "&success_type[]=".$success_type[$i]."&";
+                        }
+                    }
+                }
+            }
+
+            if($mult_search_use == '1'){	//다중검색 체크시 (검색어 다중검색)
+                //다중검색 시작 2014-04-10 이학봉
+
+                if($search_text != ""){
+                    if(strpos($search_text,",") !== false){
+                        $search_array = explode(",",$search_text);
+                        $search_array = array_filter($search_array, create_function('$a','return preg_match("#\S#", $a);'));
+                        $where .= "and ( ";
+                        $count_where .= "and ( ";
+                        for($i=0;$i<count($search_array);$i++){
+                            $search_array[$i] = trim($search_array[$i]);
+                            if($search_array[$i]){
+                                if($i == count($search_array) - 1){
+                                    $where .= $search_type." = '".trim($search_array[$i])."'";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."'";
+                                }else{
+                                    $where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                }
+                            }
+                        }
+                        $where .= ")";
+                        $count_where .= ")";
+                    }else if(strpos($search_text,"\n") !== false){//\n
+                        $search_array = explode("\n",$search_text);
+                        $search_array = array_filter($search_array, create_function('$a','return preg_match("#\S#", $a);'));
+                        $where .= "and ( ";
+                        $count_where .= "and ( ";
+
+                        for($i=0;$i<count($search_array);$i++){
+                            $search_array[$i] = trim($search_array[$i]);
+                            if($search_array[$i]){
+                                if($i == count($search_array) - 1){
+                                    $where .= $search_type." = '".trim($search_array[$i])."'";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."'";
+                                }else{
+                                    $where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                }
+                            }
+                        }
+                        $where .= ")";
+                        $count_where .= ")";
+                    }else{
+                        $where .= " and ".$search_type." = '".trim($search_text)."'";
+                        $count_where .= " and ".$search_type." = '".trim($search_text)."'";
+                    }
+                }
+
+            }else{	//검색어 단일검색
+                if($search_text != ""){
+                    if(substr_count($search_text,",")){
+                        $where .= " and ".$search_type." in ('".str_replace(",","','",str_replace(" ","",$search_text))."') ";
+                    }else{
+                        $where .= " and ".$search_type." LIKE '%".trim($search_text)."%' ";
+                    }
+                }
+            }
+
+            $sql = "select 
+					count(*) as smscount 
+				from 
+					".$table." 
+				where 1  $where ";
+            
+            //and year(report_time) = '$year' and month(report_time) = '$month' //ext_col2 = '$license' kbk 13/03/13
+            //echo nl2br($sql);
+
+            $sms_db->query($sql);
+            $sms_db->fetch();
+            if($sms_db->total){
+                $sms_db->fetch();
+                $smscount = $sms_db->dt['smscount'];
+            }  else {
+                $smscount = 0;
+            }
+
+            if($smscount == "0")
+            {
+                $mstring .= " <TABLE  cellSpacing=0 cellPadding=0 width='100%' border=0 class='list_table_box'>
+							<col width='5%'>
+							<col width='10%'>
+							<col width='10%'>
+							<col width='10%'>
+							<col width='10%'>
+							<col width='6%'>
+							<col width='*'>
+						<TR align=center bgColor=#f7f7f7 height=27 style='table-layout:fixed;'>					
+							<TH class=s_td>순번</TH>
+							<TH class=m_td>발송일자</TH>
+							<TH class=m_td>전달일자</TH>
+							<TH class=m_td>SMS/LMS/KAKAO</TH>
+							<TH class=m_td>연락처</TH>
+							<TH class=e_td>성공여부</TH>
+							<TH class=e_td>내용</TH>
+						</TR>
+				<TR align=middle height=25>					
+					<td colspan='7'>데이터가 없습니다.</td>
+				</TR>";
+                $mstring .= "</table>";
+            } else {
+
+                $sql = "select count(mseq) as total, sum(if(result = '100',1,0)) as complate_sms , sum(if(result = '100',0,1)) as return_sms from ".$table." where 1 $where";
+                $sms_db->query($sql);
+                $sms_db->fetch();
+                $complate_sms = $sms_db->dt['complate_sms'];
+                $return_sms = $sms_db->dt['return_sms'];
+
+                $sql = "select * from ".$table." where 1 $where";//ext_col2 = '$license' kbk 13/03/13
+
+                $sms_db->query($sql);
+                $total = $sms_db->total;
+
+                $mstring = "	<Script Language='JavaScript' src='http://sms.mallstory.com/js/sms.design.js'></Script>
+
+			<table border='0' cellspacing='0' cellpadding='0' width='100%'>
+				<tr>
+					<td align='lfet'>
+						전체 발송 건수 : <b>".number_format($total)."건</b> 성공 : <b class='blue'>".number_format($complate_sms)."건</b> 실패 : <b class='red'>".number_format($return_sms)."건</b></td>
+					<td align='right'>
+					</td>
+				</tr>
+			</table>
+					<TABLE  cellSpacing=0 cellPadding=0 width='100%' border=0 class='list_table_box' style='table-layout:fixed;'>
+							<col width='5%'>
+							<col width='10%'>
+							<col width='10%'>
+							<col width='10%'>
+							<col width='10%'>
+							<col width='6%'>
+							<col width='*'>
+						<TR align=center bgColor=#f7f7f7 height=35>					
+							<TH class=s_td>순번</TH>
+							<TH class='m_td'><b>발송일자</b></TH>
+							<TH class=m_td>전달일자</TH>
+							<TH class=m_td>SMS/LMS/KAKAO</TH>
+							<TH class=m_td>연락처</TH>
+							<TH class=e_td>성공여부</TH>
+							<TH class=e_td>내용</TH>
+						</TR>";
+
+                $sql = "SELECT * FROM ".$table." where 1 $where order by request_time desc limit $start, $max ";//ext_col2 = '$license' kbk 13/03/13
+
+                $sms_db->query($sql);
+
+                $no = $total -(($page-1)*$max);
+
+                for($i=0;$i < $sms_db->total;$i++){
+
+                    $sms_db->fetch($i);
+
+                    //SMS 타입구분
+                    if($sms_db->dt['msg_type'] == "1"){
+                        $sms_type = "SMS";
+                    }else if($sms_db->dt['msg_type'] == "3"){
+                        $sms_type = "LMS";
+                    }else if($sms_db->dt['msg_type'] == "6"){
+                        $sms_type = "KAKAO";
+                    }
+
+                    //SMS 발송구분
+                    if($sms_db->dt['ext_col0'] == "M"){
+                        $sms_send_type = "수동";
+                    }else if($sms_db->dt['ext_col0'] == "A"){
+                        $sms_send_type = "자동";
+                    }else if($sms_db->dt['ext_col0'] == ""){
+                        $sms_send_type = "-";
+                    }
+                    $sms_send_type = "";
+
+                    //SMS 수신 성공여부
+                    if($sms_db->dt['result'] == "100"){
+                        $success	=	"O";
+                    }else{
+                        $success	=	"X";
+                    }
+
+
+                    //날짜뿐만 아니라 시간까지 표시해주기 위해서  datetime_type을 넣어 표시해준다. ex) "Y-m-d",  "Y-m-d H:i:s" 등 date 함수의 형식에 맞게 - 150819
+                    if($datetime_type)
+                    {
+                        $request_time = date($datetime_type,strtotime($sms_db->dt['request_time']));
+                        $save_time =date($datetime_type,strtotime($sms_db->dt['save_time']));
+                    }
+                    else
+                    {
+                        $request_time = substr($sms_db->dt['request_time'],0,10);
+                        $save_time = substr($sms_db->dt['save_time'],0,10);
+                    }
+
+
+
+                    $mstring .= "	<tr  height=40  align='center'>					
+								<td class='list_box_td list_bg_gray'><font class=ver8>".$no."</font></td>
+								<td class='list_box_td '><font class=ver8>".$request_time."</font></td>
+								<td class='list_box_td list_bg_gray'><font class=ver8>".$save_time."<br />".$sms_send_type."</font></td>
+								<td class='list_box_td point'><font class=ver8>".$sms_type."</font></td>
+								<td class='list_box_td '><font class=ver8>".wel_masking("P", $sms_db->dt['dstaddr'])."</font></td>
+								<td class='list_box_td'>".$success."</td>
+								<td class='list_box_td' style='text-align:left;padding:10px;'>".$this->call_msg_code($sms_db->dt['ext_col3'])."".$sms_db->dt['text']."</td>
+							</tr>";
+                    $no--;
+                }
+                $mstring .= "</table>";
+            }
+
+            if($_SERVER["QUERY_STRING"] == "nset=$nset&page=$page"){
+                $query_string = str_replace("nset=$nset&page=$page","",$_SERVER["QUERY_STRING"]) ;
+            }else{
+                $query_string = str_replace("nset=$nset&page=$page&","","&".$_SERVER["QUERY_STRING"]) ;
+            }
+            $str_page_bar = page_bar($total, $page, $max, $query_string,"");
+            $mstring .= "<TABLE james style='BORDER-COLLAPSE: collapse' borderColor=#ffffff cellSpacing=0 cellPadding=0 width='100%' border=1>
+						<tr height=50 bgcolor=#ffffff><td align=center>".$str_page_bar."</td></tr>
+					</table>";
+            return $mstring;
+        }
+
+        function call_msg_code($call_status){
+            switch ($call_status) {
+                case "0101":
+                    $call_statusText = "[회원가입완료]";
+                    break;
+                case "0102":
+                    $call_statusText = "[회원탈퇴]";
+                    break;
+                case "0122":
+                    $call_statusText = "[비밀번호찾기]";
+                    break;
+                case "0204":
+                    $call_statusText = "[주문완료(무통장)]";
+                    break;
+                case "0203":
+                    $call_statusText = "[주문완료(카드)]";
+                    break;
+                case "0202":
+                    $call_statusText = "[주문완료(가상계좌)]";
+                    break;
+                case "0201":
+                    $call_statusText = "[주문완료(계좌이체)]";
+                    break;
+                case "0301":
+                    $call_statusText = "[상품발송]";
+                    break;
+                case "0402":
+                    $call_statusText = "[주문취소]";
+                    break;
+                case "0703":
+                    $call_statusText = "[1:1상담 답변]";
+                    break;
+                case "0121":
+                    $call_statusText = "[회원아이디찾기]";
+                    break;
+                default:
+                    $call_statusText = "";
+                    break;
+            }
+
+            return $call_statusText;
+        }
+
+        function getSMSProductLogListExcel($send_data){
+            global $sms_db ;
+            include($_SERVER["DOCUMENT_ROOT"]."/admin/include/phpexcel/Classes/PHPExcel.php");
+
+            PHPExcel_Settings::setZipClass(PHPExcel_Settings::ZIPARCHIVE);
+
+            date_default_timezone_set('Asia/Seoul');
+
+            $accounts_plan_priceXL = new PHPExcel();
+
+            // 속성 정의
+            $accounts_plan_priceXL->getProperties()->setCreator("포비즈 코리아")
+                ->setLastModifiedBy("Mallstory.com")
+                ->setTitle("accounts plan price List")
+                ->setSubject("accounts plan price List")
+                ->setDescription("generated by forbiz korea")
+                ->setKeywords("mallstory")
+                ->setCategory("accounts plan price List");
+
+            $accounts_plan_priceXL->getActiveSheet(0)->setCellValue('A' . 1, "번호");
+            $accounts_plan_priceXL->getActiveSheet(0)->setCellValue('B' . 1, "발송일시");
+            $accounts_plan_priceXL->getActiveSheet(0)->setCellValue('C' . 1, "발송타입");
+            $accounts_plan_priceXL->getActiveSheet(0)->setCellValue('D' . 1, "연락처");
+            $accounts_plan_priceXL->getActiveSheet(0)->setCellValue('E' . 1, "내용");
+            $accounts_plan_priceXL->getActiveSheet(0)->setCellValue('F' . 1, "성공여부");
+
+
+            $where = "";
+            if($send_data['search_info']){
+                $unserialize_search_value = unserialize(urldecode($send_data['search_info']));
+
+                extract($unserialize_search_value);
+            }
+            $table = "msg_result_".$nowMonth;
+
+            //SMS/LMS 구분
+            if(is_array($sms_type)){
+                for($i=0;$i < count($sms_type);$i++){
+                    if($sms_type[$i] != ""){
+                        if($sms_type_str == ""){
+                            $sms_type_str .= "'".$sms_type[$i]."'";
+                        }else{
+                            $sms_type_str .= ",'".$sms_type[$i]."' ";
+                        }
+                    }
+                }
+
+                if($sms_type_str != ""){
+                    $where .= " AND msg_type in ($sms_type_str) ";
+                }
+            }else{
+                if($sms_type){
+                    $where .= " AND msg_type = '$sms_type' ";
+                }
+            }
+
+            if($success_type != ""){
+                if(count($success_type) == "2"){
+
+                }else{
+                    if($success_type[0] == "100"){
+                        $where .= " AND result in ('100','0') ";
+                    }else{
+                        $where .= " AND result not in ('100','0') ";
+                    }
+                }
+            }
+
+            if($mult_search_use == '1'){	//다중검색 체크시 (검색어 다중검색)
+                //다중검색 시작 2014-04-10 이학봉
+
+                if($search_text != ""){
+                    if(strpos($search_text,",") !== false){
+                        $search_array = explode(",",$search_text);
+                        $search_array = array_filter($search_array, create_function('$a','return preg_match("#\S#", $a);'));
+                        $where .= "and ( ";
+                        $count_where .= "and ( ";
+                        for($i=0;$i<count($search_array);$i++){
+                            $search_array[$i] = trim($search_array[$i]);
+                            if($search_array[$i]){
+                                if($i == count($search_array) - 1){
+                                    $where .= $search_type." = '".trim($search_array[$i])."'";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."'";
+                                }else{
+                                    $where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                }
+                            }
+                        }
+                        $where .= ")";
+                        $count_where .= ")";
+                    }else if(strpos($search_text,"\n") !== false){//\n
+                        $search_array = explode("\n",$search_text);
+                        $search_array = array_filter($search_array, create_function('$a','return preg_match("#\S#", $a);'));
+                        $where .= "and ( ";
+                        $count_where .= "and ( ";
+
+                        for($i=0;$i<count($search_array);$i++){
+                            $search_array[$i] = trim($search_array[$i]);
+                            if($search_array[$i]){
+                                if($i == count($search_array) - 1){
+                                    $where .= $search_type." = '".trim($search_array[$i])."'";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."'";
+                                }else{
+                                    $where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                    $count_where .= $search_type." = '".trim($search_array[$i])."' or ";
+                                }
+                            }
+                        }
+                        $where .= ")";
+                        $count_where .= ")";
+                    }else{
+                        $where .= " and ".$search_type." = '".trim($search_text)."'";
+                        $count_where .= " and ".$search_type." = '".trim($search_text)."'";
+                    }
+                }
+
+            }else{	//검색어 단일검색
+                if($search_text != ""){
+                    if(substr_count($search_text,",")){
+                        $where .= " and ".$search_type." in ('".str_replace(",","','",str_replace(" ","",$search_text))."') ";
+                    }else{
+                        $where .= " and ".$search_type." LIKE '%".trim($search_text)."%' ";
+                    }
+                }
+            }
+
+            $sql = "select * from ".$table." where 1 $where ";
+
+            $sms_db->query($sql);
+
+            for ($i = 0; $i <$sms_db->total; $i++)
+            {
+                $sms_db->fetch($i);
+
+                if($sms_db->dt[ext_col0] == "M"){
+                    $sms_send_type = "수동";
+                }else if($sms_db->dt[ext_col0] == "A"){
+                    $sms_send_type = "자동";
+                }else{
+                    $sms_send_type = "-";
+                }
+
+                switch ($sms_db->dt[result]) {
+                    case "100":
+                        $call_statusText = "전달 성공";
+                        break;
+                    case "200":
+                        $call_statusText = "메세지 형식 오류";
+                        break;
+                    case "201":
+                        $call_statusText = "착신가입자 없음(미등록)";
+                        break;
+                    case "202":
+                        $call_statusText = "Content-length 오류";
+                        break;
+                    case "203":
+                        $call_statusText = "MIME 형식 오류";
+                        break;
+                    case "206":
+                        $call_statusText = "멀티미디어 BODY 에러";
+                        break;
+                    case "207":
+                        $call_statusText = "지원하지 않는 미디어 ";
+                        break;
+                    case "300":
+                        $call_statusText = "MMS 지원 미단말";
+                        break;
+                    case "301":
+                        $call_statusText = "메세지 full";
+                        break;
+                    case "302":
+                        $call_statusText = "단말기 전원 꺼짐, 음영지역, 통신사 TIME OUT";
+                        break;
+                    case "304":
+                        $call_statusText = "핸드폰 꺼짐";
+                        break;
+                    case "305":
+                        $call_statusText = "음영지역";
+                        break;
+                    case "306":
+                        $call_statusText = "기타 에러";
+                        break;
+                    case "400":
+                        $call_statusText = "시스템 장애";
+                        break;
+                    case "501":
+                        $call_statusText = "잔액부족(선불제일 경우)";
+                        break;
+                    case "502":
+                        $call_statusText = "10초당 메세지 전송량 초과(재전송 필요)";
+                        break;
+                    case "503":
+                        $call_statusText = "스팸처리";
+                        break;
+                    case "504":
+                        $call_statusText = "일일 최대 전송량 초과";
+                        break;
+                    case "505":
+                        $call_statusText = "월별 최대 전송량 초과";
+                        break;
+                    case "506":
+                        $call_statusText = "발송 유효시간 에러";
+                        break;
+                    case "507":
+                        $call_statusText = "중복전송에러";
+                        break;
+                    case "800":
+                        $call_statusText = "파일 확장자 오류(MMS)";
+                        break;
+                    case "801":
+                        $call_statusText = "파일 사이즈 오류";
+                        break;
+                    case "802":
+                        $call_statusText = "동보개수 오류";
+                        break;
+                    case "900":
+                        $call_statusText = "Request time 오류";
+                        break;
+                    case "901":
+                        $call_statusText = "결과대기 시간초과";
+                        break;
+                    case "":
+                        $call_statusText = "접수";
+                        break;
+                    case "0":
+                        $call_statusText = "전달 성공";
+                        break;
+                    case "1":
+                        $call_statusText = "Time Out";
+                        break;
+                    case "2":
+                        $call_statusText = "잘못된 수신번호. 수신번호가 공백이거나 존재하지 않는 경우";
+                        break;
+                    case "A":
+                        $call_statusText = "핸드폰 호 처리중";
+                        break;
+                    case "B":
+                        $call_statusText = "음영지역";
+                        break;
+                    case "C":
+                        $call_statusText = "핸드폰 꺼짐";
+                        break;
+                    case "D":
+                        $call_statusText = "메세지 full";
+                        break;
+                    case "F":
+                        $call_statusText = "080 수신거부 대상";
+                        break;
+                    case "2":
+                        $call_statusText = "잘못된 전화번호 ";
+                        break;
+                    case "8":
+                        $call_statusText = "광고메시지에 080 수신거부 번호가 존재하지 않는 경우";
+                        break;
+                    case "a":
+                        $call_statusText = "일시 서비스 중지";
+                        break;
+                    case "b":
+                        $call_statusText = "기타 단말기 문제";
+                        break;
+                    case "c":
+                        $call_statusText = "착신 거절";
+                        break;
+                    case "d":
+                        $call_statusText = "기타 단말기 문제";
+                        break;
+                    case "e":
+                        $call_statusText = "이동통신사 SMC 형식 오류";
+                        break;
+                    case "f":
+                        $call_statusText = "IB 자체 형식 오류";
+                        break;
+                    case "g":
+                        $call_statusText = "SMS 서비스 불가 단말기";
+                        break;
+                    case "h":
+                        $call_statusText = "핸드폰 호 불가 상태";
+                        break;
+                    case "i":
+                        $call_statusText = "SMC 운영자가 메시지 삭제";
+                        break;
+                    case "j":
+                        $call_statusText = "이동통신사 내부 메시지 Que Full";
+                        break;
+                    case "k":
+                        $call_statusText = "이동통신사에서 SPAM 처리된 건";
+                        break;
+                    case "l":
+                        $call_statusText = "Nospam";
+                        break;
+                    case "m":
+                        $call_statusText = "(주)이노포스트에서 스팸 처리한 건";
+                        break;
+                    case "n":
+                        $call_statusText = "건수제한에 걸린 경우(건수 제한 계약)";
+                        break;
+                    case "o":
+                        $call_statusText = "메시지 길이가 제한된 길이를 벗어난 경우";
+                        break;
+                    case "p":
+                        $call_statusText = "폰 번호가 형식에 어긋난 경우";
+                        break;
+                    case "q":
+                        $call_statusText = "필드 형식이 잘못된 경우 데이터 없는 경우 포함";
+                        break;
+                    case "t":
+                        $call_statusText = "통합 수신거부 대상";
+                        break;
+                    default:
+                        ;
+                        break;
+                }
+
+                if($sms_db->dt['msg_type'] == "1"){
+                    $sms_type = "SMS";
+                }else if($sms_db->dt['msg_type'] == "3"){
+                    $sms_type = "LMS";
+                }else if($sms_db->dt['msg_type'] == "6"){
+                    $sms_type = "KAKAO";
+                }
+
+
+                $accounts_plan_priceXL->getActiveSheet()->setCellValue('A' . ($i + 2), ($i + 1));
+                $accounts_plan_priceXL->getActiveSheet()->setCellValue('B' . ($i + 2), $sms_db->dt[request_time]);
+                $accounts_plan_priceXL->getActiveSheet()->setCellValue('C' . ($i + 2), $sms_type);
+                $accounts_plan_priceXL->getActiveSheet()->setCellValueExplicit('D' . ($i + 2), $sms_db->dt[dstaddr],PHPExcel_Cell_DataType::TYPE_STRING);
+                $accounts_plan_priceXL->getActiveSheet()->setCellValue('E' . ($i + 2), $sms_db->dt[text]);
+                $accounts_plan_priceXL->getActiveSheet()->setCellValue('F' . ($i + 2), $call_statusText);
+
+
+            }
+
+            // 첫번째 시트 선택
+            $accounts_plan_priceXL->setActiveSheetIndex(0);
+
+            // 너비조정
+            $accounts_plan_priceXL->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+            $accounts_plan_priceXL->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            $accounts_plan_priceXL->getActiveSheet()->getColumnDimension('C')->setWidth(10);
+            $accounts_plan_priceXL->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+            $accounts_plan_priceXL->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+            $accounts_plan_priceXL->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
+
+            //header('Content-Type: application/vnd.ms-excel');
+            //header('Content-Disposition: attachment;filename="supply_vendor_excel.xls"');
+            //header('Cache-Control: max-age=0');
+
+            $objWriter = PHPExcel_IOFactory::createWriter($accounts_plan_priceXL, 'Excel5');
+            $objWriter->save('php://output');
+
+            exit;
+        }
+    }
+
+}

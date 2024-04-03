@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Folders headers              ;
+; ***************************************** ;
+
+fld_name_hea					= Cartelle
+fld_messages_hea				= Messaggi
+fld_size_hea					= Vimensione
+fld_empty_hea					= Vuota
+fld_delete_hea					= Cancella
+fld_total					= Totale:
+fld_make_new					= Nuova cartella
+folders_to					= Cartelle per  <!--%UM_USER_EMAIL%-->
+quota_usage				= Quota limite: <!--%UM_USAGE_GRAPHIC%--> <b><!--%UM_TOTAL_USED%--></b> di <b><!--%UM_AVAL_SIZE%--></b> sono usati. 

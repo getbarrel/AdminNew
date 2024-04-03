@@ -1,0 +1,8 @@
+
+; ***************************************** ;
+; Upload		                    ;
+; ***************************************** ;
+
+up_title 			= Datei anhängen
+up_information_text		= Wählen Sie eine Datei aus
+up_button_text			= Anhängen

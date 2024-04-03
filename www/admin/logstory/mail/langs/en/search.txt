@@ -1,0 +1,12 @@
+
+; ***************************************** ;
+; Search				                    ;
+; ***************************************** ;
+
+sch_information_text			= Enter a word or a phrase! <br> Only messages in <b>local folders</b> and <b>read messages </b>will be checked.
+sch_button_text				= Search &gt;&gt;
+sch_subject_hea				= Subject
+sch_from_hea				= From
+sch_date_hea				= Date
+sch_folder_hea				= Folder
+sch_no_results				= No matches found

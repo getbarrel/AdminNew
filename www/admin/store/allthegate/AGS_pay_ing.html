@@ -1,0 +1,87 @@
+<html>
+	<body>
+		<form method="post" name="form" action="AGS_online_result.php">
+			<input type="hidden" name="Retailer_id">
+			<input type="hidden" name="Service_pw">
+			<input type="hidden" name="Corp_type">
+			<input type="hidden" name="Corp_no">
+			<input type="hidden" name="Corp_nm">
+			<input type="hidden" name="Corp_emp">
+			<input type="hidden" name="Zip_cd">
+			<input type="hidden" name="Addr1">
+			<input type="hidden" name="Addr2">
+			<input type="hidden" name="Tel_no">
+			<input type="hidden" name="Fax_no">
+			<input type="hidden" name="Email_id">
+			<input type="hidden" name="url">
+			<input type="hidden" name="Ceo_nm">
+			<input type="hidden" name="Ceo_no">
+			<input type="hidden" name="Ceo_zipcd">
+			<input type="hidden" name="Ceo_addr1">
+			<input type="hidden" name="Ceo_addr2">
+			<input type="hidden" name="Prod_nm">
+			<input type="hidden" name="Acct_no">
+			<input type="hidden" name="Acct_nm">
+			<input type="hidden" name="Center_cd">
+			<input type="hidden" name="Biz_type">
+			<input type="hidden" name="Biz_kind">
+			<input type="hidden" name="handp_no">
+			<input type="hidden" name="Credit_yn">
+			<input type="hidden" name="Acct_yn">
+			<input type="hidden" name="Hp_yn">
+			<input type="hidden" name="Ptn_id">
+			<input type="hidden" name="vir_yn">
+			<input type="hidden" name="escrow_acct_yn">
+			<input type="hidden" name="escrow_vir_yn">
+			<input type="hidden" name="rSuccyn">
+			<input type="hidden" name="rResmsg">
+		</form>
+
+		<script language="javascript">
+			tmp = window.location; 
+			tmp = String(tmp).split('?');
+
+			var data = unescape(tmp[1]);
+			document.write(data);
+			
+			msg = String(data).split('|');
+
+ 			document.form.Retailer_id.value = msg[0];
+			document.form.Service_pw.value = msg[1];
+			document.form.Corp_type.value = msg[2];
+			document.form.Corp_no.value = msg[3];
+			document.form.Corp_nm.value = msg[4];
+			document.form.Corp_emp.value = msg[5];
+			document.form.Zip_cd.value = msg[6];
+			document.form.Addr1.value = msg[7];
+			document.form.Addr2.value = msg[8];
+			document.form.Tel_no.value = msg[9];
+			document.form.Fax_no.value = msg[10];
+			document.form.Email_id.value = msg[11];
+			document.form.url.value = msg[12];
+			document.form.Ceo_nm.value = msg[13];
+			document.form.Ceo_no.value = msg[14];
+			document.form.Ceo_zipcd.value = msg[15];
+			document.form.Ceo_addr1.value = msg[16];
+			document.form.Ceo_addr2.value = msg[17];
+			document.form.Prod_nm.value = msg[18];
+			document.form.Acct_no.value = msg[19];
+			document.form.Acct_nm.value = msg[20];
+			document.form.Center_cd.value = msg[21];
+			document.form.Biz_type.value = msg[22];
+			document.form.Biz_kind.value = msg[23];
+			document.form.handp_no.value = msg[24];
+			document.form.Credit_yn.value = msg[25];
+			document.form.Acct_yn.value = msg[26];
+			document.form.Hp_yn.value = msg[27];
+			document.form.Ptn_id.value = msg[28];
+			document.form.vir_yn.value = msg[29];
+			document.form.escrow_acct_yn.value = msg[30];
+			document.form.escrow_vir_yn.value = msg[31];
+			document.form.rSuccyn.value = msg[32];
+			document.form.rResmsg.value = msg[33];
+			document.form.submit();
+		</script>
+	</body>
+</html>
+ 

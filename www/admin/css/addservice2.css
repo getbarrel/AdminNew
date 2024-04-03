@@ -1,0 +1,199 @@
+@charset "utf-8";
+
+/*마케팅홈 리스트*/
+.marketing_listBox	{float:left;width:100%;}
+.marketing_list	{float:left;width:982px;}
+.marketing_list	li	{float:left;Width:238px;padding:0 3px 10px 4px;}
+
+/*온라인식별_실명확인 06.17*/
+
+.serviceBox	{margin-bottom:60px;}
+.serviceBox		h1	{padding-bottom:14px;border-bottom:solid 1px #ddd;margin-bottom:30px;}
+.serviceBox		h2	{padding:40px 0 20px 0;}
+.serviceBox		h3	{font-size:14px;color:#ff6600;margin-top:30px;}
+.under_line01	{border-bottom:solid 1px #d4d4d4;}
+.serviceBox		ul	li	{line-height:170%;}
+.Sbox_table01	th, .Sbox_table01 	td	{border:solid 1px #D6D6D7;text-align:center;line-height:120%;}
+.Sbox_table01 .ul_box {width:100%;}
+.Sbox_table01 .ul_box .li_box1 {width:100%;border-bottom:1px solid #D6D6D7;padding:10px 0px;text-align:center;line-height:120%;}
+.Sbox_table01 .ul_box .li_box2 {width:100%;padding:10px 0px;text-align:center;line-height:120%;}
+.deepzoom_btn01	{position:absolute;top:260px;left:70px;}
+
+
+.Sbox_table		{}
+.Sbox_table		td.bg_td		{text-align:center;}
+.Sbox_table		td	div	{width:590px;margin-left:15px;line-height:150%;}
+
+.topic_list	{position:relative;padding:10px 0; width:100%;}
+.topic_list01	{margin-left:45px;}
+
+.searchBox01	{font-size:1px;line-height:0px;}
+.searchBox02	{background:url(../images/common/main_search_center.gif) repeat-x ;width:100%;height:28px;}
+.searchBox03	{font-size:1px;line-height:0px;}
+
+.btns_area01	{float:left;width:100%;padding:15px 0;}
+.btns_area01	ul	{float:left;width:100%;}
+.btns_area01	ul	li.box001	{float:left;}
+.btns_area01	ul	li.box002	{float:right;}
+
+/*이용약관*/
+
+.agreements_box01	{font-size:1px;line-height:0px;width:734px;height:3px;}
+.agreements_box02	{background:url(../images/common/box734_center.gif) repeat-y;width:100%;height:124px;}
+.agreements_box03	{font-size:1px;line-height:0px;width:734px;height:3px;}
+
+.Table_box01	{}
+.Table_box01	td	{
+padding:3px 0;
+border-top: 1px solid #D6D6D7;
+border-bottom: 1px solid #D6D6D7;}
+
+
+
+/*대량메일 06.20*/
+h4.orange	{font-size:14px;color:#ff6600;font-weight:bold;margin-top:30px;}
+.orange_list	{width:700px;margin-left:15px;}
+
+/*전자지불*/
+
+.bg_td, .right_line	{border-right:solid 1px #D6D6D7;}
+.pg_info	{}
+.pg_info	h5	{margin-bottom:20px;}
+.pg_info	ul	{margin-bottom:30px;}
+.pg_info	ul	li	{line-height:180%;}
+.box_pg		{float:left;width:100%;}
+.box_pg01	{width:232px;float:left;}
+.box_pg02	{float:right;}
+
+/*무통장입금*/
+h4.orange01	{font-size:14px;margin-top:30px;}
+
+/*호스팅 06.21*/
+.line_right01	{border-right:solid 1px #D6D6D7;}
+
+.now01	li	{margin-bottom:5px;}
+.under_list	{margin-top:10px;}
+.under_list	li	{background:url(/data/service/templet/basic/images/common/gray_point.gif) no-repeat 0 10px;}
+.under_list	li	div	{margin-left:5px;}
+
+.point_G	{background:url(/data/service/templet/basic/images/common/gray_point.gif) no-repeat 0 7px;}
+.gap_list01	{}
+.gap_list01	td	{padding:7px 0;}
+
+/*우체국택배연동서비스 06.23*/
+.service_list01	{}
+.service_list01		td	{padding:10px 0;}
+.service_list01		td	div	{line-height:160%;}
+
+
+
+
+
+/*서버호스팅*/
+.tdform		 td {padding:0px; margin:0px;}
+
+
+/*부가서비스소호형소셜커머스 0915*/
+.tab_area {
+padding-bottom: 1px;
+float: left;
+width: 100%;
+background: url(/data/service/templet/basic/images/addservice/tab_area_bg.gif) repeat-x;
+height: 26px;
+}
+
+.tabs {
+float: left;
+width: 100%;
+}
+.tab_list_on {
+float: left;
+}
+.tab_list_off {
+float: left;
+}
+.tab_list_on .box_01 {
+background: url(/data/service/templet/basic/images/addservice/tab_left_on.gif) no-repeat;
+height: 47px;
+width: 6px;
+}
+.tab_list_on .box_02 {
+background: url(/data/service/templet/basic/images/addservice/tab_center_on.gif) repeat-x;font-weight:bold;
+height: 47px;width:92px;
+}
+.tab_list_on .box_03 {
+background: url(/data/service/templet/basic/images/addservice/tab_right_on.gif) no-repeat;
+height: 47px;
+width: 6px;
+}
+.tab_list_off .box_01 {
+background: url(/data/service/templet/basic/images/addservice/tab_left_off.gif) no-repeat;
+height: 47px;
+width: 6px;
+}
+.tab_list_off .box_02 {
+background: url(/data/service/templet/basic/images/addservice/tab_center_off.gif) repeat-x;
+height: 47px;width:92px;
+}
+.tab_list_off .box_03 {
+background: url(/data/service/templet/basic/images/addservice/tab_right_off.gif) no-repeat;
+height: 47px;
+width: 6px;
+}
+
+
+/*텍스트 간격*/
+.text_list	{line-height:160%;margin-bottom:30px;}
+
+.orang_point	{background:url(images/list_arrow_icon2.jpg) no-repeat 0 center;font-weight:bold;font-size:15px;color:#ea4200;}
+.orang_point	strong	{margin-left:10px;}
+.G_point01	{}
+.G_point01	li	{background:url(images/gray_point.gif) no-repeat 0 center;}
+.G_point01	li	strong{margin-left:10px;}
+
+.soho_area	{}
+.soho_area2	{}
+.soho_area	
+
+
+
+
+
+/*딥줌*/
+
+table.deepzoom_pay	{}
+table.deepzoom_pay	th	{border-bottom:solid 1px #e0e0e0;}
+table.deepzoom_pay	td	{background:#f8f8f8;border-bottom:solid 1px #e0e0e0;}
+
+
+
+/*12.0426*/
+.biz_list01	{}
+.biz_list01	li	{margin-bottom:22px;}
+
+.biz_list02	li	{margin-bottom:10px;}
+
+
+
+.bottom10_list	li {margin-bottom:10px;}
+
+.paybox	{border-top:solid 2px #ea4200;}
+.paybox	td	{padding:10px 0;text-align:center;border-bottom:solid 1px #ddd;}
+.paybox	td.line_rl	{border-left:solid 1px #ddd;border-right:solid 1px #ddd;}
+.paybox		.titlebox	{background:#f8f8f8;}
+
+.box690	{width:690px;margin:0 auto;}
+.border_left	td	{border-right:solid 1px #ddd;}
+.border_left	td.border0	{border-right:0;}
+.h4_gap	{margin:25px 0 15px 0;}
+
+
+
+
+
+
+
+
+
+
+

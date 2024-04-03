@@ -1,0 +1,60 @@
+<?php
+
+class Pg_Call{
+	protected $sattle_module;
+	protected $pg_code;
+	protected $mall_ix;
+
+	public function __construct($pg_code){
+		$this->db = new Database ();
+		
+		if($_SESSION ['admininfo'][mall_ix]){
+			$this->mall_ix = $_SESSION ['admininfo'][mall_ix];
+		}else if($_SESSION ['layout_config'][mall_ix]){
+			$this->mall_ix = $_SESSION ['layout_config'][mall_ix];
+		}else{
+			$mobile_check = substr($_SERVER["HTTP_HOST"],0,2);
+			if($mobile_check == "m."){
+				$mall_domain = str_replace("".$mobile_check."","",$_SERVER["HTTP_HOST"]);
+			}else{
+				$mall_domain = str_replace("www.","",$_SERVER["HTTP_HOST"]);
+			}
+			$sql = "select mall_ix from shop_shopinfo  where  mall_domain = '".$mall_domain."' ";
+			$this->db->query($sql);
+			$this->db->fetch();			
+
+			$this->mall_ix = $this->db->dt[mall_ix];
+		}
+
+		$this->pg_code = $pg_code;
+		
+	}
+
+	public function getPgDataInfo(){
+
+		$sql = "SELECT * FROM shop_payment_config where pg_code = '".$this->pg_code."' and mall_ix = '".$this->mall_ix."' ";
+		$this->db->query($sql);
+		if($this->db->total){
+			for($i=0;$i < $this->db->total;$i++){
+				$this->db->fetch($i);
+				$payment_config[$this->db->dt[config_name]] = $this->db->dt[config_value];
+				
+			}
+			return $payment_config;
+		}
+	}
+
+	public function getFormData($data){
+		if(is_array($data)){
+			$pgScript = "<form name='pay_form' method='POST' >";
+			foreach($data as $key => $val){
+				$pgScript .= "<input type=hidden name='".$key."' id='".$key."' value='".$val."'>";
+			}
+			$pgScript .= "</form>";
+		}
+		return $pgScript;
+	}
+
+}
+
+?>

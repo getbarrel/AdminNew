@@ -1,0 +1,184 @@
+stdClass Object
+(
+    [activeColor] => 2
+    [activeSizeDimension1] => -1
+    [activeSizeDimension2] => -1
+    [allSizeDimension1] => Array
+        (
+            [0] => 0-3 M
+            [1] => 3-6 M
+            [2] => 6-12 M
+            [3] => 12-18 M
+            [4] => 18-24 M
+        )
+
+    [allSizeDimension2] => Array
+        (
+        )
+
+    [careInstructionText] => Machine wash, delicate cycle.
+    [fabricContents] => Array
+        (
+            [0] => stdClass Object
+                (
+                    [name] => Cotton
+                    [percent] => 100.0
+                )
+
+        )
+
+    [groupNameDefault] => fit & sizing
+    [groupNameFabric] => fabric & care
+    [groupNameFit] => fit & sizing
+    [groupNameOverview] => overview
+    [images] => stdClass Object
+        (
+            [SI] => http://www3.assets-gap.com/webcontent/0004/450/469/cn4450469.jpg
+            [VI] => http://www3.assets-gap.com/webcontent/0004/450/447/cn4450447.jpg
+            [VLI] => http://www3.assets-gap.com/webcontent/0004/450/449/cn4450449.jpg
+            [Z] => http://www1.assets-gap.com/webcontent/0004/450/446/cn4450446.jpg
+        )
+
+    [infoTabs] => Array
+        (
+            [0] => stdClass Object
+                (
+                    [InfoTabInfoBlocks] => Array
+                        (
+                            [0] => stdClass Object
+                                (
+                                    [displayText] => Soft knit.
+                                )
+
+                            [1] => stdClass Object
+                                (
+                                    [displayText] => Contrast long sleeves layered under a bodysuit.
+                                )
+
+                            [2] => stdClass Object
+                                (
+                                    [displayText] => Finely ribbed lapped shoulders, round neckline, and leg openings.
+                                )
+
+                            [3] => stdClass Object
+                                (
+                                    [displayText] => Screen-printed graphic at front.
+                                )
+
+                            [4] => stdClass Object
+                                (
+                                    [displayText] => Snaps at bottom for easy dressing and diapering.
+                                )
+
+                        )
+
+                    [infoTabName] => Overview
+                )
+
+        )
+
+    [isImported] => 1
+    [name] => Junk Food&#153 layered bodysuit
+    [pricePoints] => Array
+        (
+            [0] => stdClass Object
+                (
+                    [text] => 22.95
+                )
+
+            [1] => stdClass Object
+                (
+                    [text] => 7.99
+                )
+
+        )
+
+    [sizeDimension1Name] => Size
+    [sizeDimension2Name] => 
+    [stocks] => Array
+        (
+            [0] => stdClass Object
+                (
+                    [bStock] => 1
+                    [colorIndex] => 2
+                    [dimension1Index] => 0
+                    [dimension1Name] => 0-3 M
+                    [dimension2Index] => -1
+                    [dimension2Name] => 
+                )
+
+            [1] => stdClass Object
+                (
+                    [bStock] => 1
+                    [colorIndex] => 2
+                    [dimension1Index] => 1
+                    [dimension1Name] => 3-6 M
+                    [dimension2Index] => -1
+                    [dimension2Name] => 
+                )
+
+            [2] => stdClass Object
+                (
+                    [bStock] => 1
+                    [colorIndex] => 2
+                    [dimension1Index] => 2
+                    [dimension1Name] => 6-12 M
+                    [dimension2Index] => -1
+                    [dimension2Name] => 
+                )
+
+            [3] => stdClass Object
+                (
+                    [bStock] => 1
+                    [colorIndex] => 2
+                    [dimension1Index] => 3
+                    [dimension1Name] => 12-18 M
+                    [dimension2Index] => -1
+                    [dimension2Name] => 
+                )
+
+            [4] => stdClass Object
+                (
+                    [bStock] => 1
+                    [colorIndex] => 2
+                    [dimension1Index] => 4
+                    [dimension1Name] => 18-24 M
+                    [dimension2Index] => -1
+                    [dimension2Name] => 
+                )
+
+        )
+
+    [variantStyleColors] => Array
+        (
+            [0] => stdClass Object
+                (
+                    [colorName] => spiderman
+                    [regularPrice] => $22.95
+                    [strPartialMupMessage] => 
+                )
+
+            [1] => stdClass Object
+                (
+                    [colorName] => batman
+                    [regularPrice] => $22.95
+                    [strPartialMupMessage] => 
+                )
+
+            [2] => stdClass Object
+                (
+                    [colorName] => superman
+                    [regularPrice] => $22.95
+                    [strPartialMupMessage] => 
+                )
+
+            [3] => stdClass Object
+                (
+                    [colorName] => lightning mcqueen
+                    [regularPrice] => $22.95
+                    [strPartialMupMessage] => 
+                )
+
+        )
+
+)

@@ -1,0 +1,199 @@
+<?
+if (!class_exists(Database))
+{ // Ŭ?????????? ??��??...
+
+class Database {
+
+	var $dbcon;		// ??ũ ?ĺ???
+	var $db_host;	// ???? ȣ??Ʈ
+	var $db_user;	// ???? ??????
+	var $db_pass;	// ???? ???й?ȣ
+	var $db_name;	// ???? ?̸?
+
+	var $result;	// ???? ??????
+	var $total;		// ???? ??????
+	var $dt;		// ???? ??????
+
+	function Database(){
+		global $HTTP_HOST;
+		
+			$this->db_host = "localhost";
+			$this->db_user = "demo";
+			$this->db_pass = "demo!@#$";
+			$this->db_name = "shop_demo";
+		
+			//$this->nocache();
+	}
+
+	function dbcon($db_name)
+	{
+		$this->dbcon = mysql_connect($this->db_host,$this->db_user,$this->db_pass) or $this->error();
+
+		mysql_select_db($this->db_name,$this->dbcon) or $this->error();
+	}
+
+	function close()
+	{
+		return mysql_close($this->dbcon);
+	}
+
+	function query($sql)
+	{
+		if (!isset($this->dbcon))
+			$this->dbcon($this->db_name);
+			
+		$this->result = mysql_query("$sql") or $this->error();
+
+		if (eregi('^SELECT',$sql)) $this->total();
+		if (eregi('^DESC',$sql)) $this->total();
+		if (eregi('^show',$sql)) $this->total();
+
+		return $this->result;
+	}
+
+	function fetch($rows = 0,$type = 'array')
+	{
+		$fetch = "mysql_fetch_$type";
+
+		if (@mysql_data_seek($this->result,$rows))
+			$this->dt = $fetch($this->result);
+
+		return $this->dt;
+	}
+	
+	function fetchall(){
+		$i=0;
+		while ($row = mysql_fetch_array ($this->result)) {
+			$array1 = array("idx_"=>$i+1);
+			$marray = array_merge($array1, $row);			
+			$data[] = $marray;
+			
+			
+			//echo "user_id: ".$data[$i][0]."<br>\n";
+			$i++;
+			
+		  // echo "user_id: ".$row[0]."<br>\n";
+		   //echo "fullname: ".$row[1]."<br>\n";
+		}
+		//print_r($data);
+		return $data;
+
+	}
+
+	function total()
+	{
+		$this->total = @mysql_num_rows($this->result);
+	}
+
+	function error()
+	{
+		global $HTTP_REFERER;
+		echo("<script>\nalert('".addslashes(mysql_errno())." : ".addslashes(mysql_error())."');\nlocation = '".$HTTP_REFERER."';\n</script>");
+		exit;
+	}
+
+	function nocache()
+	{
+		header ("Cache-Control: no-cache, must-revalidate");
+		header ("Pragma: no-cache");
+	}
+
+	function insert_id(){
+	
+		$id = mysql_insert_id();
+
+		return $id;
+	}
+}
+
+} // Ŭ?????? ?????ϰ? ��???Ѵ?...
+
+
+if (!class_exists(basicDatabase))
+{ // Ŭ?????????? ??��??...
+class basicDatabase {
+
+	var $dbcon;		// ??ũ ?ĺ???
+	var $db_host;	// ???? ȣ??Ʈ
+	var $db_user;	// ???? ??????
+	var $db_pass;	// ???? ???й?ȣ
+	var $db_name;	// ???? ?̸?
+
+	var $result;	// ???? ??????
+	var $total;		// ???? ??????
+	var $dt;		// ???? ??????
+
+	function basicDatabase()
+	{
+		$this->db_host = "localhost";
+		$this->db_user = "sms";
+		$this->db_pass = "sms!@#$";
+		$this->db_name = "shop_sms";
+
+		//$this->nocache();
+	}
+
+	function dbcon($db_name)
+	{
+		$this->dbcon = mysql_connect($this->db_host,$this->db_user,$this->db_pass) or $this->error();
+
+		mysql_select_db($this->db_name,$this->dbcon) or $this->error();
+	}
+
+	function close()
+	{
+		return mysql_close($this->dbcon);
+	}
+
+	function query($sql)
+	{
+		if (!isset($this->dbcon))
+			$this->dbcon($this->db_name);
+			
+		$this->result = mysql_query("$sql") or $this->error();
+
+		if (eregi('^SELECT',$sql)) $this->total();
+		if (eregi('^DESC',$sql)) $this->total();
+		if (eregi('^show',$sql)) $this->total();
+
+		return $this->result;
+	}
+
+	function fetch($rows = 0,$type = 'array')
+	{
+		$fetch = "mysql_fetch_$type";
+
+		if (@mysql_data_seek($this->result,$rows))
+			$this->dt = $fetch($this->result);
+
+		return $this->dt;
+	}
+
+	function total()
+	{
+		$this->total = @mysql_num_rows($this->result);
+	}
+
+	function error()
+	{
+		global $HTTP_REFERER;
+		echo("<script>\nalert('".addslashes(mysql_errno())." : ".addslashes(mysql_error())."');\nlocation = '".$HTTP_REFERER."';\n</script>");
+		exit;
+	}
+
+	function nocache()
+	{
+		header ("Cache-Control: no-cache, must-revalidate");
+		header ("Pragma: no-cache");
+	}
+
+	function insert_id(){
+	
+		$id = mysql_insert_id();
+
+		return $id;
+	}
+}
+
+} // Ŭ?????? ?????ϰ? ��???Ѵ?...
+?>

@@ -1,0 +1,13 @@
+
+; ***************************************** ;
+; Login			                    ;
+; ***************************************** ;
+
+lgn_title			= Login
+lgn_welcome_msg			= Bem Vindo. Por favor informe seus dados
+lng_user_email			= Email
+lng_user_name			= Login
+lng_user_pwd			= Senha
+lng_server			= Servidor
+lng_theme			= Tema
+lng_login_btn			= Acessar &gt;&gt;

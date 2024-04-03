@@ -1,0 +1,9 @@
+
+; ***************************************** ;
+; Error			                    ;
+; ***************************************** ;
+
+err_title			= Fehler
+err_msg				= Während der Ausführung ist ein Fehler aufgetreten<br><br>Bitte veruchen Sie es erneut
+err_system_msg			= Systemmeldung: 
+err_exit			= Logout

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<Cancel>
+    <CancelInfo>
+        <Command>A0</Command>
+        <OwnerID>SGDATA</OwnerID>
+        <InterfaceDate>20190805</InterfaceDate>
+        <InterfaceType>N</InterfaceType>
+        <ErpOrderID>201908051713-0000016</ErpOrderID>
+        <OrderSeq>299</OrderSeq>
+        <ItemID>BC5CCAA003BGFR</ItemID>
+        <RetYn>1</RetYn>
+    </CancelInfo>
+</Cancel>

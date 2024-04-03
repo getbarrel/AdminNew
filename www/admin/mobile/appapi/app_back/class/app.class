@@ -1,0 +1,1406 @@
+<?php
+/*
+//오류코드 기준
+//0* 회원 
+	01:아이디와 비밀번호를 다시한번더 확인해주시기 바랍니다.
+	02:승인 대기중입니다. 승인이 지연될 시 고객센타로 문의해 주시기 바랍니다.
+	03:승인 거절 되었습니다.  고객센타로 문의해 주시기 바랍니다.
+	04:이미 등록된 아이디입니다.
+	05:회원등록에 필요한 정보가 부족합니다.
+	06:아이디와 핸드폰번호가 일치하는 아이디가 없습니다.
+//2* 상품
+//3* 셀러
+*/
+//99 시스탬
+class App
+{
+	
+	var $ResultDataType = "json";			//xml or json
+	var $Debug = 0;
+	var $__dispatch_map = array();
+	
+	public function __construct(){
+
+		$this->__dispatch_map['getMainCategorys'] = array('out' => array('results' => 'string'));
+		$this->__dispatch_map['getCategorys'] = array('in' => array('cid' => 'string' ),'out' => array('results' => 'string'));
+
+	}
+	
+	public function insertGood($goods)
+	{
+
+		//admin/app/server.class
+		$ItemDetail = new ItemGoods();
+		$UserDetail = new UserInfo();
+		
+		$user_data = json_decode(urldecode($goods["user_data"]),true); // user_data 파싱해서 사용하기!
+		
+		$UserDetail->id = $user_data["id"];
+		$UserDetail->name = $user_data["name"];
+		$UserDetail->code = $user_data["code"];
+		$UserDetail->company_id = $user_data["company_id"];
+
+
+		if($goods["cate3"] != "")			$ItemDetail->cid = $goods["cate3"];
+		elseif($goods["cate2"] != "")		$ItemDetail->cid = $goods["cate2"];
+		else											$ItemDetail->cid = $goods["cate1"];
+		
+		$ItemDetail->basicimagefile = $goods["basicimagefile"];
+		$ItemDetail->pname = $goods["goods_name"];
+		$ItemDetail->coprice = $goods["coprice"];
+		$ItemDetail->wholesale_price = $goods["wholesaleprice"];
+		$ItemDetail->listprice = $goods["listprice"];
+		$ItemDetail->stock = $goods["stock"];
+		$ItemDetail->delivery_price = $goods["delivery_price"];
+		$ItemDetail->delivery_policy = $goods["delivery_policy"]; //Y or null
+		$ItemDetail->search_keyword = $goods["search_keyword"];
+		$ItemDetail->basicinfo = $goods["basicinfo"];
+		$ItemDetail->sns_facebook = $goods["sns_facebook"]; //Y or null
+		$ItemDetail->sns_twitter = $goods["sns_twitter"]; //Y or null
+
+		//admin/app/lib/product.lib.php 상품등록
+		$pid = insertproduct($ItemDetail,$UserDetail);
+
+		if($pid){
+			//admin/app/lib/product.lib.php 카테고리등록
+			insertproductcategory($ItemDetail,$pid);
+
+			//admin/app/lib/product.lib.php 옵션등록
+			//insertproductoption($ItemDetail,$pid);
+
+			//admin/app/lib/product.lib.php 대표이미지 및 추가이미지
+			copyproductimage($ItemDetail,$pid);
+			
+			//admin/app/lib/product.lib.php 상세이미지 및 상세설명
+			copyproductbasicinfo($ItemDetail,$pid);
+			
+			$RESULT["code"]="00";
+			$RESULT["msg"]="정상적으로 상품이 등록되었습니다.";
+			$RESULT["data"]=$pid;
+			return $RESULT;
+		}else{
+			$RESULT["code"]="99";
+			$RESULT["msg"]="insert product 오류";
+			$RESULT["data"]=$pid;
+			return $RESULT;
+		}
+	}
+
+	public function getMainCategorys(){
+		global $shop_product_type;
+
+		$db = new Database;
+
+		$sql = "select 
+						cid,cname,depth,(select count(distinct p.id) as cnt from ".TBL_SHOP_PRODUCT." p right join ".TBL_SHOP_PRODUCT_RELATION." r on ( p.id = r.pid and p.disp = '1'  and p.state = '1' and p.product_type in (".implode(' , ',$shop_product_type).") ) where r.cid like concat(sub_cid,'%') ) as total_cnt 
+					from 
+					(
+						SELECT '0' as cid,'전체' as cname,'0' as depth,'0' as vlevel1,'0' as vlevel2,'0' as vlevel3,'0' as vlevel4,'0' as vlevel5, '0' as sub_cid
+						union
+						SELECT c.cid,c.cname,c.depth,vlevel1,vlevel2,vlevel3,vlevel4,vlevel5, substr(c.cid , 1, 3 * (c.depth +1)) as sub_cid
+						FROM ".TBL_SHOP_CATEGORY_INFO." c
+						where c.depth in(0,1)  and c.category_use = '1' and substr(c.cid , 1, 3) != '010'
+						order by vlevel1, vlevel2, vlevel3, vlevel4, vlevel5
+					) c";
+
+		$db->query($sql);
+		$_categorys = $db->fetchall("object");
+
+		$i=-2;
+		$j=-1;
+		foreach($_categorys as $_category){
+			if($i==-2){
+				$whole_data["cid"]=0;
+				$whole_data["cname"]="전체";
+				$whole_data["depth"]=0;
+				$whole_data["total_cnt"]=$_category["total_cnt"];
+				$i++;
+			}else{
+				if($b_substr_cid != substr($_category["cid"],0,3)){
+
+					$i++;
+					$j=-1;
+
+					$categorys[$i]["cid"]=$_category["cid"];
+					$categorys[$i]["cname"]=$_category["cname"];
+					$categorys[$i]["depth"]=$_category["depth"];
+					$categorys[$i]["total_cnt"]=$_category["total_cnt"];
+				}
+				
+
+				$j++;
+				$categorys[$i]["child_category"][$j]["cid"]=$_category["cid"];
+				$categorys[$i]["child_category"][$j]["cname"]=$_category["cname"];
+				$categorys[$i]["child_category"][$j]["depth"]=$_category["depth"];
+				$categorys[$i]["child_category"][$j]["total_cnt"]=$_category["total_cnt"];
+
+			}
+
+			$b_substr_cid = substr($_category["cid"],0,3);
+		}
+
+		if($this->ResultDataType=="xml"){
+			if(count($categorys) > 0){
+
+				$xml = new XmlWriter_();
+				$xml->push('categorys', array('total'=>count($categorys)));
+
+				foreach ($categorys as $category) {
+
+					$xml->push('category', array('cid' => $category[cid]));
+					$xml->element('cid', $category[cid]);
+					$xml->element('cname', strip_tags(htmlspecialchars($category[cname])));
+					//$xml->element('eng_cname', strip_tags(htmlspecialchars($category[eng_cname])));
+					$xml->element('depth', $category[depth]);
+					/*
+					$xml->element('vlevel1', $category[vlevel1]);
+					$xml->element('vlevel2', $category[vlevel2]);
+					$xml->element('vlevel3', $category[vlevel3]);
+					$xml->element('vlevel4', $category[vlevel4]);
+					$xml->element('vlevel5', $category[vlevel5]);
+					*/
+					foreach ($category[child_category] as $child_category) {
+						$xml->push('child_category', array('cid' => $child_category[cid]));
+						$xml->element('cid', $child_category[cid]);
+						$xml->element('cname', strip_tags(htmlspecialchars($child_category[cname])));
+						//$xml->element('eng_cname', strip_tags(htmlspecialchars($child_category[eng_cname])));
+						$xml->element('depth', $child_category[depth]);
+						/*
+						$xml->element('vlevel1', $child_category[vlevel1]);
+						$xml->element('vlevel2', $child_category[vlevel2]);
+						$xml->element('vlevel3', $child_category[vlevel3]);
+						$xml->element('vlevel4', $child_category[vlevel4]);
+						$xml->element('vlevel5', $child_category[vlevel5]);
+						*/
+						$xml->pop();
+					}
+					$xml->pop();
+				}
+
+				$xml->pop();
+				//print_r($xml->getXml());
+				return $xml->getXml();
+			}else{
+				$xml = new XmlWriter_();
+				$xml->push('categorys');
+
+				$xml->push('results');
+				$xml->element('code', "-1");
+				$xml->element('message', "카테고리 정보가 존재하지 않습니다.");
+				$xml->pop();
+				$xml->pop();
+				return $xml->getXml();
+			}
+		}else{
+
+			$cate_info_array = array (
+											"001"=>"women",
+											"002"=>"men",
+											"006"=>"kids",
+											"003"=>"acc/beauty",
+											"011"=>"bag/acc",
+											"004"=>"modelitem",
+											"007"=>"present",
+											"009"=>"mobilephoto",
+											"012"=>"fashionm"
+										);
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["whole_data"]=$whole_data;
+
+			for($i=0;$i<count($categorys);$i++){
+				foreach($cate_info_array as $key => $val){
+					if($key==substr($categorys[$i]["cid"],0,3)){
+						$RESULT["data"][$val]=$categorys[$i];
+					}
+				}
+			}
+			
+			
+			return $RESULT;
+		}
+	}
+
+	public function getCategorys($parent_cid=""){
+
+		$db = new Database;
+		
+		if($parent_cid != "" && $parent_cid !="0"){
+			$sql = "SELECT * FROM ".TBL_SHOP_CATEGORY_INFO."
+					where depth in(0,1,2,3,4,5)  and category_use = '1' and cid = '".$parent_cid."'
+					order by vlevel1, vlevel2, vlevel3, vlevel4, vlevel5";
+
+			$db->query($sql);
+			$db->fetch();
+			$parent_categoryinfo = $db->dt;
+
+			$where = " and cid LIKE '".substr($parent_cid,0,($parent_categoryinfo[depth]+1)*3)."%' and depth = '".($parent_categoryinfo[depth]+1)."' ";
+		}else{
+			$where = " and depth = '0' ";
+		}
+
+		$sql = "SELECT cid,cname,depth FROM ".TBL_SHOP_CATEGORY_INFO."
+					where depth in(0,1,2,3,4,5)  and category_use = '1'
+					".$where."
+					order by vlevel1, vlevel2, vlevel3, vlevel4, vlevel5";
+
+		//return $sql;
+
+		$db->query($sql);
+		$categorys = $db->fetchall("object");
+
+		if($this->ResultDataType=="xml"){
+			if(count($categorys) > 0){
+
+				$xml = new XmlWriter_();
+				$xml->push('categorys', array('total'=>count($categorys)));
+
+				foreach ($categorys as $category) {
+
+					$xml->push('category', array('cid' => $category[cid]));
+					$xml->element('cid', $category[cid]);
+					$xml->element('cname', strip_tags(htmlspecialchars($category[cname])));
+					//$xml->element('eng_cname', strip_tags(htmlspecialchars($category[eng_cname])));
+					$xml->element('depth', $category[depth]);
+					$xml->element('vlevel1', $category[vlevel1]);
+					$xml->element('vlevel2', $category[vlevel2]);
+					$xml->element('vlevel3', $category[vlevel3]);
+					$xml->element('vlevel4', $category[vlevel4]);
+					$xml->element('vlevel5', $category[vlevel5]);
+					$xml->pop();
+				}
+
+				$xml->pop();
+				return $xml->getXml();
+			}else{
+				$xml = new XmlWriter_();
+				$xml->push('categorys');
+
+				$xml->push('results');
+				$xml->element('code', "-1");
+				$xml->element('message', "카테고리 정보가 존재하지 않습니다.");
+				$xml->pop();
+				$xml->pop();
+				return $xml->getXml();
+			}
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["data"]=$categorys;
+			return $RESULT;
+		}
+	}
+	
+	public function getMainGoods($data){
+		global $sns_product_type,$admin_config;
+		$db = new Database;
+		
+		if($data["div"] == "popularity" || $data["div"] == ""){ //인기상품
+			$orderbyString = " order by p.view_cnt desc ";
+		}elseif($data["div"] == "recommend"){ //추천상품
+			$orderbyString = " order by p.order_cnt desc ";
+		}
+
+		$sql = "SELECT p.id as pid , p.pname , p.sellprice , concat('http://".$_SERVER['HTTP_HOST'].$admin_config[mall_data_root]."/images/product/',substr(p.id,1,2),'/',substr(p.id,3,2),'/',substr(p.id,5,2),'/',substr(p.id,7,2),'/',substr(p.id,9,2),'/m_',p.id,'.gif') as img
+		FROM ".TBL_SHOP_PRODUCT." p , ".TBL_SHOP_PRODUCT_RELATION." r
+		where p.id = r.pid and r.basic = '1' AND p.product_type NOT IN ('".implode("','",$sns_product_type)."')
+		and p.state='1' and p.disp='1'
+		".$where."
+		".$orderbyString."
+		LIMIT 0, 30";
+
+		$db->query($sql);
+		$infos = $db->fetchall("object");
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["data"]["product"]=$infos;
+
+			$_info["div"]="app_main";
+
+			$RESULT["data"]["banner"]=$this->getBanner($_info,false);
+			return $RESULT;
+		}
+	}
+
+	public function getBanner($data,$return_array=true){
+		global $sns_product_type,$admin_config;
+		$db = new Database;
+
+		//div 
+		//	-> app_main //메인배너
+
+		$sql = "SELECT concat('http://".$_SERVER['HTTP_HOST'].$admin_config[mall_data_root]."/images/flash_data/',f.mf_type,'/',fd.mf_file) as img
+		FROM shop_manage_flash f left join shop_manage_flash_detail fd on (f.mf_ix = fd.mf_ix) where f.mf_type = '".$data["div"]."' ";
+
+		$db->query($sql);
+		$infos = $db->fetchall("object");
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				$RESULT["data"]=$infos;
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+	
+
+	public function getMainSellerList($data){
+		global $sns_product_type,$admin_config;
+		$db = new Database;
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["data"]["store"]=$this->getSellerList($data,false);
+
+			$_info["div"]="app_main";
+
+			$RESULT["data"]["banner"]=$this->getBanner($_info,false);
+			return $RESULT;
+		}
+	}
+
+	public function getSellerList($data,$return_array=true){
+		global $sns_product_type,$admin_config;
+		$db = new Database;
+		
+		$where="";
+
+		if($data["start"] ==""){
+			$data["start"]="0";
+		}
+
+		if($data["max"] ==""){
+			$data["max"]="30";
+		}
+
+		if($data["recommend"] ==""){
+			//현제 사용안하기떄문에 아이소다에서 데이터 수정후 주석처리풀어야 함
+			//$where .=" and recommend ='Y' ";
+		}
+		
+		if($data["orderby"] =="random"){
+			$order_by =" order by rand() ";
+		}
+		
+		$sql = "select 
+						com_name as store_name,
+						concat('".$admin_config[mall_data_root]."/images/shopimg/shop_',ccd.company_id,'.gif') as store_img,
+						(select count(*) as cnt from shop_minishop_favorite mf where mf.company_id = ccd.company_id ) as follower_cnt
+					from 
+					(
+						select
+							*
+						from
+							common_company_detail
+						where
+							seller_auth='Y'
+						".$where."
+						".$order_by."
+						limit ".$data["start"].",".$data["max"]."
+					) ccd ";
+
+		$db->query($sql);
+		$infos = $db->fetchall("object");
+
+		foreach($infos as $key => $val){
+			if(!file_exists($_SERVER["DOCUMENT_ROOT"].$val["store_img"])){
+				$infos[$key]["store_img"]=null;
+			}else{
+				$infos[$key]["store_img"]="http://".$_SERVER['HTTP_HOST'].$val["store_img"];
+			}
+		}
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				$RESULT["data"]=$infos;
+
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+
+	public function getGoodsList($data,$return_array=true){
+		global $shop_product_type,$admin_config;
+		$db = new Database;
+
+		$where="";
+		$join_where="";
+		
+
+		if($data["start"] ==""){
+			$data["start"]="0";
+		}
+
+		if($data["max"] ==""){
+			$data["max"]="30";
+		}
+
+		if($data["company_id"] !=""){
+			$join_where .=" and p.admin='".$data["company_id"]."' ";
+		}
+
+		if($data["search_text"] !=""){
+			$join_where .=" and p.pname LIKE '%".$data["search_text"]."%' ";
+		}
+		
+		if($data["lowprice"] !="" && $data["highprice"] !=""){
+			$join_where .=" and p.sellprice between ".$data["lowprice"]." and ".$data["highprice"]."";
+		}
+
+		if($data["cid"]!="0"){
+			$join_where="and r.cid LIKE '".substr($data["cid"],0,($data["depth"]+1)*3)."%'";
+		}
+
+		if($data["orderby"] =="regdate"){//최신순
+			$orderbyString =" order by p.regdate_desc ";
+		}elseif($data["orderby"] =="popularity"){//인기순
+			$orderbyString =" order by view_cnt desc";
+		}elseif($data["orderby"] =="lowprice"){//저가순
+			$orderbyString =" order by sellprice ";
+		}elseif($data["orderby"] =="highprice"){//고가순
+			$orderbyString =" order by sellprice desc";
+		}
+
+		/*
+		if ($orderby == "" || $orderby=="p.vieworder" || $orderby=="vieworder2"){
+			$orderby="vieworder2";
+			$orderby_str = "vieworder2";
+			//$orderby = "p.regdate";
+			if($ordertype == "") $ordertype = "desc";
+		}else if($orderby == "regdate1"){
+			$orderby_str = "p.regdate";
+			if($ordertype == "") $ordertype = "asc";
+		}else if($orderby == "regdate2" || $orderby == "p.regdate"){
+			$orderby_str = "p.regdate";
+			if($ordertype == "") $ordertype = "desc";
+		}else if($orderby == "sellprice1"){
+			//도매몰일때 wholesale_price를 sellprice로 가져오기 bgh
+			if($_SESSION[user][mem_type] == 'C'){
+				$order_select_price = 'p.wholesale_sellprice';
+			}else{
+				$order_select_price = 'p.sellprice';
+			}
+			$orderby_str = $order_select_price;
+			if($ordertype == "") $ordertype = "asc";
+			$flag = "low";
+		}else if($orderby == "sellprice2"){
+			//도매몰일때 wholesale_price를 sellprice로 가져오기 bgh
+			if($_SESSION[user][mem_type] == 'C'){
+				$order_select_price = 'p.wholesale_sellprice';
+			}else{
+				$order_select_price = 'p.sellprice';
+			}
+			$orderby_str = $order_select_price;
+			if($ordertype == "") $ordertype = "desc";
+			$flag = "high";
+		}else if($orderby == "p.view_cnt"){
+			$orderby_str = "p.view_cnt";
+			if($ordertype == "") $ordertype = "asc";
+		}else if($orderby == "p.view_cnt2"){
+			$orderby_str = "p.view_cnt";
+			if($ordertype == "") $ordertype = "desc";
+		}else if($orderby == "pname1"){
+			$orderby_str = "p.pname";
+			if($ordertype == "") $ordertype = "asc";
+		}else if($orderby == "pname2"){
+			$orderby_str = "p.pname";
+			if($ordertype == "") $ordertype = "desc";
+		}*/
+		
+		$admin_delievery_policy = getTopDeliveryPolicy($db);
+		
+
+		if($data["start"]==0){
+			$sql = "SELECT
+							HIGH_PRIORITY count(distinct p.pid) as total_cnt
+						FROM 
+								(
+									SELECT  p.id as pid , p.admin , p.pname , p.sellprice , concat('http://".$_SERVER['HTTP_HOST'].$admin_config[mall_data_root]."/images/product/',substr(p.id,1,2),'/',substr(p.id,3,2),'/',substr(p.id,5,2),'/',substr(p.id,7,2),'/',substr(p.id,9,2),'/m_',p.id,'.gif') as img, p.regdate , p.delivery_policy , p.delivery_product_policy
+									FROM ".TBL_SHOP_PRODUCT." p force index(regdate_desc) 
+									right join ".TBL_SHOP_PRODUCT_RELATION." r on (p.id = r.pid and p.disp = '1' and p.state = '1' ".$join_where.")
+									left join ".TBL_COMMON_COMPANY_DETAIL." ccd on (p.admin=ccd.company_id and ccd.seller_auth='Y')
+									where p.product_type in (".implode(' , ',$shop_product_type).")
+									".$where."
+								) p ";
+
+			$db->query($sql);
+			$db->fetch();
+			$total_cnt = $db->dt["total_cnt"];
+		}
+
+		$sql = "SELECT
+						HIGH_PRIORITY distinct p.pid , p.admin , p.pname , p.sellprice , p.img, p.regdate,
+						if( p.delivery_policy = 1,
+							if( 
+								(
+									select delivery_policy 
+									from ".TBL_COMMON_SELLER_DELIVERY." csd 
+									where csd.company_id = p.admin
+								) != 1 , 
+								(
+									select delivery_basic_policy 
+									from ".TBL_COMMON_SELLER_DELIVERY." csd 
+									where csd.company_id = p.admin
+								) , 
+								'".$admin_delievery_policy[delivery_basic_policy]."'
+							),
+							delivery_product_policy 
+						) as delivery_policy,
+						(
+							SELECT count(*) as total  
+							FROM shop_wishlist 
+							where pid = p.pid
+						) as wish_cnt,
+						concat(
+									( 
+										SELECT sc_name from buyingservice_shopping_center where sc_ix = csd.sc_ix
+									),'[',
+									( 
+										SELECT name from buyingservice_floorline_area where fl_ix = csd.floor
+									),'/',
+									( 
+										SELECT name from buyingservice_floorline_area where fl_ix = csd.line
+									),'/',
+									csd.no,']'
+								) as addr
+					FROM 
+							(
+								SELECT  p.id as pid , p.admin , p.pname , p.sellprice , concat('http://".$_SERVER['HTTP_HOST'].$admin_config[mall_data_root]."/images/product/',substr(p.id,1,2),'/',substr(p.id,3,2),'/',substr(p.id,5,2),'/',substr(p.id,7,2),'/',substr(p.id,9,2),'/m_',p.id,'.gif') as img, p.regdate , p.delivery_policy , p.delivery_product_policy
+								FROM ".TBL_SHOP_PRODUCT." p force index(regdate_desc) 
+								right join ".TBL_SHOP_PRODUCT_RELATION." r on (p.id = r.pid and p.disp = '1' and p.state = '1' ".$join_where.")
+								left join ".TBL_COMMON_COMPANY_DETAIL." ccd on (p.admin=ccd.company_id and ccd.seller_auth='Y')
+								where p.product_type in (".implode(' , ',$shop_product_type).")
+								".$where."
+								".$orderbyString."
+								limit ".$data["start"].",".($data["max"]+60)."
+							) p
+					LEFT JOIN
+						common_seller_detail csd 
+					ON 
+						p.admin = csd.company_id
+					LIMIT 0,".($data["max"])."
+					";
+
+		$db->query($sql);
+		$infos = $db->fetchall("object");
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				if($data["start"]==0){
+					$RESULT["total_cnt"]=$total_cnt;
+				}
+				$RESULT["data"]=$infos;
+
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+
+	public function getGoods($data,$return_array=true){
+		global $shop_product_type,$admin_config;
+		$db = new Database;
+
+		$id = $data["pid"];
+		//$id='0000199643';
+		/*
+		if($_SESSION['user']['price_view'] == '1'){
+			$select_price = 'wholesale_price as listprice, wholesale_sellprice as sellprice, sellprice AS ori_sellprice, listprice AS ori_listprice';
+		}else{
+			$select_price = 'sellprice, listprice';
+		}
+		*/
+		
+		$db->query(" update ".TBL_SHOP_PRODUCT." set view_cnt = view_cnt + 1 where id = '$id'");
+		
+		$admin_delievery_policy = getTopDeliveryPolicy($db);
+
+		$sql = "SELECT id, pname, sellprice, stock, stock_use_yn, delivery_company, c.cname, admin as company_id , search_keyword,
+		if(p.delivery_policy = 1,if( (select delivery_policy from ".TBL_COMMON_SELLER_DELIVERY." csd where csd.company_id = p.admin) != 1 , (select delivery_basic_policy from ".TBL_COMMON_SELLER_DELIVERY." csd where csd.company_id = p.admin) , '".$admin_delievery_policy[delivery_basic_policy]."'),delivery_product_policy ) as delivery_policy ,
+		concat(
+			( 
+				SELECT sc_name from buyingservice_shopping_center where sc_ix = csd.sc_ix
+			),'[',
+			( 
+				SELECT name from buyingservice_floorline_area where fl_ix = csd.floor
+			),'/',
+			( 
+				SELECT name from buyingservice_floorline_area where fl_ix = csd.line
+			),'/',
+			csd.no,']'
+		) as addr
+		FROM ".TBL_SHOP_PRODUCT." p, ".TBL_SHOP_PRODUCT_RELATION." r, ".TBL_SHOP_CATEGORY_INFO." c, ".TBL_COMMON_SELLER_DETAIL." csd where p.id = r.pid and p.admin = csd.company_id and c.cid = r.cid and id = '".$id."'  limit 1";
+
+		$db->query($sql);
+		$infos = $db->fetch();
+
+		foreach($infos as $key=>$val){
+			if(is_numeric($key)){
+				unset($infos[$key]);
+			}
+		}
+
+		if($_SESSION["user"]["price_view"]!="1"){
+			$infos["delivery_price"] = getDeliveryPrice($infos["company_id"],$infos["delivery_company"]);
+		}else{
+			if(getCompanyDeliveryType($infos["company_id"])=="2"){
+				$infos["delivery_price"] = getDeliveryPrice($infos["company_id"],$infos["delivery_company"]);
+			}else{
+				$infos["delivery_price"] =0;
+			}
+		}
+
+
+		// 추가 이미지
+		$db->query("select id from ".TBL_SHOP_ADDIMAGE." a where pid = '$id' limit 5");
+		
+		for($i=0,$j=0; $i<(1+$db->total); $i++){
+			if($i == 0){
+
+				$infos["img"][$j] = "http://".$_SERVER['HTTP_HOST'].PrintImage($admin_config[mall_data_root]."/images/product", $id, 'm');
+
+				$j++;
+			}else{
+				$db->fetch(($i-1));
+
+				if($db->dt[id] != "") {
+					$infos["img"][$j] = "http://".$_SERVER['HTTP_HOST'].PrintImageadd($admin_config[mall_data_root]."/images", $id, $db->dt[id], 'm');
+					$j++;
+				}
+
+			}
+		}
+		
+		//옵션 설정
+		$db->query("SELECT option_name , opn_ix, option_kind  FROM ".TBL_SHOP_PRODUCT_OPTIONS." where pid = '$id' and option_use ='1' order by option_kind ASC, opn_ix asc ");
+		$options = $db->fetchall("object");
+
+		for($i=0,$j=0; $i<count($options); $i++){
+			
+			if($options[$i]["option_name"] !="" && $options[$i]["opn_ix"] !=""){
+				$infos["options"][$j]["option_name"] = $options[$i]["option_name"];
+				$infos["options"][$j]["option_kind"] = $options[$i]["option_kind"];
+				
+				$db->query("SELECT * FROM ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL." where opn_ix = '".$options[$i]["opn_ix"]."' order by option_div ");
+
+				for($z=0; $z<$db->total; $z++){
+					$db->fetch($z);
+					$infos["options"][$j]["option_detail"][$z]["option_id"] = $db->dt["id"];
+					$infos["options"][$j]["option_detail"][$z]["option_div"] = $db->dt["option_div"];
+				}
+
+				$j++;
+			}
+		}
+	
+		$infos["link_url"]="http://".$_SERVER['HTTP_HOST']."/shop/goods_view.php?id=".$id;
+		$infos["basicinfo"]="http://".$_SERVER['HTTP_HOST']."/admin/mobile/iframe_detail.php?id=".$id;
+
+
+		unset($infos["delivery_company"]);
+		unset($infos["delivery_policy"]);
+
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				$RESULT["data"]["product"]=$infos;
+				$RESULT["data"]["seller"]=$this->getSeller($infos,false);
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+
+	public function getSeller($data,$return_array=true){
+		global $shop_product_type,$admin_config;
+		$db = new Database;
+
+		$sql = "select 
+						company_id,
+						com_name as store_name,
+						concat('".$admin_config[mall_data_root]."/images/shopimg/shop_',ccd.company_id,'.gif') as store_img,
+						(select count(*) as cnt from shop_minishop_favorite where company_id = ccd.company_id ) as follower_cnt,
+						ifnull((select avg(score) as avg_score from shop_company_evaluation_score where company_id = ccd.company_id),0) as avg_score,
+						com_email,
+						com_phone,
+						'' as kakaotalk_id
+					from 
+					(
+						select
+							*
+						from
+							common_company_detail ccd
+						where
+							ccd.seller_auth='Y'
+						and
+							ccd.company_id='".$data["company_id"]."'
+					) ccd ";
+
+		$db->query($sql);
+		$infos = $db->fetch("object");
+		
+		foreach($infos as $key=>$val){
+			if(is_numeric($key)){
+				unset($infos[$key]);
+			}
+			
+			if($key==="store_img"){
+				if(!file_exists($_SERVER["DOCUMENT_ROOT"].$val)){
+					$infos[$key]=null;
+				}else{
+					$infos[$key]="http://".$_SERVER['HTTP_HOST'].$val;
+				}
+			}
+
+			/*
+			//업체평점
+			if($key==="avg_score"){
+				if($data["code"]!=""){
+					$sql = "select * from shop_company_evaluation_score where company_id='".$data["company_id"]."' and code='".$data["code"]."' ";
+					$db->query($sql);
+					if(!$db->total){
+						$infos[$key]=0;
+					}
+				}
+			}
+			*/
+
+		}
+		
+		//임시
+		//$infos["avg_score"]=1.7;
+
+		if(substr_count($infos["avg_score"],'.') > 0){
+			$tmp_avg_score = explode('.',$infos["avg_score"]);
+			if(0<$tmp_avg_score[1] && $tmp_avg_score[1]<5){
+				$infos["avg_score"] = floor($infos["avg_score"]);
+			}elseif(5<$tmp_avg_score[1] && $tmp_avg_score[1]<10){
+				$infos["avg_score"] = ceil($infos["avg_score"]);
+			}
+		}
+		
+		//업체 코멘트정보
+		$infos["comment"]=$this->getProductCommentList($data,false);
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				$RESULT["data"]=$infos;
+
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+	
+	//업체 코멘트정보
+	public function getProductCommentList($data,$return_array=true){
+		global $admin_config;
+		$db = new Database;
+		
+		if($data["pid"]!=""){
+			$where=" and pid = '".$data["pid"]."' ";
+		}
+
+		$sql = "select cc_ix,code,name,msg,regdate from shop_mobile_product_comment where company_id='".$data["company_id"]."' ".$where." ";
+		//$sql = "select cc_ix,company_id,code,name,msg from shop_mobile_product_comment ";
+		$db->query($sql);
+		$infos = $db->fetchall("object");
+
+		if(count($infos)>0){
+			foreach($infos as $key => $val){
+				if(!file_exists($_SERVER["DOCUMENT_ROOT"].$admin_config[mall_data_root]."/images/member/mobileprofile/".$val["code"]."gif")){
+					$infos[$key]["profile_img"]="http://isoda.co.kr/data/isoda_data/images/shopimg/shop_logo_4e6b5958f02501122e5ab4817e62d220.gif";
+				}else{
+					$infos[$key]["profile_img"]="http://".$_SERVER['HTTP_HOST'].$admin_config[mall_data_root]."/images/member/mobileprofile/".$val["code"]."gif";
+				}
+			}
+		}
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				$RESULT["data"]=$infos;
+
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+	
+
+	public function login($data){
+		$db = new Database;
+		
+		//$data["id"]="hong861114";
+		//$data["pw"]="shin0606";
+		
+		$stropp_passwd=strtoupper($data["pw"]);	//소문자를 대문자로
+		$strlow_passwd=strtolower($data["pw"]);	//대문자를 소문자로
+		$query="(pw='".crypt($stropp_passwd,"mo")."' OR pw='".crypt($strlow_passwd,"mo")."' ";
+		$query.="OR pw='".md5($stropp_passwd)."' OR pw='".md5($strlow_passwd)."'";
+		$query.="OR pw='".hash("sha256", $stropp_passwd)."' OR pw='".hash("sha256", $strlow_passwd)."' OR pw='".hash("sha256", md5($data["pw"]))."')";
+
+		$sql = "SELECT cu.code,cu.company_id,cu.id,AES_DECRYPT(UNHEX(cmd.name),'".$db->ase_encrypt_key."') as name,AES_DECRYPT(UNHEX(cmd.pcs),'".$db->ase_encrypt_key."') as pcs,AES_DECRYPT(UNHEX(cmd.mail),'".$db->ase_encrypt_key."') as mail,mg.gp_level,mg.gp_name, cmd.gp_ix, cmd.is_delivery_price, cmd.is_buying_price, cu.mem_type, cu.authorized, mg.price_view, mg.payment, mg.commission_rate
+		FROM ".TBL_COMMON_USER." cu ,".TBL_COMMON_MEMBER_DETAIL." cmd , ".TBL_SHOP_GROUPINFO." mg
+		WHERE id=TRIM('".$data["id"]."')
+		and cu.code = cmd.code
+		and cmd.gp_ix = mg.gp_ix
+		and mg.gp_level != 0
+		and $query ";
+
+		$db->query($sql);
+		if($db->total){
+
+			$infos = $db->fetch("object");
+			
+			foreach($infos as $key=>$val){
+				if(is_numeric($key)){
+					unset($infos[$key]);
+				}
+			}
+			
+			if($infos["authorized"]=='N'){
+				$RESULT["code"]="02";
+				$RESULT["msg"]="승인 대기중입니다. 승인이 지연될 시 고객센타로 문의해 주시기 바랍니다.";
+				$RESULT["data"]="";
+				return $RESULT;
+			}elseif($infos["authorized"]=='X'){
+				$RESULT["code"]="03";
+				$RESULT["msg"]="승인 거절 되었습니다.  고객센타로 문의해 주시기 바랍니다.";
+				$RESULT["data"]="";
+				return $RESULT;
+			}
+
+			unset($infos["authorized"]);
+		}else{
+			$RESULT["code"]="01";
+			$RESULT["msg"]="아이디와 비밀번호를 다시한번더 확인해주시기 바랍니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+
+		if($this->ResultDataType=="xml"){
+
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="로그인 인증에 성공하셨습니다.";
+			$RESULT["data"]=$infos;
+
+			return $RESULT;
+		}
+	}
+
+
+	public function memberJoin($data){
+		$db = new Database;
+
+		/*
+		$data["id"]="mobiletest";
+		$data["pw"]="123123";
+		$data["name"]="mobiletest";
+		$data["pcs"]="010-0000-0000";
+		$data["mail"]="mobiletest@nate.com";
+		*/
+
+		$data["name"] = urldecode($data["name"]);
+		$code  = md5(uniqid(rand()));
+		$pass  = trim($data["pw"]);
+		$pass = hash("sha256", $pass);
+
+		if($data["id"] =="" || $data["pw"]=="" || $data["name"]==""){
+			$RESULT["code"]="05";
+			$RESULT["msg"]="회원등록에 필요한 정보가 부족합니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+
+		$total = 0;
+		$db->query("SELECT * FROM ".TBL_COMMON_USER." WHERE id='".$data["id"]."' ");
+		$total = $db->total;
+		$db->query("SELECT * FROM ".TBL_COMMON_DROPMEMBER." WHERE id='".$data["id"]."' ");
+		$total = $total + $db->total;
+
+		if ($total)
+		{
+			$RESULT["code"]="04";
+			$RESULT["msg"]="이미 등록된 아이디입니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+		else
+		{
+			$company_id  = md5(uniqid(rand()));
+
+			$sql = "INSERT INTO ".TBL_COMMON_USER."
+					(code, id, pw, mem_type, date, visit, last, ip, company_id, authorized, auth )
+					VALUES
+					('".$code."','".$data["id"]."','".$pass."','M',NOW(),'0',NOW(),'".$_SERVER["REMOTE_ADDR"]."','".$company_id."','Y',1)";
+		
+			$db->query($sql);
+
+			$sql = "INSERT INTO ".TBL_COMMON_MEMBER_DETAIL."
+					(code,  birthday, birthday_div, name, mail, zip, addr1, addr2, tel,tel_div, pcs,tax_pcs, info, sms, nick_name, job, date, recom_id, gp_ix,  sex_div,add_etc1, add_etc2, add_etc3, add_etc4, add_etc5, add_etc6)
+					VALUES
+					('".$code."',HEX(AES_ENCRYPT('".$db->ase_encrypt_key."')),'$birthday','$birthday_div',HEX(AES_ENCRYPT('".$data["name"]."','".$db->ase_encrypt_key."')),HEX(AES_ENCRYPT('".$data["mail"]."','".$db->ase_encrypt_key."')),HEX(AES_ENCRYPT('$zip','".$db->ase_encrypt_key."')),HEX(AES_ENCRYPT('$addr1','".$db->ase_encrypt_key."')),HEX(AES_ENCRYPT('$addr2','".$db->ase_encrypt_key."')),HEX(AES_ENCRYPT('$tel','".$db->ase_encrypt_key."')),'$tel_div',HEX(AES_ENCRYPT('".$data["pcs"]."','".$db->ase_encrypt_key."')),HEX(AES_ENCRYPT('$tax_pcs','".$db->ase_encrypt_key."')),'1','1', '$nick_name', '$job',NOW(),'$recom_id','1','$sex_div', '$add_etc1', '$add_etc2', '$add_etc3', '$add_etc4', '$add_etc5', '$add_etc6')";
+			$db->query($sql);
+
+			$sql = "INSERT INTO ".TBL_COMMON_COMPANY_DETAIL."
+						(company_id, com_name, com_class, com_ceo, com_business_status, com_business_category, com_number, com_phone, com_fax, com_email , represent_name, represent_email, represent_mobile, com_zip, com_addr1, com_addr2, com_homepage)
+						VALUES
+						('".$company_id."','$com_name','$com_class', '$com_ceo', '$com_business_status', '$com_business_category', '$com_num1-$com_num2-$com_num3','$com_phone1-$com_phone2-$com_phone3','$com_fax1-$com_fax2-$com_fax3', '$com_mail', '$represent_name', '$represent_email', '$represent_mobile1-$represent_mobile2-$represent_mobile3', '$com_zip1-$com_zip2', '$com_addr1', '$com_addr2', '$com_homepage')";
+
+			$db->query($sql);
+
+			if($this->ResultDataType=="xml"){
+			
+			}else{
+				$RESULT["code"]="00";
+				$RESULT["msg"]="정상적으로 회원가입 되었습니다.";
+				$RESULT["data"]="";
+				return $RESULT;
+			}
+		}
+	}
+
+	public function accreditNum($data){
+		$db = new Database;
+		
+		//$data["pcs"]="010-3887-4023";
+
+		$accreditnum = rand(10000,99999);
+		
+		/*임시 주석처리 차후에 주석 풀어야함
+		include($_SERVER["DOCUMENT_ROOT"]."/class/sms.class");
+		
+		$cominfo = getcominfo();
+		
+		
+		$sql = "SELECT mall_ix, mall_div, mall_ename, mall_domain, mall_domain_id, mall_domain_key, mall_type, mall_data_root, sattle_module, mall_use_multishop
+					FROM ".TBL_SHOP_SHOPINFO." where mall_domain LIKE '".str_replace(array("*www.","*m.","*"),"","*".$_SERVER["HTTP_HOST"])."%'";
+		$db->query($sql);
+		$db->fetch();
+
+		$admininfo["mall_domain_key"]  = $db->dt["mall_domain_key"];
+
+		$s = new SMS();
+		$s->send_phone = $cominfo[com_phone];
+		$s->dest_phone = str_replace("-","",$data["pcs"]);
+		$s->msg_body =$cominfo[com_name]." 회원가입 인증번호는[".$accreditnum."]입니다.";
+		
+		$s->sendbyone($admininfo);
+		*/
+
+		if($this->ResultDataType=="xml"){
+		
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["data"]=$accreditnum;
+			return $RESULT;
+		}
+		
+	}
+
+	//즐겨찾기
+	public function setSellerFollower($data){
+		$db = new Database;
+
+		if($data["code"]!=""){
+			if($data["div"]=="insert"){
+
+				$sql = "select * from shop_minishop_favorite where company_id = '".$data["company_id"]."' and ucode = '".$data["code"]."' ";
+				$db->query($sql);
+
+				if(!$db->total){
+					$sql = "insert into shop_minishop_favorite(mf_ix,company_id,ucode,regdate) values('','".$data["company_id"]."','".$data["code"]."',NOW())";
+					$db->query($sql);
+				}else{
+					$RESULT["code"]="31";
+					$RESULT["msg"]="이미즐겨찾기 되어 있습니다.";
+					$RESULT["data"]="";
+					return $RESULT;
+				}
+
+			}elseif($data["div"]=="delete"){
+				$sql = "delete from shop_minishop_favorite where company_id = '".$data["company_id"]."' and ucode = '".$data["code"]."' ";
+				$db->query($sql);
+			}
+		}else{
+			$RESULT["code"]="98";
+			$RESULT["msg"]="로그인후 이용 가능합니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+
+		$sql = "select count(*) as total shop_minishop_favorite where company_id = '".$data["company_id"]."' ";
+		$db->query($sql);
+		$db->fetch();
+		$_total = $db->dt["total"];
+
+
+		if($this->ResultDataType=="xml"){
+		
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["data"]=$_total;
+			return $RESULT;
+		}
+		
+	}
+
+	public function setProductComment($data){
+		$db = new Database;
+		
+		$data["msg"] = urldecode($data["msg"]);
+		$data["name"] = urldecode($data["name"]);
+
+		if($data["code"]!=""){
+			if($data["div"]=="insert"){
+				$sql = "insert into shop_mobile_product_comment (cc_ix,company_id,pid,code,name,msg,regdate) values('','".$data["company_id"]."','".$data["pid"]."','".$data["code"]."','".$data["name"]."','".$data["msg"]."',NOW())";
+				$db->query($sql);
+			}elseif($data["div"]=="update"){
+
+			}elseif($data["div"]=="delete"){
+
+			}
+		}else{
+			$RESULT["code"]="98";
+			$RESULT["msg"]="로그인후 이용 가능합니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+
+		if($this->ResultDataType=="xml"){
+		
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="";
+			$RESULT["data"]=$this->getProductCommentList($data,false);
+			return $RESULT;
+		}
+	}
+
+	public function setGoodsWish($data){
+		$db = new Database;
+
+		if($data["code"]!=""){
+			if($data["div"]=="insert"){
+
+				$sql = "select * from shop_wishlist where pid = '".$data["pid"]."' and mid = '".$data["code"]."' ";
+				$db->query($sql);
+
+				if(!$db->total){
+					$sql = "select * from shop_product_relation where pid = '".$data["pid"]."' and basic = '1' limit 0,1";
+					$db->query($sql);
+					$db->fetch();
+					$cid = $db->dt[cid];
+
+					$sql = "insert into shop_wishlist(wid,pid,cid,mid,regdate) values('','".$data["pid"]."','".$cid."','".$data["code"]."',NOW())";
+					$db->query($sql);
+				}else{
+					$RESULT["code"]="21";
+					$RESULT["msg"]="이미등록된 관심상품입니다.";
+					$RESULT["data"]="";
+					return $RESULT;
+				}
+			}elseif($data["div"]=="delete"){
+				$sql = "delete from shop_wishlist where pid = '".$data["pid"]."' and mid = '".$data["code"]."',NOW())";
+				$db->query($sql);
+			}
+		}else{
+			$RESULT["code"]="98";
+			$RESULT["msg"]="로그인후 이용 가능합니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+
+		if($this->ResultDataType=="xml"){
+		
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="정상적으로 관심상품 등록되었습니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+	}
+
+	public function setSellerEvaluationScore($data){
+		$db = new Database;
+		
+		$data["msg"] = urldecode($data["msg"]);
+		$data["name"] = urldecode($data["name"]);
+
+		if($data["code"]!=""){
+
+			$sql = "select * from shop_company_evaluation_score where company_id = '".$data["company_id"]."' and code = '".$data["code"]."' ";
+			$db->query($sql);
+
+			if(!$db->total){
+				$sql = "insert into shop_company_evaluation_score (ces_ix,company_id,code,name,score,msg,regdate) values('','".$data["company_id"]."','".$data["code"]."','".$data["name"]."','".$data["score"]."','".$data["msg"]."',NOW())";
+				$db->query($sql);
+			}else{
+				$db->fetch();
+				$ces_ix = $db->dt[ces_ix];
+
+				$sql = "update shop_company_evaluation_score set
+							score='".$data["score"]."',
+							msg='".$data["msg"]."'
+						where ces_ix='".$ces_ix."'";
+				$db->query($sql);
+			}
+			
+			$sql = "select avg(score) as avg_score from shop_company_evaluation_score where company_id = '".$data["company_id"]."'";
+			$db->query($sql);
+			$db->fetch();
+
+			if(substr_count($db->dt["avg_score"],'.') > 0){
+				$tmp_avg_score = explode('.',$db->dt["avg_score"]);
+				if(0<$tmp_avg_score[1] && $tmp_avg_score[1]<5){
+					$avg_score = floor($db->dt["avg_score"]);
+				}elseif(5<$tmp_avg_score[1] && $tmp_avg_score[1]<10){
+					$avg_score = ceil($db->dt["avg_score"]);
+				}
+			}
+			
+
+		}else{
+			$RESULT["code"]="98";
+			$RESULT["msg"]="로그인후 이용 가능합니다.";
+			$RESULT["data"]="";
+			return $RESULT;
+		}
+
+		if($this->ResultDataType=="xml"){
+		
+		}else{
+			$RESULT["code"]="00";
+			$RESULT["msg"]="정상적으로 처리 되었습니다.";
+			$RESULT["data"]=$this->getSellerEvaluationScoreList($data,false);
+			$RESULT["avg_score"]=$avg_score;
+			return $RESULT;
+		}
+	}
+
+	public function getSellerEvaluationScoreList($data,$return_array=true){
+		$db = new Database;
+		
+		//$data["company_id"] = "7d2a659dd91352c6efed1fdaf7aad162";
+
+		$sql = "select score,name,msg,regdate from shop_company_evaluation_score where company_id = '".$data["company_id"]."' ";
+		//$sql = "select name,msg,regdate from shop_company_evaluation_score ";
+		$db->query($sql);
+		$infos = $db->fetchall("object");
+
+		if($this->ResultDataType=="xml"){
+		
+		}else{
+			if($return_array){
+				$RESULT["code"]="00";
+				$RESULT["msg"]="";
+				$RESULT["data"]=$infos;
+				return $RESULT;
+			}else{
+				return $infos;
+			}
+		}
+	}
+
+	public function setPasswordInitialize($data){
+		$db = new Database;
+
+		$sql = "SELECT cu.code FROM ".TBL_COMMON_USER." cu ,".TBL_COMMON_MEMBER_DETAIL." cmd
+		WHERE cu.code = cmd.code
+		and id=TRIM('".$data["id"]."')
+		and REPLACE(AES_DECRYPT(UNHEX(cmd.pcs),'".$db->ase_encrypt_key."'),'-','') = '".str_replace('-','',$data["pcs"])."'  ";
+
+		$db->query($sql);
+		if($db->total){
+			$db->fetch();
+
+			$code = $db->dt["code"];
+			$pass  = trim($data["pw"]);
+			$pass = hash("sha256", $pass);
+
+			$sql = "update common_user set pw='".$pass."' where code = '".$code."' ";
+			$db->query($sql);
+
+			$RESULT["code"]="00";
+			$RESULT["msg"]="성공적으로 변경되었습니다.";
+			return $RESULT;
+
+		}else{
+			$RESULT["code"]="06";
+			$RESULT["msg"]="아이디와 핸드폰번호가 일치하는 아이디가 없습니다.";
+			return $RESULT;
+		}
+	}
+
+	public function getManagePolicy(){
+		$db = new Database;
+
+		$RESULT["code"]="00";
+		$RESULT["msg"]="";
+		$RESULT["data"]="http://isoda.co.kr/data/isoda_data/images/upfile/view_notice_img.jpg";
+		return $RESULT;
+
+	}
+
+	public function getBBSList($data){
+		$db = new Database;
+		
+		$sql = "select bbs_ix,bbs_subject,bbs_contents,regdate from ".$data["bbs_name"]." order by regdate desc";
+		$db->query($sql);
+		$infos=$db->fetchall();
+		
+		for($i=0;$i<count($infos);$i++){
+			$infos[$i]["bbs_subject"]=strip_tags($infos[$i]["bbs_subject"]);
+			$infos[$i]["bbs_contents"]=strip_tags($infos[$i]["bbs_contents"]);
+		}
+
+		$RESULT["code"]="00";
+		$RESULT["msg"]="";
+		$RESULT["data"]["contants"]=$infos;
+		return $RESULT;
+
+	}
+
+	public function getFAQList($data){
+		$db = new Database;
+
+		/*
+		$data["bbs_name"]="bbs_faq";
+		$data["search_text"]="교환";
+		*/
+
+		$data["search_text"] = urldecode($data["search_text"]);
+
+		$where =" where bbs.bbs_div !='' ";
+
+		if($data["search_text"]!=""){
+			$where .= " and (bbs_q like '%".$data["search_text"]."%' or bbs_a like '%".$data["search_text"]."%') ";
+		}
+		
+		if($data["bbs_div"]!=""){
+			$where .= " and bbs.bbs_div = '".$data["bbs_div"]."' ";
+		}
+
+		$sql = "select bbs_ix,bbs_div, concat('[',bdiv.div_name,'] ',bbs_q) as bbs_subject, bbs_a as bbs_contents , bbs.regdate from ".$data["bbs_name"]." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div $where order by bbs.regdate";
+		//$sql = "select bbs_ix,bbs_div, bbs_q as bbs_subject, bbs_a as bbs_contents , bbs.regdate from ".$data["bbs_name"]." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div $where order by bbs.regdate";
+
+		$db->query($sql);
+		$infos=$db->fetchall("object");
+		
+		for($i=0;$i<count($infos);$i++){
+			$infos[$i]["bbs_subject"]=strip_tags($infos[$i]["bbs_subject"]);
+			$infos[$i]["bbs_contents"]=strip_tags($infos[$i]["bbs_contents"]);
+		}
+
+		$sql = "select bm_ix from bbs_manage_config where concat('bbs_',board_ename)='".$data["bbs_name"]."' ";
+		$db->query($sql);
+		$db->fetch();
+		$bm_ix = $db->dt[bm_ix];
+		
+		if($data["search_text"]=="" || $data["bbs_div"]==""){
+			$sql = "select div_ix as bbs_div,div_name from ".TBL_BBS_MANAGE_DIV." where div_depth ='1' and disp='1' and bm_ix='".$bm_ix."' order by view_order";
+			$db->query($sql);
+			$div_infos=$db->fetchall("object");
+		}
+
+		$RESULT["code"]="00";
+		$RESULT["msg"]="";
+		$RESULT["data"]["div"]=$div_infos;
+		$RESULT["data"]["contants"]=$infos;
+		return $RESULT;
+
+	}
+	
+	/*차후 비밀번호 
+	public function setPasswordUpdate($data){
+		$db = new Database;
+
+		$stropp_passwd=strtoupper($data["prevpw"]);	//소문자를 대문자로
+		$strlow_passwd=strtolower($data["prevpw"]);	//대문자를 소문자로
+		$query="(pw='".crypt($stropp_passwd,"mo")."' OR pw='".crypt($strlow_passwd,"mo")."' ";
+		$query.="OR pw='".md5($stropp_passwd)."' OR pw='".md5($strlow_passwd)."'";
+		$query.="OR pw='".hash("sha256", $stropp_passwd)."' OR pw='".hash("sha256", $strlow_passwd)."' OR pw='".hash("sha256", md5($data["prevpw"]))."')";
+
+		$sql = "SELECT cu.code FROM ".TBL_COMMON_USER." cu ,".TBL_COMMON_MEMBER_DETAIL." cmd
+		WHERE id=TRIM('".$data["id"]."')
+		and cu.code = cmd.code
+		and $query ";
+
+		$db->query($sql);
+		if($db->total){
+			$db->fetch();
+
+			$code = $db->dt["code"];
+			$pass  = trim($data["pw"]);
+			$pass = hash("sha256", $pass);
+
+			$sql = "update common_user set pw='".$pass."' where code = '".$code."' ";
+			$db->query($sql);
+
+			$RESULT["code"]="00";
+			$RESULT["msg"]="성공적으로 변경되었습니다.";
+			return $RESULT;
+
+		}else{
+			$RESULT["code"]="06";
+			$RESULT["msg"]="아이디와 비밀번호를 다시한번더 확인해주세요.";
+			return $RESULT;
+		}
+	}
+	*/
+
+	protected function data_log($value){
+		$file = fopen("../log/pos_log.txt","a+");
+		fwrite($file,$value.date('h:i:s')."\n");
+		fclose($file);
+	}
+
+	protected function xml_log($value){
+		
+		$file = fopen("../log/pos_xml_log.txt","a+");
+		fwrite($file,$value."\n");
+		fclose($file);
+	}
+}

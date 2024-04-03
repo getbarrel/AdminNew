@@ -1,0 +1,81 @@
+
+
+################################################################################
+# 소켓방식 메일발송 함수
+################################################################################
+
+
+PHP 내장 mail()함수는 sendmail 만 이용할 수 있는 단점이 있어서 소켓방식의 발송프로그램이 필요하게됨.
+-. 센드메일대신 엔메일을 설치할경우 메일발송안되는 문제발생.
+-. 윈도우에서 메일발송안되는 문제발생.
+
+
+
+################################################################################
+
+[PEAR class usage]
+PEAR.php
+Mail.php
+Mail/mime.php
+Mail/mimePart.php
+Mail/RFC822.php
+Mail/smtp.php
+Net/SMTP.php
+Net/Socket.php
+
+
+[참고자료]
+http://pear.php.net/manual/en/core.mail.smtp.php
+
+
+
+[2002-03-13]
+-. 보낸이에 한글삽입시 에러발생.
+	mime.php 사용하지 않는 방안 모색.
+	prepareHeaders() 함수에서 한글포함시 "@"만 남게됨.
+	-> 해결
+	한글사용시 큰따옴표로 묶어줘야함.  ex) "테스터"<test@test.com>
+
+
+[2003-03-01]
+-. 첨부파일 발송오류 수정.
+	: 파일이름을 지정하면 내용이 가지않고, 지정안하면 내용은 가지만 파일이름이 제대로안됨.
+	include/main_smtp.php
+
+	37 line)
+		$mime->addAttachment($file, "text/plain", $file_name, false);
+	=>
+		$mime->addAttachment($file, "text/plain", $file_name);
+
+	include/pear/Mail/mime.php
+	include/pear/Mail/mimePart.php
+
+
+[2003-06-05]
+-. Pear Class Update 이후 보낸이에 한글을 사용해도 큰따옴표(")를 안붙여줘도 됨.
+
+
+-. Net_SMTP-1.2.3 으로 교체후 에러메세지의 출력이 이상해져서 버젼업을 하지 않음.
+	: 테스트메일데몬 - Sendmail 8.11.6/8.11.6, XMail 1.14
+	Net/SMTP.php
+
+	error message : unable to add recipient [ibin@passkorea.net]: 550 Relay denied
+	=>
+	error message : unable to add recipient [ibin@passkorea.net]: Invalid response code received from server
+
+
+[2003-07-29]
+-. 보낸이나 본문이 아웃룩 익스프레스나 일부 웹메일에서 깨지는 문제을 해결하기 위해 인코딩 및 케릭터셋 변경.
+	include/main_smtp.php
+
+	19~20 line)
+		$mime->_build_params["html_charset"] = "EUC-KR";
+		$mime->_build_params["text_charset"] = "EUC-KR";
+	=>
+		$mime->_build_params["html_charset"] = "euc-kr";
+		$mime->_build_params["text_charset"] = "euc-kr";
+
+		// [2003-07-29] 보낸이나 본문이 아웃룩 익스프레스나 일부 웹메일에서 깨지는 문제을 해결하기 위해 인코딩 및 케릭터셋 변경.
+		$mime->_build_params["head_charset"] = "euc-kr";
+		$mime->_build_params["text_encoding"] = "8bit";
+		$mime->_build_params["html_encoding"] = "base64";

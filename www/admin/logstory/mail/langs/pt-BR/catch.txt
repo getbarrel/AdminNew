@@ -1,0 +1,11 @@
+; ***************************************** ;
+; Catch Address		                    ;
+; ***************************************** ;
+
+ctc_title		= Capturar endereços
+ctc_information		= Somente serão listados emails válidos que ainda não estejam em seu catálogo
+ctc_name		= Nome
+ctc_email		= Email
+ctc_no_address		= Nenhum endereço disponível
+ctc_close		= Fechar
+ctc_save		= Salvar

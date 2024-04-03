@@ -1,0 +1,8 @@
+
+; ***************************************** ;
+; Upload		                    ;
+; ***************************************** ;
+
+up_title 			= Add new attachment
+up_information_text		= Select file
+up_button_text			= Attach

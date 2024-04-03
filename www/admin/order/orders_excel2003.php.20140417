@@ -1,0 +1,579 @@
+<?php
+	include("../class/layout.class");
+	include("../order/excel_out_columsinfo.php");
+	include("../include/phpexcel/Classes/PHPExcel.php");
+
+	//error_reporting(E_ALL);
+	PHPExcel_Settings::setZipClass(PHPExcel_Settings::ZIPARCHIVE);
+
+	date_default_timezone_set('Asia/Seoul');
+
+	$db1 = new Database;
+	$odb = new Database;
+	if($excel_type == "delivery"){
+		$sql = "select delivery_excel_info1 as order_excel_info1, delivery_excel_info2 as order_excel_info2, delivery_excel_checked as order_excel_checked
+				from ".TBL_COMMON_SELLER_DETAIL."
+				where company_id = '".$admininfo[company_id]."'";
+	}else{
+		$sql = "select order_excel_info1, order_excel_info2, order_excel_checked
+				from ".TBL_COMMON_SELLER_DETAIL."
+				where company_id = '".$admininfo[company_id]."'";
+	}
+	//echo $sql;
+	$db1->query($sql);
+	$db1->fetch();
+
+	$check_colums = unserialize(stripslashes($db1->dt[order_excel_checked]));
+	$columsinfo = $colums;
+	//print_r($db1->dt);
+	//exit;
+
+	$str_colums = implode(",", $check_colums);
+
+	if($view_type=="sc_order") $not_in_product_type=$shop_product_type;
+	else $not_in_product_type=$sns_product_type;
+
+	if($db1->dbms_type == "oracle"){
+		$where = "WHERE od.status !='SR' AND od.product_type NOT IN (".implode(',',$not_in_product_type).") ";
+	}else{
+		$where = "WHERE od.status <> '' and od.status !='SR' AND od.product_type NOT IN (".implode(',',$not_in_product_type).") ";
+	}
+
+	if($view_type == 'offline_order'){		//영업관리 용도 2013-07-05 이학봉
+		$where .= " and od.order_from in ('offline') ";
+		$ood_where .= " and od.order_from in ('offline') ";
+	}else if($view_type == 'pos_order'){		//포스관리 용도 2013-07-05 이학봉
+		$where .= " and od.order_from in ('pos') ";
+		$ood_where .= " and od.order_from in ('pos') ";
+	}
+
+
+	if($search_type != "" && $search_text != ""){
+		if($search_type == "combi_name"){
+			$where .= "and (bname LIKE '%".trim($search_text)."%'  or rname LIKE '%".trim($search_text)."%' or bank_input_name LIKE '%".trim($search_text)."%') ";
+		}else{
+			$where .= "and $search_type like '%$search_text%'";
+		}
+	}
+	
+	if($db->dbms_type == "oracle"){
+		$date_type = "o.date_";
+	}else{
+		$date_type = "o.date";
+	}
+
+	if($orderdate && $startDate){
+		$where .= "and date_format(".$date_type.",'%Y%m%d') between '".$startDate."' and '".$endDate."' ";
+	}else{
+		//$orderdate = 1;
+		//$where .= "and date_format(".$date_type.",'%Y%m%d') between ".date("Ymd", time()-84600*15)." and ".date("Ymd")." ";
+		/*날짜 검색 체크 안하고 검색하고 엑셀다운시 윗부분 15일동안의 날짜 조건이 있어서 엑셀 데이타가 없음 주석처리 2013-10-04 이학봉*/
+	}
+
+	if(is_array($type)){ //
+		for($i=0;$i < count($type);$i++){
+			if($type_str == ""){
+				$type_str .= "'".$type[$i]."'";
+			}else{
+				$type_str .= ",'".$type[$i]."'";
+			}
+		}
+		if($type_str){
+			$where .= "and od.status in ($type_str) ";
+		}
+	}else{
+		if($type){
+			$where .= "and od.status = '$type'";
+		}
+	}
+
+	if(is_array($refund_type)){
+		for($i=0;$i < count($refund_type);$i++){
+			if($refund_type[$i]){
+				if($refund_type_str == ""){
+					$refund_type_str .= "'".$refund_type[$i]."'";
+				}else{
+					$refund_type_str .= ", '".$refund_type[$i]."' ";
+				}
+			}
+		}
+
+		if($refund_type_str != ""){
+			$where .= "and od.refund_status in ($refund_type_str) ";
+		}
+	}else{
+		if($refund_type){
+			$where .= "and od.refund_status = '$refund_type' ";
+		}
+	}
+
+	if(is_array($method)){
+		for($i=0;$i < count($method);$i++){
+			if($method[$i] != ""){
+				if($method_str == ""){
+					$method_str .= "'".$method[$i]."'";
+				}else{
+					$method_str .= ",'".$method[$i]."' ";
+				}
+			}
+		}
+		if($method_str != ""){
+			$where .= "and o.method in ($method_str) ";
+		}
+	}else{
+		if($method){
+			$where .= "and o.method = '$method' ";
+		}
+	}
+
+	if(is_array($order_from)){
+		for($i=0;$i < count($order_from);$i++){
+			if($order_from[$i] != ""){
+				if($order_from_str == ""){
+					$order_from_str .= "'".$order_from[$i]."'";
+				}else{
+					$order_from_str .= ",'".$order_from[$i]."' ";
+				}
+			}
+		}
+		if($order_from_str != ""){
+			$where .= "and od.order_from in ($order_from_str) ";
+		}
+	}else{
+		if($order_from){
+			$where .= "and od.order_from = '$order_from' ";
+		}
+	}
+
+    if(is_array($payment_agent_type)){
+		for($i=0;$i < count($payment_agent_type);$i++){
+			if($payment_agent_type[$i] != ""){
+				if($pay_agent_str == ""){
+					$pay_agent_str .= "'".$payment_agent_type[$i]."'";
+				}else{
+					$pay_agent_str .= ",'".$payment_agent_type[$i]."' ";
+				}
+			}
+		}
+
+		if($pay_agent_str != ""){
+			$where .= "and o.payment_agent_type in ($pay_agent_str) ";
+		}
+	}else{
+		if($payment_agent_type){
+			$where .= "and o.payment_agent_type = '$payment_agent_type' ";
+		}
+	}
+
+	if($product_type != ""){
+		$where .= "and od.product_type = '".$product_type."'";
+	}
+
+	if($pre_type != ORDER_STATUS_DELIVERY_READY){
+		if(is_array($delivery_status)){
+			for($i=0;$i < count($delivery_status);$i++){
+				if($delivery_status[$i] != ""){
+					if($delivery_status_str == ""){
+						$delivery_status_str .= "'".$delivery_status[$i]."'";
+					}else{
+						$delivery_status_str .= ", '".$delivery_status[$i]."' ";
+					}
+				}
+			}
+
+			if($delivery_status_str != ""){
+				$where .= "and od.delivery_status in ($delivery_status_str) ";
+			}
+		}else{
+			if($delivery_status){
+				$where .= "and od.delivery_status = '$delivery_status' ";
+			}
+		}
+	}else{
+		if($_COOKIE[view_wdr_order] == 1){
+			$where .= "and (od.delivery_status not in ('WDA','WDC') or od.delivery_status is null)";
+		}else{
+			$where .= "and (od.delivery_status not in ('WDA','WDR','WDC') or od.delivery_status is null)";
+		}
+	}
+	if($md_code != ""){
+		$where .= "and od.md_code = '".$md_code."'";
+	}
+
+	if(is_array($refund_method)){
+		for($i=0;$i < count($refund_method);$i++){
+			if($refund_method[$i]){
+				if($refund_method_str == ""){
+					$refund_method_str .= "'".$refund_method[$i]."'";
+				}else{
+					$refund_method_str .= ", '".$refund_method[$i]."' ";
+				}
+			}
+		}
+
+		if($refund_method_str != ""){
+			$where .= "and o.refund_method in ($refund_method_str) ";
+		}
+	}else{
+		if($refund_method){
+			$where .= "and o.refund_method = '$refund_method' ";
+		}
+	}
+	
+	if($send_type!=""){
+		$where .= "and odd.send_type = '$send_type' ";
+		$sub_where = " left join shop_order_detail_deliveryinfo odd on (odd.oid=od.oid and odd.od_ix=od.od_ix and order_type='3') ";
+	}
+
+	if($bank!=""){
+		$where .= "and o.bank = '$bank' ";
+	}
+
+	if($reason_code!=""){
+		$where .= "and o.oid in (select oid from shop_order_status where reason_code='".$reason_code."' )";
+	}
+
+	if($invoice_no_bool == "Y"){
+		$where .= " and ifnull(od.invoice_no,'') !='' ";
+	}elseif($invoice_no_bool == "N"){
+		$where .= " and ifnull(od.invoice_no,'') ='' ";
+	}
+
+	$sql = "SELECT company_id FROM common_company_detail where com_type='A' ";
+	$db->query($sql);
+	$db->fetch();
+	$a_company_id=$db->dt[company_id];
+
+	if($use_reserve=="Y"){
+		$where .= "and o.use_reserve_price > 0 ";
+	}
+
+	if(is_array($p_admin) && count($p_admin) == 1){
+		if($p_admin[0]=="A"){
+			$where .= "and od.company_id ='".$a_company_id."' ";
+		}elseif($p_admin[0]=="S"){
+			$where .= "and od.company_id !='".$a_company_id."' ";
+		}
+	}else{
+		if($p_admin=="A"){
+			$where .= "and od.company_id ='".$a_company_id."' ";
+		}elseif($p_admin=="S"){
+			$where .= "and od.company_id !='".$a_company_id."' ";
+		}
+	}
+
+
+	if($admininfo[admin_level] == 9){
+		if($company_id != ""){
+			$where .= " and o.oid = od.oid and o.oid = odv.oid and od.company_id = odv.company_id and od.company_id = '".$company_id."'";//od.pid = p.id and
+		}else{
+			$where .= " and o.oid = od.oid and o.oid = odv.oid and od.company_id = odv.company_id  ";
+		}
+	}else if($admininfo[admin_level] == 8){
+		$where .= " and o.oid = od.oid and o.oid = odv.oid and od.company_id = odv.company_id and od.company_id = '".$admininfo[company_id]."'"; // od.pid = p.id and
+	}
+
+	if($excel_type == "delivery"){
+		/*$sql = "select oid from (SELECT od.oid, od.pid, od.regdate
+				FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od , shop_order_delivery odv $where ) ood
+				left join ".TBL_SHOP_PRODUCT." p on ood.pid = p.id
+				WHERE p.product_type NOT IN (".implode(',',$sns_product_type).") group by oid ";*/
+		$sql = "SELECT od.oid FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od , shop_order_delivery odv $where AND od.product_type NOT IN (".implode(',',$not_in_product_type).") group by oid ";//주문단에서는 상품테이블과 조인하면 안됨 그리고 쿼리 부하가 심함 kbk 12/10/31
+	}else{
+		/*$sql = "select oid from (SELECT od.oid, od.pid, od.regdate
+				FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od , shop_order_delivery odv $where ) ood
+				left join ".TBL_SHOP_PRODUCT." p on ood.pid = p.id
+				WHERE p.product_type NOT IN (".implode(',',$sns_product_type).") ";*/
+		$sql = "SELECT od.oid FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od , shop_order_delivery odv $where AND od.product_type NOT IN (".implode(',',$not_in_product_type).") ";//주문단에서는 상품테이블과 조인하면 안됨 그리고 쿼리 부하가 심함 kbk 12/10/31
+
+	}
+	$db1->query($sql);		//,
+	//echo $sql;
+
+	$total = $db1->total;
+
+	if($excel_type == "delivery"){
+		if($view_type_sub=="due_date") {//배송예정일에 대한 구분 추가 kbk 13/08/28
+			$add_due_date=" AND od.due_date >= ".date("Ymd");
+			$orderby_text=" od.due_date ASC, od.od_ix ";
+			$orderby_text_oracle=" date DESC ";
+		} else {
+			$add_due_date="";
+			$orderby_text=" date ASC ";
+			$orderby_text_oracle=" date_ DESC ";
+		}
+			if($db1->dbms_type == "oracle"){
+				$sql = "SELECT distinct od.od_ix, o.oid, uid_, o.bname,o.btel, o.bmobile,od.surtax_yorn, o.rname, tid,  method,rmail,bmail, total_price, payment_price, date_, od.pname, addr, zip, msg, rtel, rmobile,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+						od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice, od.status,od.delivery_status, od.reserve,od.delivery_method,od.quick, od.invoice_no as invoiceno , od.dc_date,
+						odv.delivery_pay_type as deliverypaytype, od.due_date, od.cid, od.use_coupon,
+				(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+				case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+				FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od , shop_order_delivery odv $where $add_due_date
+				ORDER BY $orderby_text_oracle ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+			}else{
+				$sql = "SELECT o.oid, uid, o.bname,o.btel, o.bmobile,od.surtax_yorn, o.rname, tid,  method,rmail,bmail, total_price, payment_price, date_format(date,'%Y-%m-%d') as date, od.pname, addr, zip, msg, rtel, rmobile,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+						od.od_ix,od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice, od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,
+						odv.delivery_pay_type as deliverypaytype, od.due_date, od.cid, od.use_coupon,
+				(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+				case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+				FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od , shop_order_delivery odv $where $add_due_date
+				group by oid , company_id,od.od_ix ORDER BY $orderby_text ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+			}
+	}else{
+		if($e_type!="") {//주문 이외 리스트용 kbk 12/02/28
+			if($e_type==ORDER_STATUS_EXCHANGE_APPLY) {
+				if($db1->dbms_type == "oracle"){// o.msg, 오라클 distinct 사용시 CLOB  사용안됨
+					$sql = "SELECT distinct od.od_ix, o.oid, uid_, o.bname,o.btel, o.bmobile,od.surtax_yorn, odvd.rname, tid,  method,odvd.rmail,bmail, total_price, payment_price, o.date_ ,odvd.date_ AS ex_date, od.pname,								CONCAT(odvd.addr1||' ',odvd.addr2) AS addr, odvd.zip, odvd.rtel, odvd.rmobile,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+								od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice,od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,
+								odv.delivery_pay_type as deliverypaytype,g.gid,g.gname, od.cid, od.use_coupon,
+						(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+						case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join inventory_goods_unit gu on (gu.gu_ix=od.pcode) left join inventory_goods g on (g.gid=gu.gid) , shop_order_delivery odv, shop_order_detail_deliveryinfo odvd $where and od.od_ix=odvd.od_ix
+						ORDER BY date_ DESC ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+				}else{
+					$sql = "SELECT o.oid, uid, o.bname,o.btel, o.bmobile,od.surtax_yorn, odvd.rname, tid,  method,odvd.rmail,bmail, total_price, payment_price, date_format(o.date,'%Y-%m-%d') as date,odvd.date AS ex_date, od.pname, CONCAT(odvd.addr1,' ',odvd.addr2) AS addr, odvd.zip, o.msg, odvd.rtel, odvd.rmobile,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+								od.od_ix,od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice,od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,
+								odv.delivery_pay_type as deliverypaytype,g.gid,g.gname, od.cid, od.use_coupon,
+						(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+						case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join inventory_goods_unit gu on (gu.gu_ix=od.pcode) left join inventory_goods g on (g.gid=gu.gid), shop_order_delivery odv, shop_order_detail_deliveryinfo odvd $where and od.od_ix=odvd.od_ix
+						group by oid, od.pid, od.od_ix ORDER BY date DESC ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+				}
+			} else {
+				if($e_type==ORDER_STATUS_RETURN_APPLY) $add_select="od.ra_date AS rt_date,";
+				else $add_select="";
+				if($db1->dbms_type == "oracle"){// o.msg, 오라클 distinct 사용시 CLOB  사용안됨
+					$sql = "SELECT distinct od.od_ix, o.oid, uid_, o.bname,o.btel, o.bmobile,od.surtax_yorn, o.rname, tid,  method,o.rmail,bmail, total_price, payment_price,o.date_, ".$add_select." od.pname, o.addr, o.zip, o.rtel,
+								o.rmobile, od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice,od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+								odv.delivery_pay_type as deliverypaytype,g.gid,g.gname, od.cid, od.use_coupon,
+								(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+								case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+								FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join inventory_goods_unit gu on (gu.gu_ix=od.pcode) left join inventory_goods g on (g.gid=gu.gid), shop_order_delivery odv $where
+								ORDER BY date_ DESC ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+				}else{
+					$sql = "SELECT o.oid, uid, o.bname,o.btel, o.bmobile,od.surtax_yorn, o.rname, tid,  method,o.rmail,bmail, total_price, payment_price,date_format(o.date,'%Y-%m-%d') as date, ".$add_select." od.pname, o.addr, o.zip, o.msg, o.rtel, o.rmobile,
+								od.od_ix,od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice,od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+								odv.delivery_pay_type as deliverypaytype,g.gid,g.gname, od.cid, od.use_coupon,
+								(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+								case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+								FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join inventory_goods_unit gu on (gu.gu_ix=od.pcode) left join inventory_goods g on (g.gid=gu.gid), shop_order_delivery odv $where
+								group by oid, od.pid, od.od_ix ORDER BY date DESC ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+				}
+			}
+		} else {
+
+			if($db1->dbms_type == "oracle"){ //msg, 오라클 distinct 사용시 CLOB  사용안됨
+				$sql = "SELECT distinct od.od_ix, o.oid, uid_, o.bname,o.btel, o.bmobile,od.surtax_yorn, o.rname, tid,  method,rmail,bmail, total_price, payment_price, date_, od.pname, addr, zip, rtel, rmobile,
+						od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice,od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+						odv.delivery_pay_type as deliverypaytype,g.gid,g.gname, od.cid, od.use_coupon,
+						(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+						case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join inventory_goods_unit gu on (gu.gu_ix=od.pcode) left join inventory_goods g on (g.gid=gu.gid), shop_order_delivery odv $where
+						ORDER BY date_ DESC ";
+			}else{
+				$sql = "SELECT o.oid, uid, o.bname,o.btel, o.bmobile,od.surtax_yorn, o.rname, tid,  method,rmail,bmail, total_price, payment_price, date_format(date,'%Y-%m-%d') as date, od.pname, addr, zip, msg, rtel, rmobile,
+						od.od_ix,od.pid, od.company_name, od.company_id, od.option_text as optiontext,od.coprice, od.psprice,od.pcnt,od.ptprice,od.status,od.delivery_status, od.reserve,od.delivery_method, od.quick, od.invoice_no as invoiceno , od.dc_date,o.is_erp_link,o.is_erp_link_return,od.erp_link_date,
+						odv.delivery_pay_type as deliverypaytype,g.gid,g.gname, od.cid, od.use_coupon,
+						(select  p.pcode FROM ".TBL_SHOP_PRODUCT." p WHERE p.id=od.pid AND p.product_type NOT IN (".implode(',',$not_in_product_type).")) AS pcode,
+						case when od.od_ix = (select max(odr.od_ix) from shop_order_detail as odr where odr.oid = od.oid) then odv.delivery_price else '0' end as deliveryprice
+						FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od left join inventory_goods_unit gu on (gu.gu_ix=od.pcode) left join inventory_goods g on (g.gid=gu.gid), shop_order_delivery odv $where
+						group by oid, od.pid, od.od_ix ORDER BY date DESC ";//쿼리 부하가 의심되어 수정함 kbk 12/05/22
+			}
+		}
+	}
+
+	//exit;
+	$db1->query($sql);
+
+
+	$ordersXL = new PHPExcel();
+
+	// 속성 정의
+
+	$ordersXL->getProperties()->setCreator("포비즈 코리아")
+							 ->setLastModifiedBy("Mallstory.com")
+							 ->setTitle("orders List")
+							 ->setSubject("orders List")
+							 ->setDescription("generated by forbiz korea")
+							 ->setKeywords("mallstory")
+							 ->setCategory("orders List");
+
+
+	if($db1->total){
+		$j=0;
+
+		// 헤더찍기
+		$col = 'A';
+		if($view_type=="sc_order") {//소셜커머스 상품 kbk 13/08/28
+			$ordersXL->getActiveSheet(0)->setCellValue($col . "1", "배송예정일");
+			$col++;
+		}
+		foreach($check_colums as $key => $value){
+			$ordersXL->getActiveSheet(0)->setCellValue($col . "1", $columsinfo[$value][title]);
+			$col++;
+
+			//xlsWriteLabel(0,$j,$columsinfo[$value][title]);
+			//$j++;
+		}
+		
+		if($e_type!="") {//주문 이외의 리스트용 kbk 12/02/28
+			if($e_type==ORDER_STATUS_EXCHANGE_APPLY) $ordersXL->getActiveSheet(0)->setCellValue($col . "1", "교환신청일자");
+			else if($e_type==ORDER_STATUS_RETURN_APPLY) $ordersXL->getActiveSheet(0)->setCellValue($col . "1", "반품신청일자");
+		}
+
+		//$mstring_line = "주문번호\t사업자명\t상품코드\t상품명\t과세/면세\t옵션\t주문일\t회원그룹\t주문자명\t연락처1\t연락처2\t받는자\t우편번호\t수취인주소\t연락처1\t연락처2\t판매가\t공급가\t수량\t배송료\t포장비\t상태\t증빙서\t배송완료일\t택배사명\t송장번호\t메모\n";
+
+		for ($i=0,$z=0; $i < $db1->total; $i++)
+		{
+
+			$db1->fetch($i);
+
+			//for($x=0;$x < $db1->dt[pcnt];$x++,$z++){//주문수량대로 분리하지않고 합침 kbk 12/06/28
+
+				$j="A";
+
+				$status = getOrderStatus($db1->dt[status]);
+
+				if ($db1->dt[method] == "1")
+				{
+					if($db1->dt[bank] == ""){
+						$method = "카드결제";
+					}else{
+						$method = $db1->dt[bank];
+					}
+				}elseif($db1->dt[method] == "0"){
+					$method = "계좌입금";
+				}elseif($db1->dt[method] == "2"){
+					$method = "전화결제";
+				}elseif($db1->dt[method] == "4"){// kbk 12/01/10
+					$method = "가상계좌";
+				}elseif($db1->dt[method] == "5"){// kbk 12/01/10
+					$method = "계좌이체";
+				}
+				if($db1->dt[surtax_yorn] == "Y"){
+					$surtax_yorn = "면세";
+				}else{
+					$surtax_yorn = "과세";
+				}
+
+				$psum = number_format($db1->dt[total_price]);
+
+
+
+				if($db1->dt[receipt_y] == "Y"){
+					$receipt_y = "발행";
+				}else{
+					$receipt_y = "미발행";
+				}
+
+				if($view_type=="sc_order") {//소셜커머스 상품 kbk 13/08/28
+					$ordersXL->getActiveSheet()->setCellValue($j . ($z + 2), substr($db1->dt["due_date"],0,4)."-".substr($db1->dt["due_date"],4,2)."-".substr($db1->dt["due_date"],6,2));
+					$j++;
+				}
+
+				foreach($check_colums as $key => $value){
+					//echo $value;
+					if($value == "status"){
+						$value_str = strip_tags(getOrderStatus($db1->dt[$value]));
+					}else if($value == "quick"){
+						$value_str = deliveryCompanyList($db1->dt[$value],"excel_text");
+					}else if($value == "method"){
+						if ($db1->dt[$value] == "1")
+						{
+							/*if($db1->dt[$value] == ""){
+								$value_str = "카드결제";
+							}*/// kbk 12/01/10
+							$value_str = "카드결제";
+						}elseif($db1->dt[$value] == "0"){
+							$value_str = "계좌입금";
+						}elseif($db1->dt[$value] == "2"){
+							$value_str = "전화결제";
+						}elseif($db1->dt[$value] == "4"){// kbk 12/01/10
+							$value_str = "가상계좌";
+						}elseif($db1->dt[$value] == "5"){// kbk 12/01/10
+							$value_str = "계좌이체";
+						}
+					}else if($value == "deliverypaytype"){
+						if($db1->dt[$value] == "1"){
+							$value_str = "선불";
+						}elseif($db1->dt[$value] == "2"){
+							$value_str = "착불";
+						}else{
+							$value_str = "무료";
+						}
+					}else if($value == "deliverypayuse"){
+						if($db1->dt[deliverypaytype] == "1" || $db1->dt[deliverypaytype] == "2"){
+							$value_str = "구매자";
+						}else{
+							$value_str = "판매자";
+						}
+					}else if($value == "cid"){
+						$value_str = getCategoryPathByAdmin($db1->dt[cid],'4');
+					}else if($value == "ptprice"){
+						//$value_str = $db1->dt[ptprice] - $db1->dt[use_coupon];		//강태웅 주임 요청으로 판매 총액은 쿠폰사용금액을 포함은 금액 으로 수정 2013-10-21 이학봉
+						$value_str = $db1->dt[ptprice];
+					}else if($value == "dc_date"){
+						$dc_date_array = explode(" ",$db1->dt[dc_date]);
+						$value_str = str_replace("-","",$dc_date_array[0]);
+					}else{
+						if($value == "pcnt"){
+							$pcnt = $db1->dt[$value];
+							$value_str = $db1->dt[$value];//주문수량대로 분리하지않고 합침 kbk 12/06/28
+						}else{
+							if($value == "optiontext"){
+								$value_str = str_replace(array("color :","COLOR :"),"",$db1->dt[$value]);
+								$value_str = str_replace(array("size :","SIZE :","?","\n\r","\n","="),"",$value_str);
+
+								$value_str = strip_tags($value_str);
+								//$value_str = substr($value_str,1,2);
+								//echo $value_str."\n";
+							}else{
+								if($db1->dbms_type == "oracle"){
+									if($value == 'date'){
+										$value_str = $db1->dt[date_];
+									}else{
+										$value_str = $db1->dt[$value];
+									}
+								}else{
+									$value_str = $db1->dt[$value];
+								}
+							}
+						}
+					}
+					//if(is_numeric($value_str) && $value != "invoiceno"){
+						//xlsWriteNumber(($z+1),$j,$value_str);
+					//}else{
+						//xlsWriteLabel(($z+1),$j,$value_str);
+
+						//echo("  : " . $j .($z + 1). " " . $value_str);
+						//$ordersXL->getActiveSheet()->getColumnDimension($z)->setAutoSize(true);
+					//}
+					//$value_str = str_replace(array("★"),"",$value_str);
+					//echo $value_str . " ";
+					$ordersXL->getActiveSheet()->setCellValue($j . ($z + 2), $value_str);
+					$j++;
+				}
+				
+				if($e_type!="") {//주문 이외의 리스트용 kbk 12/02/28
+					if($e_type==ORDER_STATUS_EXCHANGE_APPLY) $ordersXL->getActiveSheet()->setCellValue($j . ($z + 2), $db1->dt["ex_date"]);
+					else if($e_type==ORDER_STATUS_RETURN_APPLY) $ordersXL->getActiveSheet()->setCellValue($j . ($z + 2), $db1->dt["rt_date"]);
+				}
+				$z++;//주문수량대로 분리하지않고 합침 kbk 12/06/28
+
+			//}//주문수량대로 분리하지않고 합침 kbk 12/06/28
+		}
+	}
+//exit;
+	$ordersXL->getActiveSheet()->setTitle('매출진행관리');
+	$ordersXL->setActiveSheetIndex(0);
+	if($excel_type == "delivery"){
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="'.iconv("UTF-8","CP949","배송정보").'_'.date("Ymd").'.xls"');
+		header('Cache-Control: max-age=0');
+	}else{
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="'.iconv("UTF-8","CP949","주문목록").'_'.date("Ymd").'.xls"');
+		header('Cache-Control: max-age=0');
+	}
+	$objWriter = PHPExcel_IOFactory::createWriter($ordersXL, 'Excel5');
+	$objWriter->save('php://output');

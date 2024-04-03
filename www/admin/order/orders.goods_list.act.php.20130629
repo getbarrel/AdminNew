@@ -1,0 +1,894 @@
+<?
+include("../class/layout.class");
+include("$DOCUMENT_ROOT/include/email.send.php");
+
+//inventoryOutputHistory,InventoryInputHistory 함수는 inventory.lib.php 으로!
+include("../inventory/inventory.lib.php");
+
+//입점업체일 경우 조건 추가 2013-04-04 bgh
+if($admininfo[admin_level] == 8){
+	$and_company_id = " and company_id = '".$admininfo["company_id"]."' ";
+}else{
+	$and_company_id = "";
+}
+
+
+if($act == "select_status_update"){
+	//print_r($_POST);
+	$db = new Database;
+	$mdb = new Database;
+
+	if($status == ORDER_STATUS_INCOM_COMPLETE){
+		
+
+		for($j=0;$j < count($oid);$j++){
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_READY."' $and_company_id";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+
+			for($i=0;$i < count($order_details);$i++){
+			
+				$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_INCOM_COMPLETE."'  ,update_date = NOW(), summary_date = NOW()  where oid='".$oid[$j]."' and od_ix='".$order_details[$i][od_ix]."' and status = '".ORDER_STATUS_INCOM_READY."' $and_company_id";
+				$db->query($sql);
+
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$oid[$j]."','".$order_details[$i][pid]."','".ORDER_STATUS_INCOM_COMPLETE."','입금확인 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+
+			}
+
+
+
+			
+		}
+	}else if($status == ORDER_STATUS_CANCEL_COMPLETE){
+		for($j=0;$j < count($oid);$j++){
+
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_READY."' $and_company_id ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+
+			for($i=0;$i < count($order_details);$i++){
+
+				if($pre_type==ORDER_STATUS_CANCEL_APPLY){//취소신청리스트인경우 2012-10-09 홍진영
+					$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_CANCEL_COMPLETE."', cc_date = NOW() , update_date = NOW(), summary_date = NOW() where oid='".$oid[$j]."' and status = '".ORDER_STATUS_CANCEL_APPLY."' and od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+				}else{
+					$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_CANCEL_COMPLETE."' , cc_date = NOW(), update_date = NOW(), summary_date = NOW() where oid='".$oid[$j]."'  and od_ix='".$order_details[$i][od_ix]."'   $and_company_id";
+				}
+				$db->query($sql);
+
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$oid[$j]."','".$order_details[$i][pid]."','".ORDER_STATUS_CANCEL_COMPLETE."','취소완료 처리 ','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				//echo $sql."<br><br>";
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+
+				//$db->query("update ".TBL_SHOP_RESERVE_INFO." set state = '".RESERVE_STATUS_ORDER_CANCEL."' WHERE oid='".$oid[$j]."' and state = '".RESERVE_STATUS_USE."'");
+
+				
+			}
+
+			//2012-09-26 홍진영
+				/*
+				취소껀이 발생했을경우 전체 주문수 대비 취소 껀을 확인해서 전체가 취소인 경우는 주문 테이블의 상태도 변경한다.
+				*/
+				$sql = "select
+				sum(case when oid='$oid[$j]' then 1 else 0 end) as whole_total ,
+				sum(case when company_id ='".$admininfo[company_id]."' then 1 else 0 end) as admin_total ,
+				sum(case when company_id != '".$admininfo[company_id]."' then 1 else 0 end) as etc_total ,
+				sum(case when status = '$status' then 1 else 0 end) as status_total
+				from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid[$j]'";
+				$db->query($sql);
+				$db->fetch();
+				$whole_total = $db->dt[whole_total];
+				$admin_total = $db->dt[admin_total];
+				$etc_total = $db->dt[etc_total];
+				$status_total = $db->dt[status_total];
+
+				if(count($od_ix) == $whole_total || $whole_total == $status_total){
+					$db->query("UPDATE ".TBL_SHOP_ORDER." SET status = '$status'  WHERE oid ='".$oid[$j]."' ");
+					//$db->query("UPDATE ".TBL_SHOP_RESERVE_INFO."  Set state = '".RESERVE_STATUS_ORDER_CANCEL."' WHERE oid = '$oid[$j]'");
+				}
+
+			//2012-10-09 홍진영
+			$mdb->query("select * from ".TBL_SHOP_ORDER." WHERE oid='".$oid[$j]."'");
+			$order="";
+			$order = $mdb->fetch();
+
+			$mdb->query("select * from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='".$oid[$j]."' and status= '".ORDER_STATUS_CANCEL_COMPLETE."' $and_company_id");
+			$order_details="";
+			$order_details = $mdb->fetchall();
+
+			//[Start] 재고 수량 차감 추가 kbk 13/06/20
+			for($i=0;$i < count($order_details);$i++){
+				$pid = $order_details[$i][pid];
+				$pcnt = $order_details[$i][pcnt];
+				$option1 = $order_details[$i][option1];
+				$di_date = $order_details[$i][di_date];
+				$stock_use_yn = $order_details[$i][stock_use_yn];
+
+				if($di_date=="") {
+					if($stock_use_yn == "Y" || $stock_use_yn == "Q"){//빠른 재고관리 사용 추가 $stock_use_yn == "Q" kbk 13/06/20
+						$db->query("UPDATE ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL."  Set option_sell_ing_cnt = option_sell_ing_cnt - ".$pcnt."  WHERE id = '".$option1."'");
+						$db->query("update ".TBL_SHOP_PRODUCT." set sell_ing_cnt = sell_ing_cnt - ".$pcnt.", order_cnt = order_cnt - ".$pcnt." where id ='".$pid."'");
+					}
+				}
+			}
+			//[End] 재고 수량 차감 추가 kbk 13/06/20
+
+			$mail_info[mem_name] = $order[bname];
+			$mail_info[mem_mail] = $order[bmail];
+			$mail_info[mem_id] = $order[bname];
+			$mail_info[mem_mobile] = $order[bmobile];
+
+			sendMessageByStep('order_cancel', $mail_info);
+
+		}
+	}else if($status == ORDER_STATUS_DELIVERY_READY){
+		for($j=0;$j < count($oid);$j++){
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_COMPLETE."' $and_company_id ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+
+			for($i=0;$i < count($order_details);$i++){
+
+					$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_READY."' , update_date = NOW() 
+					where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_COMPLETE."' and od_ix='".$order_details[$i][od_ix]."'   $and_company_id"; //and status = '".ORDER_STATUS_CANCEL_APPLY."'
+					//echo $sql."<br><br>";
+					$db->query($sql);
+
+					$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+							values
+							('','".$oid[$j]."','".$order_details[$i][pid]."','".ORDER_STATUS_DELIVERY_READY."','배송준비중 처리 ','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+					//echo $sql."<br><br>";
+					$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+					$db->query($sql);
+			}
+		}
+	}else if($status == ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_READY){
+		for($j=0;$j < count($oid);$j++){
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_READY."' $and_company_id ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+
+			for($i=0;$i < count($order_details);$i++){
+
+					$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_READY."' , update_date = NOW() 
+							where oid='".$oid[$j]."' and od_ix='".$order_details[$i][od_ix]."'  and status = '".ORDER_STATUS_INCOM_COMPLETE."' $and_company_id"; //and status = '".ORDER_STATUS_CANCEL_APPLY."'
+					//echo $sql."<br><br>";
+					$db->query($sql);
+
+					$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+							values
+							('','".$oid[$j]."','".$order_details[$i][pid]."','".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_READY."','해외프로세싱중 처리 ','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+					//echo $sql."<br><br>";
+					$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+					$db->query($sql);
+			}
+		}
+	}else if($status == ORDER_STATUS_AIR_TRANSPORT_READY){
+		for($j=0;$j < count($oid);$j++){
+
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_READY."' $and_company_id ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+
+			for($i=0;$i < count($order_details);$i++){
+
+					$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_AIR_TRANSPORT_READY."'  , update_date = NOW() where oid='".$oid[$j]."' and od_ix='".$order_details[$i][od_ix]."'  and status = '".ORDER_STATUS_INCOM_COMPLETE."' or status = '".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_ING."' $and_company_id"; //and status = '".ORDER_STATUS_CANCEL_APPLY."'
+					//echo $sql."<br><br>";
+					$db->query($sql);
+
+					$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+							values
+							('','".$oid[$j]."','".$order_details[$i][pid]."','".ORDER_STATUS_AIR_TRANSPORT_READY."','항공배송준비중 처리 ','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+					//echo $sql."<br><br>";
+					$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+					$db->query($sql);
+			}
+		}
+	}else if($status == ORDER_STATUS_SOLDOUT_CANCEL){
+		for($j=0;$j < count($oid);$j++){
+
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_READY."' $and_company_id ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+
+			for($i=0;$i < count($order_details);$i++){
+					$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_SOLDOUT_CANCEL."'  , update_date = NOW(), summary_date = NOW()  where oid='".$oid[$j]."' and od_ix='".$order_details[$i][od_ix]."'  and status = '".ORDER_STATUS_INCOM_COMPLETE."' or status = '".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_ING."' $and_company_id"; //and status = '".ORDER_STATUS_CANCEL_APPLY."'
+					//echo $sql."<br><br>";
+					$db->query($sql);
+
+					$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+							values
+							('','".$oid[$j]."','".$order_details[$i][pid]."','".ORDER_STATUS_SOLDOUT_CANCEL."','품절취소 처리 ','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+					//echo $sql."<br><br>";
+					$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+					$db->query($sql);
+
+					//$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid[$j]."' and status = '".ORDER_STATUS_INCOM_COMPLETE."' or status = '".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_ING."' $and_company_id"; //and status = '".ORDER_STATUS_CANCEL_APPLY."'
+					//echo $sql."<br><br>";
+					//$db->query($sql);
+					//$order_details = $db->fetchall();
+
+					//for($p=0;$p < count($order_details);$p++){
+						//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+						AutoPenaltyInput("1",$order_details[$i]);
+					//}
+			}
+		}
+	}
+	echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('상태 변경이 정상적으로  처리 되었습니다.');parent.document.location.reload();</script>");
+}
+
+if($act == "status_update"){
+	$db = new Database;
+
+	if($change_status == ORDER_STATUS_INCOM_COMPLETE){ // 입금예정인 항목 --> 입금 확인처리 입점업체는 권한 없음!!!
+		if($admininfo[admin_level]==9){
+			/*입금확인 처리시 payment 받은 금액 입력 업데이트 필요!!*/
+			$sql="update ".TBL_SHOP_ORDER." set status = '".ORDER_STATUS_INCOM_COMPLETE."' where oid='".$oid."'  ";
+			$db->query($sql);
+
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".ORDER_STATUS_INCOM_READY."' ";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+			for($i=0;$i < count($order_details);$i++){
+
+				$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_INCOM_COMPLETE."'  , update_date = NOW(), summary_date = NOW() where od_ix='".$order_details[$i][od_ix]."' ";
+				$db->query($sql);
+				//echo nl2br($sql);
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_INCOM_COMPLETE."','입금확인 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				//echo nl2br($sql);
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+			}
+
+			echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 입금확인 처리 되었습니다.');parent.document.location.reload();</script>");
+		}else{
+			echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('입점업체는 수정하실수 없습니다.');parent.document.location.reload();</script>");
+		}
+
+	}else if($change_status == ORDER_STATUS_DELIVERY_COMPLETE){ // 배송준비중 항목 --> 배송완료 처리
+		/*
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'   ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		//없어서 추가 2012-09-24 홍진영
+		//$db->query("update ".TBL_SHOP_RESERVE_INFO." set state = '".RESERVE_STATUS_COMPLETE."' WHERE oid='$oid' and state = '".RESERVE_STATUS_READY."' and pid = '$pid' ");
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_COMPLETE."', dc_date=NOW()  , update_date = NOW()  where od_ix='".$od_ix."'  ";//, dc_date=NOW() 추가 kbk 12/06/11
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_DELIVERY_COMPLETE."','배송완료 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+		*/
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".$this_status."' $and_company_id";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		for($i=0;$i < count($order_details);$i++){
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_COMPLETE."'  , update_date = NOW(), summary_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+			$db->query($sql);
+			//echo nl2br($sql);
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_DELIVERY_COMPLETE."','배송완료 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+			//echo nl2br($sql);
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+		}
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 배송완료 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_DELIVERY_READY){ // 입금확인 --> 배송준비중 처리
+			// 배송준비중으로 변경되는건 해외 상품이 아닌상품에 해당됨 2013.01.08 신훈식 and product_type not in (1,2) 추가
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and (status = '".ORDER_STATUS_DELIVERY_READY."' or status = '".ORDER_STATUS_EXCHANGE_COMPLETE."') and product_type not in (1,2)  $and_company_id";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+			for($i=0;$i < count($order_details);$i++){
+
+				$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_READY."'  , update_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+				$db->query($sql);
+				//echo nl2br($sql);
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_DELIVERY_READY."','배송준비중 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				//echo nl2br($sql);
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+			}
+		/*
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'   ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_READY."' where od_ix='".$od_ix."'  ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_DELIVERY_READY."','배송준비중 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->query($sql);
+		*/
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 배송준비중 처리 되었습니다.');parent.document.location.reload();</script>");
+
+
+	}else if($change_status == ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_READY){ //입금확인 --> 해외프로세싱중 처리
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".ORDER_STATUS_INCOM_COMPLETE."' $and_company_id";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+			for($i=0;$i < count($order_details);$i++){
+
+				$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_READY."'  , update_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+				$db->query($sql);
+				//echo nl2br($sql);
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_OVERSEA_WAREHOUSE_DELIVERY_READY."','해외프로세싱중 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				//echo nl2br($sql);
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+			}
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 해외프로세싱중 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_AIR_TRANSPORT_READY){ //입금확인 --> 항공배송준비중 처리
+
+			$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".$this_status."' and product_type in (1,2)  $and_company_id";
+			$db->query($sql);
+			$order_details = $db->fetchall();
+			for($i=0;$i < count($order_details);$i++){
+
+				$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_AIR_TRANSPORT_READY."'  , update_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+				$db->query($sql);
+				//echo nl2br($sql);
+				$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+						values
+						('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_AIR_TRANSPORT_READY."','항공배송준비중 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+				//echo nl2br($sql);
+				$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+				$db->query($sql);
+			}
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 항공배송준비중 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_AIR_TRANSPORT_ING){ //항공배송준비중 --> 항공배송중 처리
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".$this_status."' and product_type in (1,2)  $and_company_id";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		for($i=0;$i < count($order_details);$i++){
+
+			if($admininfo[admin_level] == 9 || UseDehanInvoicenoCheck($admininfo[company_id])){
+				$delivery_company="6";
+				$deliverycode = getDehanInvoiceno();
+			}
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_AIR_TRANSPORT_ING."', quick = '".$delivery_company."',	invoice_no = '".$deliverycode."'  , update_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+			$db->query($sql);
+			//echo nl2br($sql);
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_AIR_TRANSPORT_ING."','항공배송중 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+			//echo nl2br($sql);
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+
+			//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+			AutoPenaltyInput("2",$order_details[$i]);
+		}
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 항공배송준비중 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_SOLDOUT_CANCEL){ //입금확인 --> 품절취소 처리
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".ORDER_STATUS_INCOM_COMPLETE."' $and_company_id";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		for($i=0;$i < count($order_details);$i++){
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_SOLDOUT_CANCEL."'  , update_date = NOW(), summary_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+			$db->query($sql);
+			//echo nl2br($sql);
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_SOLDOUT_CANCEL."','품절취소 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+			//echo nl2br($sql);
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+
+			//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+			AutoPenaltyInput("1",$order_details[$i]);
+		}
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 품절취소 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_CANCEL_ING){ // 취소요청인 항목 --> 취소처리중 처리
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".$this_status."' $and_company_id";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		for($i=0;$i < count($order_details);$i++){
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_CANCEL_ING."' , update_date = NOW()  where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+			$db->query($sql);
+			//echo nl2br($sql);
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_CANCEL_ING."','취소처리중 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+			//echo nl2br($sql);
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+
+            //$db->query("update ".TBL_SHOP_RESERVE_INFO." set state = '".RESERVE_STATUS_ORDER_CANCEL."' WHERE oid='".$order_details[$i][oid]."' and state = '".RESERVE_STATUS_USE."'");
+		}
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 취소처리중 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_CANCEL_COMPLETE){ // 취소요청인 항목 --> 취소완료 처리
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".$this_status."' $and_company_id";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		for($i=0;$i < count($order_details);$i++){
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_CANCEL_COMPLETE."', cc_date = NOW()  , update_date = NOW(), summary_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id";
+			$db->query($sql);
+			//echo nl2br($sql);
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_CANCEL_COMPLETE."','취소승인 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+			//echo nl2br($sql);
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+
+            //$db->query("update ".TBL_SHOP_RESERVE_INFO." set state = '".RESERVE_STATUS_ORDER_CANCEL."' WHERE oid='".$order_details[$i][oid]."' and state = '".RESERVE_STATUS_USE."'");
+
+			//[Start] 재고 수량 차감 추가 kbk 13/06/20
+			$pid = $order_details[$i][pid];
+			$pcnt = $order_details[$i][pcnt];
+			$option1 = $order_details[$i][option1];
+			$di_date = $order_details[$i][di_date];
+			$stock_use_yn = $order_details[$i][stock_use_yn];
+
+			if($di_date=="") {
+				if($stock_use_yn == "Y" || $stock_use_yn == "Q"){//빠른 재고관리 사용 추가 $stock_use_yn == "Q" kbk 13/06/20
+					$db->query("UPDATE ".TBL_SHOP_PRODUCT_OPTIONS_DETAIL."  Set option_sell_ing_cnt = option_sell_ing_cnt - ".$pcnt."  WHERE id = '".$option1."'");
+					$db->query("update ".TBL_SHOP_PRODUCT." set sell_ing_cnt = sell_ing_cnt - ".$pcnt.", order_cnt = order_cnt - ".$pcnt." where id ='".$pid."'");
+				}
+			}
+			//[End] 재고 수량 차감 추가 kbk 13/06/20
+		}
+
+		//2012-09-26 홍진영
+		$sql = "select
+		sum(case when oid='$oid' then 1 else 0 end) as whole_total ,
+		sum(case when company_id ='".$admininfo[company_id]."' then 1 else 0 end) as admin_total ,
+		sum(case when company_id != '".$admininfo[company_id]."' then 1 else 0 end) as etc_total ,
+		sum(case when status = '$change_status' then 1 else 0 end) as status_total
+		from ".TBL_SHOP_ORDER_DETAIL." WHERE oid='$oid'";
+		$db->query($sql);
+		$db->fetch();
+		$whole_total = $db->dt[whole_total];
+		$admin_total = $db->dt[admin_total];
+		$etc_total = $db->dt[etc_total];
+		$status_total = $db->dt[status_total];
+
+		if(count($od_ix) == $whole_total || $whole_total == $status_total){
+			$db->query("UPDATE ".TBL_SHOP_ORDER." SET status = '$change_status'  WHERE oid ='".$oid."' ");
+			//$db->query("UPDATE ".TBL_SHOP_RESERVE_INFO."  Set state = '".RESERVE_STATUS_ORDER_CANCEL."' WHERE oid = '$oid'");
+		}
+
+		//2012-10-09 홍진영
+		$mdb->query("select * from ".TBL_SHOP_ORDER." WHERE oid='".$oid."'");
+		$order = $mdb->fetch();
+
+		$mail_info[mem_name] = $order[bname];
+		$mail_info[mem_mail] = $order[bmail];
+		$mail_info[mem_id] = $order[bname];
+		$mail_info[mem_mobile] = $order[bmobile];
+
+		sendMessageByStep('order_cancel', $mail_info);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 취소승인 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_EXCHANGE_DEFER){ //교환보류
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'   $and_company_id";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_EXCHANGE_DEFER."'  , update_date = NOW() where od_ix='".$od_ix."'  $and_company_id";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_EXCHANGE_DEFER."','교환보류 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 교환보류 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_EXCHANGE_ACCEPT){ //교환회수완료
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'   $and_company_id";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_EXCHANGE_ACCEPT."'  , update_date = NOW() where od_ix='".$od_ix."' $and_company_id ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_EXCHANGE_ACCEPT."','교환회수완료 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 교환회수완료 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_EXCHANGE_ING){ // 교환요청 인 항목 --> 교환승인 처리
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+		$order_detail_info = $db->dt;
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_EXCHANGE_ING."'  , update_date = NOW() where od_ix='".$od_ix."'  $and_company_id";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_EXCHANGE_ING."','교환승인 처리 완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+		AutoPenaltyInput("5",$order_detail_info);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 교환승인 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_EXCHANGE_COMPLETE){ // 교환승인 항목과 교환배송중 -->  회수완료처리 // 개별 껀으로 처리하기때문에 od_ix 값을 가지고 해당 주문 상품만 회수완료 처리됨
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_EXCHANGE_COMPLETE."'  , update_date = NOW() where od_ix='".$od_ix."' $and_company_id ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_EXCHANGE_COMPLETE."','교환배송완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 교환배송완료 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_RETURN_ING){
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+		$order_detail_info = $db->dt;
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_RETURN_ING."'  , update_date = NOW() where od_ix='".$od_ix."'  $and_company_id";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_RETURN_ING."','반품승인','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+		AutoPenaltyInput("4",$order_detail_info);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 반품승인 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_RETURN_DEFER){
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_RETURN_DEFER."'  , update_date = NOW() where od_ix='".$od_ix."' $and_company_id ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_RETURN_DEFER."','반품보류','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 반품보류 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_RETURN_COMPLETE){
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_RETURN_COMPLETE."'  , update_date = NOW() where od_ix='".$od_ix."' $and_company_id ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_RETURN_COMPLETE."','반품회수완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 반품회수완료 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_REFUND_APPLY){
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+		$order_detail_info = $db->dt;
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_REFUND_APPLY."'  , update_date = NOW() where od_ix='".$od_ix."'  $and_company_id";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_REFUND_APPLY."','환불신청','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+		//AutoPenaltyInput("3",$order_detail_info);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 환불신청 처리 되었습니다.');parent.document.location.reload();</script>");
+	}else if($change_status == ORDER_STATUS_REFUND_COMPLETE){
+
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'  $and_company_id ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_REFUND_COMPLETE."' , rc_date = NOW()  , update_date = NOW(), summary_date = NOW() where od_ix='".$od_ix."' $and_company_id ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_REFUND_COMPLETE."','환불완료','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 환불완료 처리 되었습니다.');parent.document.location.reload();</script>");
+
+	}else if($change_status == ORDER_STATUS_DELIVERY_ING){
+
+		//항공배송에서 배송완료로 되는 프로세스는 이미 ORDER_STATUS_AIR_TRANSPORT_ING 넘어 올때 재고를 뺌! 그래서 inventoryOutputHistory X
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and status = '".ORDER_STATUS_AIR_TRANSPORT_ING."' $and_company_id ";
+		$db->query($sql);
+		$order_details = $db->fetchall();
+		for($i=0;$i < count($order_details);$i++){
+
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_ING."' , di_date = NOW()  , update_date = NOW() where od_ix='".$order_details[$i][od_ix]."' $and_company_id ";
+			$db->query($sql);
+			//echo nl2br($sql);
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+					values
+					('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_DELIVERY_ING."','배송중','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+			//echo nl2br($sql);
+			$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+			$db->query($sql);
+		}
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 배송중 처리 되었습니다.');parent.document.location.reload();</script>");
+
+		/*
+		$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$od_ix."'   ";
+		$db->query($sql);
+		$db->fetch();
+		$oid = $db->dt[oid];
+		$pid = $db->dt[pid];
+
+		$sql="update ".TBL_SHOP_ORDER_DETAIL." set status = '".ORDER_STATUS_DELIVERY_ING."' where od_ix='".$od_ix."'  ";
+		//echo $sql;
+		$db->query($sql);
+
+		$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$oid."','".$pid."','".ORDER_STATUS_DELIVERY_ING."','배송중','".$admininfo[company_id]."','$quick','$deliverycode',NOW())";
+		//echo nl2br($sql);
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 배송중 처리 되었습니다.');parent.document.location.reload();</script>");
+		*/
+	}
+}
+
+if($act == "delivery_update"){
+	//print_r($_POST);
+	$db = new Database;
+	/*
+	$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and od_ix in ('".ORDER_STATUS_INCOM_COMPLETE."', '".ORDER_STATUS_DELIVERY_READY."', '".ORDER_STATUS_RETURN_COMPLETE."') od.product_type NOT IN (".implode(',',$sns_product_type).")  "; //class='textbox'
+	echo $sql."<br>";
+	exit;
+	*/
+	//$db->debug =true;
+
+	$sql="select * from ".TBL_SHOP_ORDER_DETAIL." where oid='".$oid."' and od_ix in (".$od_ix_str.")   "; //and od.product_type NOT IN (".implode(',',$sns_product_type).")
+
+	$db->query($sql);
+	$order_details = $db->fetchall();
+
+
+	for($i=0;$i < count($order_details);$i++){
+		$sql="select status, pid, pcode, stock_use_yn from ".TBL_SHOP_ORDER_DETAIL." where od_ix='".$order_details[$i][od_ix]."'  ";
+		$db->query($sql);
+		$db->fetch();
+		$pid = $db->dt[pid];
+		$status = $db->dt[status];
+		$gu_ix = $db->dt[pcode];
+		$stock_use_yn = $db->dt[stock_use_yn];
+		$order_detail_info = $db->dt;
+		if($status == ORDER_STATUS_RETURN_COMPLETE){
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set
+				status = '".ORDER_STATUS_DELIVERY_ING."',
+				return_delivery_company = '".$delivery_company."',
+				return_invoice_no = '".$deliverycode."',
+				update_date = NOW()
+				where od_ix='".$order_details[$i][od_ix]."' 
+				$and_company_id";
+		}elseif($status == ORDER_STATUS_AIR_TRANSPORT_READY){//항공배송준비중
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set
+				status = '".ORDER_STATUS_AIR_TRANSPORT_ING."',
+				quick = '".$delivery_company."',
+				invoice_no = '".$deliverycode."',
+				update_date = NOW()
+				where od_ix='".$order_details[$i][od_ix]."' 
+				$and_company_id";
+		}else{
+			$sql="update ".TBL_SHOP_ORDER_DETAIL." set
+				status = '".ORDER_STATUS_DELIVERY_ING."',
+				delivery_status = 'WDC',
+				quick = '".$delivery_company."',
+				di_date = NOW(),
+				invoice_no = '".$deliverycode."',
+				update_date = NOW()
+				where od_ix='".$order_details[$i][od_ix]."' 
+				$and_company_id";
+		}
+		$db->query($sql);
+		//echo nl2br($sql)."<br><br>";
+
+		if($status == ORDER_STATUS_RETURN_COMPLETE){
+			$inventory_msg='ORDER_STATUS_RETURN_COMPLETE';
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_DELIVERY_ING."','일괄반품배송 처리 완료','".$admininfo[company_id]."','$delivery_company','$deliverycode',NOW())";
+		}elseif($status == ORDER_STATUS_AIR_TRANSPORT_READY){//항공배송준비중
+			//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+			AutoPenaltyInput("2",$order_detail_info);
+
+			$inventory_msg='항공배송중 출고';
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_AIR_TRANSPORT_ING."','항공배송중 처리 완료','".$admininfo[company_id]."','$delivery_company','$deliverycode',NOW())";
+		}else{
+			//페널티자동지급 1: 상품 품절 2: 배송 지연 3: 환불지연 4: 반품 지연 5: 교환 지연
+			if($order_detail_info[product_type] !="1" && $order_detail_info[product_type] !="2"){
+				AutoPenaltyInput("2",$order_detail_info);
+			}
+			$inventory_msg='국내배송중 출고';
+			$sql = "insert into ".TBL_SHOP_ORDER_STATUS." (os_ix, oid, pid, status, status_message, company_id,quick,invoice_no, regdate )
+				values
+				('','".$order_details[$i][oid]."','".$order_details[$i][pid]."','".ORDER_STATUS_DELIVERY_ING."','배송중 처리 완료','".$admininfo[company_id]."','$delivery_company','$deliverycode',NOW())";
+		}
+		//echo nl2br($sql)."<br>";
+		$db->sequences = "SHOP_ORDER_STATUS_SEQ";
+		$db->query($sql);
+
+		// 없어서 추가 2012-09-21 홍진영
+		if($_SESSION["layout_config"]["mall_use_inventory"] == "Y" && $order_details[$i][stock_use_yn] == "Y"){
+
+
+			$sql = "select g.gid, gu.unit, g.standard, g.pi_ix , g.ps_ix
+						from inventory_goods g , inventory_goods_unit gu 
+						where g.gid = gu.gid and gu.gu_ix = '".$gu_ix."'";
+				// 출고가격을 어떻게 처리 할지? 
+				// 한꺼번에 여러개를 묶음으로 처리하는데 출고가 ... 
+			$db->query($sql);
+			$db->fetch();
+			$single_item_info = $db->dt;
+			//$warehouse_moveinfo = $db->fetchall();
+
+
+			$sql = "select g.pi_ix, 	pi.company_id, pi.place_name, ps.ps_ix, ps.section_name
+					from inventory_goods g 
+					left join inventory_goods_unit gu on g.gid =gu.gid 
+					left join inventory_place_info pi on pi.pi_ix = g.pi_ix and pi.pi_ix = '".$single_item_info[pi_ix]."'
+					left join inventory_place_section ps on pi.pi_ix = ps.pi_ix and  ps.pi_ix = g.pi_ix and ps.section_type = 'D'
+					left join inventory_product_stockinfo ips on gu.gid = ips.gid and gu.unit = ips.unit and ips.pi_ix = ps.pi_ix and ips.ps_ix = ps.ps_ix
+					where gu.gu_ix = '".$gu_ix."' 
+					";
+			$db->query($sql);
+			$db->fetch();
+			$warehouse_info = $db->dt;
+
+
+			$sql = "select g.gid, gu.unit, g.standard,  '".$order_details[$i][pcnt]."' as amount , '".$warehouse_info[company_id]."' as company_id,  '".$warehouse_info[pi_ix]."' as pi_ix,  '".$warehouse_info[ps_ix]."' as ps_ix  
+							from inventory_goods g , inventory_goods_unit gu 
+							where g.gid = gu.gid and gu.gu_ix = '".$gu_ix."'";
+				// 출고가격을 어떻게 처리 할지? 
+				// 한꺼번에 여러개를 묶음으로 처리하는데 출고가 ... 
+				$db->query($sql);
+				$delivery_iteminfo = $db->fetchall();
+
+
+
+				$item_info[pi_ix] = $warehouse_info[pi_ix];
+				$item_info[ps_ix] = $warehouse_info[ps_ix];
+				$item_info[company_id] = $warehouse_info[company_id];
+				$item_info[h_div] = "2"; // 2: 출고
+				$item_info[vdate] = date("Ymd");
+				//$item_info[ci_ix] = $_POST["ci_ix"];
+				$item_info[oid] = $oid;
+				$item_info[msg] = "상품판매 - 출고";//$_POST["etc"];
+				$item_info[h_type] = '01';//01; 상품매출
+				$item_info[charger_name] = $_SESSION[admininfo]["charger"];
+				$item_info[charger_ix] = $_SESSION[admininfo]["charger_ix"];
+				$item_info[detail] = $delivery_iteminfo;
+
+				UpdateGoodsItemStockInfo($item_info, $db);
+
+			//inventoryOutputHistory($order_details[$i], $inventory_msg);
+		}
+		UpdateProductCnt_complete($order_details[$i]);//빠른 재고 관리 전용 주문진행 중 수량 차감 inventoryOutputHistory 함수 안에 있음 kbk 13/06/20
+
+	}
+exit;
+	echo("<script language='javascript' src='../js/message.js.php'></script><script>show_alert('정상적으로 배송중 처리 되었습니다.');parent.document.location.reload();</script>");
+}
+
+
+
+?>

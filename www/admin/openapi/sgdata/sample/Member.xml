@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<Member>
+    <MemberInfo>
+        <Command>M0</Command>
+        <OwnerID>SGDATA</OwnerID>
+        <InterfaceDate>20150625</InterfaceDate>
+        <InterfaceType>N</InterfaceType>
+        <Cus_Nm>BR</Cus_Nm>
+        <Di_No>A</Di_No>
+        <Birth_Day>I</Birth_Day>
+        <Sex>BWIKRGT001</Sex>
+        <Hp_No>BCT</Hp_No>
+        <Zip_Cd>MM</Zip_Cd>
+        <Addr>BWIKRGT001BCTMM</Addr>
+        <Addr1>1</Addr1>
+        <Web_Id>2</Web_Id>
+    </MemberInfo>
+</Member>

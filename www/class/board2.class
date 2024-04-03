@@ -1,0 +1,1706 @@
+<?
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/database.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/bbs.lib.php");
+//include_once("$DOCUMENT_ROOT/class/Template_.class.php");
+
+
+if (!class_exists(MsBoard2))
+{ // 클래스선언이 없으면...
+
+Class MsBoard2
+{
+	var $bbs_templete_web_path;
+	var $bbs_template_path;
+	var $bbs_table_name;
+	var $bbs_config;
+	var $bbs_title;
+	var $bbs_admin_mode;
+	var $bbs_template_dir;
+	var $bbs_compile_dir;
+	var $site_template_src;
+	var $site_product_src;//추가 kbk 13/07/05
+	var $bbs_data_dir;
+	var $edit_data_dir;
+	var $bbs_file_dir;
+	var $bbs_template_name;
+	var $bbs_after_admin_confirm;//2015-07-20 추가 hong
+
+
+	function MsBoard2($pbbs_table_name=""){
+		global $DOCUMENT_ROOT, $ss_bbs_table_name;
+
+		//BoardAuth($_GET[mode]);
+		//echo $pbbs_table_name."<br>";
+
+		if($pbbs_table_name == ""){
+			$this->bbs_table_name = $_SESSION["ss_bbs_table_name"];
+		}else{
+			$this->bbs_table_name = $pbbs_table_name;
+			$_SESSION["ss_bbs_table_name"] = $_SERVER["pbbs_table_name"];
+			//session_register(ss_bbs_table_name);
+		}
+		$this->bbs_template_name = "";
+		$this->bbs_admin_mode = false;
+		$this->bbs_data_dir = "";
+		$this->edit_data_dir = "";
+		$this->bbs_after_admin_confirm = true;// 후기 관리자 승인후 노출 여부 2015-07-20 Hong
+
+	}
+
+	function MsBoardConfigration($layout_obj=""){
+		global $DOCUMENT_ROOT;
+
+		$config_db = new Database();
+
+		//,board_recom_yn,view_recommend_yn,view_comment_yn 추가 kbk 13/07/08
+		if($this->bbs_admin_mode){
+			$sql = "Select 'admin' as bbs_templet_dir, bm_ix,board_name,board_ename,board_max_cnt,board_titlemax_cnt,design_width,design_new_priod,design_hot_limit,board_searchable,board_ip_viewable,board_ip_encoding,
+			board_group,board_list_auth,board_read_auth,board_comment_auth,board_write_auth,view_check_yn,view_no_yn,view_title_yn,view_name_yn,view_file_yn,view_date_yn,view_md_name_yn,view_read_yn,
+			view_viewcnt_yn,view_email_yn,view_sms_yn,image_click,break_autowrite,break_autocomment,board_templete_code,bbs_templet_dir,board_style,board_category_use_yn,board_qna_yn,board_file_yn,board_hidden_yn,
+			board_response_yn,board_comment_yn,board_user_write_auth_yn,board_admin_write_auth_yn,recent_list_display,board_default_yn,board_recom_yn,view_recommend_yn,view_comment_yn,basic_comment_name
+				from bbs_manage_config mc
+				where  board_ename = '".str_replace("bbs_","",$this->bbs_table_name)."' ";
+			$config_db->query($sql);
+			$config_db->fetch();
+			$this->bbs_config = $config_db;
+		}else{
+			$sql = "Select bm_ix,board_name,board_ename,board_max_cnt,board_titlemax_cnt,design_width,design_new_priod,design_hot_limit,board_searchable,board_ip_viewable,board_ip_encoding,
+			board_group,board_list_auth,board_read_auth,board_comment_auth,board_write_auth,view_check_yn,view_no_yn,view_title_yn,view_name_yn,view_file_yn,view_date_yn,view_md_name_yn,view_read_yn,
+			view_viewcnt_yn,view_email_yn,view_sms_yn,image_click,break_autowrite,break_autocomment,board_templete_code,bbs_templet_dir,board_style,board_category_use_yn,board_qna_yn,board_file_yn,board_hidden_yn,
+			board_response_yn,board_comment_yn,board_user_write_auth_yn,board_admin_write_auth_yn,recent_list_display,board_default_yn,board_recom_yn,view_recommend_yn,view_comment_yn,basic_comment_name
+			 from bbs_manage_config mc
+			where  board_ename = '".str_replace("bbs_","",$this->bbs_table_name)."' ";
+
+			$config_db->query($sql);
+			$config_db->fetch();
+			$this->bbs_config = $config_db;
+		}
+
+		//echo $sql;
+
+		//echo $layout_obj->Config[mall_data_root];
+			//$this->bbs_templete_web_path = $layout_obj->Config[mall_data_root]."/bbs_templet/".$config_db->dt[bbs_templet_dir]."/";
+			//$this->bbs_template_path = $DOCUMENT_ROOT.$layout_obj->Config[mall_data_root]."/bbs_templet/".$config_db->dt[bbs_templet_dir];
+			$this->bbs_templete_web_path = "/bbs_templet/".$config_db->dt[bbs_templet_dir]."/";
+			$this->bbs_template_path = $DOCUMENT_ROOT."/bbs_templet/".$config_db->dt[bbs_templet_dir];
+		//	echo $this->bbs_template_path;
+
+		//	echo $this->bbs_template_path;
+		//	$this->bbs_templete_web_path = "/bbs/bbs_templet/".$config_db->dt[bbs_templet_dir]."/";
+		//	$this->bbs_template_path = "$DOCUMENT_ROOT/bbs/bbs_templet/".$config_db->dt[bbs_templet_dir];
+		//	$this->bbs_templete_web_path = "/bbs/bbs_templet/".$config_db->dt[bbs_templet_dir]."/";
+			$this->bbs_title = $config_db->dt[board_name];
+
+
+
+	}
+
+
+	function PrintMsBoardList($comp=""){
+
+		global $HTTP_URL, $user, $QUERY_STRING, $_GET,$admininfo;
+		global $search_word, $esn, $ess, $esc, $type, $a_date_y, $a_date_m, $a_date_d,$status;
+		global $status_info;
+		global $FromYY,$FromMM,$FromDD,$ToYY,$ToMM,$ToDD;//관리자 등록일자 검색 kbk 12/10/05
+		global $sdate,$edate,$bbs_etc2;//마이페이지용 kbk 13/07/08
+		$pid = $_GET["pid"];
+		$nset = $_GET["nset"];
+		$board = $_GET["board"];
+		$page = $_GET["page"];
+		$bbs_div = $_GET["bbs_div"];
+		$sub_bbs_div = $_GET["sub_bbs_div"];
+
+		$this->BoardAuth($_GET["mode"]);
+		if($this->bbs_template_name == ""){
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$this->bbs_template_name = "bbs_list.htm";
+			}else if($this->bbs_config->dt[board_style] == "faq"){
+				$this->bbs_template_name = "faq_list.htm";
+			}else if($this->bbs_config->dt[board_style] == "attend"){
+
+				//아래 coupon_comment 추가 (코웰 쿠폰 한줄평을 위해서) - by pyw
+				if($this->bbs_config->dt[board_ename] == "coupon_comment")
+					$this->bbs_template_name = "coupon_comment.htm";
+				else
+					$this->bbs_template_name = "attend_list.htm";
+			}
+		}
+
+		$mdb = new Database();
+
+		if($search_word != "" && $type == "esn"){
+			if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_name LIKE '%$search_word%'";
+			}else{
+				$where = "";
+			}
+		}
+
+		if($search_word != "" && $type == "ess"){
+			if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_subject LIKE '%$search_word%'";
+			}else{
+				$where .= " bbs_q LIKE '%$search_word%'";
+			}
+		}
+
+		if($search_word != "" && $type == "esc"){
+			if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_contents LIKE '%$search_word%'";
+			}else{
+				$where .= " bbs_a LIKE '%$search_word%'";
+			}
+		}
+
+        if($search_word != "" && $type == "esa"){
+            if($where == ""){
+                $where .= " where (";
+            }else{
+                $where .= " or ";
+            }
+            //담당자 user code 획득 쿼리
+            $sql = "select cu.code from common_user cu left join common_member_detail cmd on cu.code = cmd.code where AES_DECRYPT(UNHEX(cmd.name),'".$mdb->ase_encrypt_key."') LIKE  '%$search_word%'  and cu.mem_type = 'A'";
+            $mdb->query($sql);
+            $comment_user = $mdb->fetchall();
+            $comment_user_array = array();
+			if(is_array($comment_user)){
+				foreach($comment_user as $key=>$val){
+                    $comment_user_array[] = $val['code'];
+				}
+			}
+            $where.=" bbs_ix in (select bc.bbs_ix from ".$this->bbs_table_name."_comment bc where bc.mem_ix in ('".implode("','",$comment_user_array)."') )  ";
+        }
+
+		if($_GET["daiso_charger_ix"] != ""){
+			if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			$where.=" bbs_ix in (select bc.bbs_ix from ".$this->bbs_table_name."_comment bc where bc.mem_ix='".$_GET["daiso_charger_ix"]."' )  ";
+		}
+
+		if($search_word != "" && $esn == "on"){
+			if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_name LIKE '%$search_word%'";
+			}else{
+				$where = "";
+			}
+		}
+		if($search_word != "" && $ess == "on"){
+			if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_subject LIKE '%$search_word%'";
+			}else{
+				$where .= " bbs_q LIKE '%$search_word%'";
+			}
+
+		}
+		 if($search_word != "" && $esc == "on"){
+		 	if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_contents LIKE '%$search_word%'";
+			}else{
+				$where .= " bbs_a LIKE '%$search_word%'";
+			}
+
+
+		}
+
+		if($search_word != "" && $type == ""){
+		 	if($where == ""){
+				$where .= " where (";
+			}else{
+				$where .= " or ";
+			}
+
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$where .= " bbs_contents LIKE '%$search_word%' or bbs_subject LIKE '%$search_word%' or bbs_name LIKE '%$search_word%'";
+			}else{
+				$where .= " bbs_a LIKE '%$search_word%'";
+			}
+		}
+
+		if(! empty($status)){//답변처리상태 검사 kbk 12/10/05
+			//status multi select 가능하도록 추가 2014.7.29 bgh
+			if(is_array($status)){
+				if(empty($where)){
+					$where = " WHERE ( status IN (";
+				}else{
+					$where .= " and status IN (";
+				}
+				$count = 0;
+				foreach($status as $st):
+					if($count > 0){
+						$where .= " ,'".$st."' ";
+					}else{
+						$where .= " '".$st."' ";
+					}
+					$count++;
+				endforeach;
+				if($count > 0){
+					$where .= " ) ";
+				}
+				syslog(LOG_INFO,'where : '.$where);
+
+			}else{
+			 	if($where == ""){
+					$where .= " where (";
+				}else{
+					$where .= " and ";
+				}
+
+				$where .= " status='$status'";
+			}
+		}
+
+
+//		if($_REQUEST[regdate] == '1'){	//작성일자 체크시 날짜 검색 가능 2014-10-15 이학봉
+            if($board == 'qna'){
+				$time = time();
+				if($sdate == "") {
+					$sdate = date("Y-m-d",strtotime("-1 years", $time));
+					$edate = date("Y-m-d",strtotime("now", $time));
+				}else{
+					if($sdate < date("Y-m-d",strtotime("-1 years", $time))){
+						$sdate = date("Y-m-d",strtotime("-1 years", $time));
+					}
+				}
+
+				$arr_sDate=explode("-",$sdate);
+				$FromYY=$arr_sDate[0];
+				$FromMM=$arr_sDate[1];
+				$FromDD=$arr_sDate[2];
+
+				$arr_eDate=explode("-",$edate);
+				$ToYY=$arr_eDate[0];
+				$ToMM=$arr_eDate[1];
+				$ToDD=$arr_eDate[2];
+
+				if($where == ""){
+					$where .= " where (";
+				}else{
+					$where .= " and ";
+				}
+				$s_regdate=$FromYY."-".$FromMM."-".$FromDD;
+				$e_regdate=$ToYY."-".$ToMM."-".$ToDD;
+				$where .= " DATE_FORMAT(bbs.regdate,'%Y-%m-%d') BETWEEN '".$s_regdate."' AND '".$e_regdate."' ";
+			}else{
+				if($sdate !="") {//마이페이지에서 날짜 검색(구매후기) kbk 13/07/08
+					$arr_sDate=explode("-",$sdate);
+					$FromYY=$arr_sDate[0];
+					$FromMM=$arr_sDate[1];
+					$FromDD=$arr_sDate[2];
+
+					$arr_eDate=explode("-",$edate);
+					$ToYY=$arr_eDate[0];
+					$ToMM=$arr_eDate[1];
+					$ToDD=$arr_eDate[2];
+				}
+
+				if($FromYY !="" && $_GET['regdate']) {//관리자 등록일자 검색 kbk 12/10/05
+					if($where == ""){
+						$where .= " where (";
+					}else{
+						$where .= " and ";
+					}
+					$s_regdate=$FromYY."-".$FromMM."-".$FromDD;
+					$e_regdate=$ToYY."-".$ToMM."-".$ToDD;
+					$where .= " DATE_FORMAT(bbs.regdate,'%Y-%m-%d') BETWEEN '".$s_regdate."' AND '".$e_regdate."' ";
+				}
+			}
+//		}
+
+
+		if($where == ""){
+			$where .= " where ";
+		}else{
+			$where .= ") and ";
+		}
+
+		if($bbs_div){
+			$where .= " bbs_div = '".$bbs_div."'";
+		}else{
+			$where .= " bbs_ix > 0 ";
+		}
+		if($sub_bbs_div){
+			$where .= " AND sub_bbs_div = '".$sub_bbs_div."'";//서브 검색 추가 kbk 12/06/19
+		}
+		//답변글로 인하여 디비 필드 추가 및 where절 추가 2009.12.22 김지훈
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			//if($_SESSION["admininfo"][admin_level] != 9 || $admininfo == ""){
+			if(!substr_count($_SERVER["PHP_SELF"],"admin/")){
+				if($where == ""){
+					$where .= " where ";
+				}else{
+					$where .= " and ";
+				}
+
+				if($this->bbs_admin_mode){
+					//$where .= " mem_ix = '$_SESSION["admininfo"][company_id]'"; // 2011-08-09 유저정보 통합후 관리자도 개인키로 mem_ix 저장되게 처리 신훈식
+					$where .= " mem_ix = '".$_SESSION["admininfo"][charger_ix]."'";
+				}else{
+					if($_SESSION["admininfo"][company_id] && $_SESSION["admininfo"][use_work] == 1){
+						$where .= " bbs_etc5 = '".$_SESSION["admininfo"][company_id]."' ";
+					}else{
+						$where .= " mem_ix = '".$user[code]."' ";
+					}
+				}
+
+			}
+
+		}else{
+			if($_SESSION["admininfo"][company_id] && $_SESSION["admininfo"][use_work] == 1){
+				$where .= " and bbs_etc5 = '".$_SESSION["admininfo"][company_id]."' ";
+			}
+		}
+
+		if($_GET["mmode"] == "personalization"){
+				$where .= " and mem_ix = '".$_GET["mem_ix"]."' ";
+			}
+
+		// 셀러관리 셀러업체 1:1 문의(b2b_qna) , 상점 1:1(seller_shop_cs) 문의 게시판은 자기게시글만 노출되게끔 처리함	2013-10-01 이학봉
+		if($_SESSION["admininfo"][com_type] == "S" && ($this->bbs_config->dt[board_ename] == "seller_shop_cs" || $this->bbs_config->dt[board_ename] == "b2b_qna")){
+			$where .= " and bbs_etc5 = '".$_SESSION["admininfo"][company_id]."' ";
+		}
+
+		if(($this->bbs_config->dt[board_ename]=="after" || $this->bbs_config->dt[board_ename]=="premium_after") && substr_count($_SERVER["PHP_SELF"],"/mypage/")>0) {//일반후기와 프리미엄후기의 경우 마이페이지에서만 자신의 글 볼 수 있음 kbk 13/07/08
+			if($where == ""){
+				$where .= " where ";
+			}else{
+				$where .= " and ";
+			}
+			$where .= " mem_ix = '$user[code]' ";
+		}
+
+		if(($this->bbs_config->dt[board_ename]=="after" || $this->bbs_config->dt[board_ename]=="premium_after")) {
+			if( ! (substr_count($_SERVER["PHP_SELF"],"/admin/")>0) && $this->bbs_after_admin_confirm ){
+				if($where == ""){
+					$where .= " where ";
+				}else{
+					$where .= " and ";
+				}
+				$where .= " status = '1' ";
+				$where .= " and bbs.bbs_etc1 in (select p.id from shop_product p where p.mall_ix in ('','".$_SESSION["layout_config"]['mall_ix']."')) ";
+			}
+		}
+
+		$day_length=date("t");
+		$day_array=array();
+		for($d=1;$d<=$day_length;$d++) {
+			array_push($day_array,$d);
+		}
+
+		//echo $where;
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			if($where=="") {
+				$add_notice_where=" where is_notice!='Y'"; //오라클때문에 추가
+			} else {
+				$add_notice_where=" and is_notice!='Y'";
+			}
+		}
+
+		if($pid != ""){
+			if($where=="") {
+				$pid_where=" where bbs_etc1 = '".$pid."' ";
+			} else {
+				$pid_where=" and bbs_etc1 = '".$pid."' ";
+			}
+		}
+
+		if($bbs_etc2 != ""){
+			if($where == ""){
+				$where = " where ";
+			}else{
+				$where .= " and ";
+			}
+			$where.=" bbs_etc2 LIKE '%".$bbs_etc2."%' ";
+		}
+
+		if($this->bbs_config->dt[board_style] == "attend") {//출석게시판의 경우 해당 일에 대한 게시물만 가져온다. kbk 12/06/08
+			if(!$a_date_y) $a_date_y=date("Y");
+			if(!$a_date_m) $a_date_m=date("m");
+			if(!$a_date_d) $a_date_d=date("d");
+			$a_date_full=$a_date_y."-".$a_date_m."-".$a_date_d;
+			$where.=" AND date_format(bbs.regdate,'%Y-%m-%d') = '".$a_date_full."'";
+		}
+
+		if($board == 'qna' && $_GET['mall_ix']){
+			$where .= " and bbs.mall_ix = '".$_GET['mall_ix']."' ";
+		}
+
+
+		$sql = "Select COUNT(*) as total from ".$this->bbs_table_name." bbs  $where $add_notice_where $pid_where ";
+
+		$mdb->query($sql);
+		$mdb->fetch();
+		$total = $mdb->dt[total];
+
+		$max = $this->bbs_config->dt[board_max_cnt];
+		if(!$max) $max = 10;
+
+
+		if ($page == '' || $page == '0'){
+			$start = 0;
+			$page  = 1;
+		}else{
+			$start = ($page - 1) * $max;
+		}
+		if($this->bbs_config->dt[board_style] == "bbs" || $this->bbs_config->dt[board_style] == "attend"){
+			$no = $total - ($page - 1) * $max;
+
+			if(($this->bbs_config->dt[board_ename]=="after" || $this->bbs_config->dt[board_ename]=="premium_after")){
+				$valuation_str = ",round((valuation_goods+valuation_goods_info + valuation_delivery + valuation_package)/4*20) as uf_valuation ,round(IFNULL((valuation_goods+valuation_goods_info + valuation_delivery + valuation_package)/4,0)) as valuation
+				";
+			}
+
+			if($this->bbs_config->dt[board_ename]=="qna" && $_SESSION["admininfo"]["company_id"]){
+				$select_str=",(select mem_ix from ".$this->bbs_table_name."_comment cmt where cmt.bbs_ix=bbs.bbs_ix order by cmt_ix asc limit 0,1) as charger_ix,
+				(select regdate from ".$this->bbs_table_name."_comment cmt where cmt.bbs_ix=bbs.bbs_ix order by cmt_ix desc limit 0,1) as complete_date";
+			}
+
+			if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+				if($mdb->dbms_type == "oracle"){
+					$sql = "Select bbs_ix,bbs_div,sub_bbs_div,mem_ix, bbs_name ,bbs_pass,bbs_email,bbs_contents,bbs_hidden,bbs_top_ix,bbs_ix_level,bbs_ix_step,bbs_hit,bbs_down_cnt,bbs_re_cnt,bbs_file_1,bbs_file_2,bbs_file_3,bbs_etc1,bbs_etc2,bbs_etc3,bbs_etc4,bbs_etc5,is_notice,is_html,ip_addr,status,bbs.regdate, case when bsdiv.div_name != '' then concat(bdiv.div_name||' > ',bsdiv.div_name) else bdiv.div_name end as div_name, case when LENGTH(SUBSTRING(bbs.bbs_subject,(".$this->bbs_config->dt[board_titlemax_cnt]."+1-bbs.bbs_ix_level),1))>0 then CONCAT(SUBSTRING(bbs.bbs_subject,1,".$this->bbs_config->dt[board_titlemax_cnt]."-bbs.bbs_ix_level),'...') else bbs.bbs_subject end as bbs_subject, bbs_subject as nocut_bbs_subject, $no as cno,
+					concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link , case when bbs.regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new ".$valuation_str."
+					from ".$this->bbs_table_name." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div  and bdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					left join ".TBL_BBS_MANAGE_DIV." bsdiv on bsdiv.div_ix = bbs.sub_bbs_div  and bsdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					$where $add_notice_where $pid_where order by bbs.regdate desc,bbs_ix_level asc LIMIT $start, $max ";
+				}else{
+					$sql = "Select case when bsdiv.div_name != '' then concat(bdiv.div_name,' > ',bsdiv.div_name) else bdiv.div_name end as div_name,  bbs.*, bbs_name, IF(LENGTH(SUBSTRING(bbs.bbs_subject,(".$this->bbs_config->dt[board_titlemax_cnt]."+1-bbs.bbs_ix_level),1))>0,CONCAT(SUBSTRING(bbs.bbs_subject,1,".$this->bbs_config->dt[board_titlemax_cnt]."-bbs.bbs_ix_level),'...'),bbs.bbs_subject) as bbs_subject, bbs_subject as nocut_bbs_subject, $no as cno,
+					concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix=',bbs_ix,'&page=','".$page."') as link , case when bbs.regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new ".$valuation_str." ".$select_str."
+					from ".$this->bbs_table_name." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div  and bdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					left join ".TBL_BBS_MANAGE_DIV." bsdiv on bsdiv.div_ix = bbs.sub_bbs_div  and bsdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					$where $add_notice_where $pid_where order by bbs.regdate desc,bbs_ix_level asc LIMIT $start, $max ";
+				}
+			}else{
+				if($mdb->dbms_type == "oracle"){
+					$sql = "Select bbs_ix,bbs_div,sub_bbs_div,mem_ix,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name,bbs_pass,bbs_email,bbs_contents,bbs_hidden,bbs_top_ix,bbs_ix_level,bbs_ix_step,bbs_hit,bbs_down_cnt,bbs_re_cnt,bbs_file_1,bbs_file_2,bbs_file_3,bbs_etc1,bbs_etc2,bbs_etc3,bbs_etc4,bbs_etc5,is_notice,is_html,ip_addr,status,regdate, case when LENGTH(SUBSTRING(bbs.bbs_subject,(".$this->bbs_config->dt[board_titlemax_cnt]."+1-bbs.bbs_ix_level),1))>0 then CONCAT(SUBSTRING(bbs.bbs_subject,1,".$this->bbs_config->dt[board_titlemax_cnt]."-bbs.bbs_ix_level),'...') else bbs.bbs_subject end as bbs_subject, bbs_subject as nocut_bbs_subject,  $no as cno,
+					concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link , case when regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new ".$valuation_str."
+					from ".$this->bbs_table_name." bbs
+					$where $add_notice_where $pid_where order by bbs.regdate desc,bbs_ix_level asc LIMIT $start, $max ";
+				}else{
+					$sql = "Select bbs.*, bbs_name, IF(LENGTH(SUBSTRING(bbs.bbs_subject,(".$this->bbs_config->dt[board_titlemax_cnt]."+1-bbs.bbs_ix_level),1))>0,CONCAT(SUBSTRING(bbs.bbs_subject,1,".$this->bbs_config->dt[board_titlemax_cnt]."-bbs.bbs_ix_level),'...'),bbs.bbs_subject) as bbs_subject, bbs_subject as nocut_bbs_subject,  $no as cno,
+					concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix=',bbs_ix,'&page=','".$page."') as link , case when regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new ".$valuation_str." ".$select_str."
+					from ".$this->bbs_table_name." bbs
+					$where $add_notice_where $pid_where order by bbs.regdate desc,bbs_ix_level asc LIMIT $start, $max ";
+				}
+			}
+
+			$mdb->query($sql);
+
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+
+			$sql = "Select * from ".$this->bbs_table_name." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div $where  order by is_best desc, faq_sort asc, bbs.regdate desc LIMIT $start, $max ";
+			$mdb->query($sql);
+
+
+		}
+
+		//echo nl2br($sql);
+
+		$tpl = new Template_;
+		$tpl->template_dir = $this->bbs_template_dir;
+		$tpl->compile_dir  = $this->bbs_compile_dir;
+
+		$tpl->assign('day_length', $day_length);
+		$tpl->assign('day_array', $day_array);
+		$tpl->assign('a_date_y', $a_date_y);
+		$tpl->assign('a_date_m', $a_date_m);
+		$tpl->assign('a_date_d', $a_date_d);
+
+		//$tpl->define('bbs_list', $this->bbs_template_name);
+		$tpl->define(array('bbs_list'=> $this->bbs_template_name,'bbs_title'=>'bbs_title.htm','bbs_write_s'=>'bbs_write_s.htm'));
+
+
+		//print_r($user);
+		$loop = $mdb->fetchall();
+		//print_r($loop);
+		//$tpl->assign('test',$sql);
+
+		if(is_array($loop)){
+			foreach($loop as $key => $val){
+
+				$mdb->query("Select * from ".$this->bbs_table_name."_comment where  bbs_ix = '".$val[bbs_ix]."' order by regdate asc ");
+
+//				echo "Select * from ".$this->bbs_table_name."_comment where  bbs_ix = '".$val[bbs_ix]."' order by regdate asc ";
+				$cmt_loop = $mdb->fetchall();
+				$loop[$key][cmt_loop] = $cmt_loop;
+				$loop[$key][bbs_name] = wel_masking_seLen($val['bbs_name'],1,1);
+			}
+		}
+
+		//print_r($loop);
+
+		$tpl->assign('list', $loop);
+		$tpl->assign('count_list', count($loop));
+		if($this->bbs_config->dt[board_style] == "bbs" || $this->bbs_config->dt[board_style] == "attend"){
+			//$sql = "Select *, $no as cno,  concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix=',bbs_ix,'&page=','".$page."') as link , case when regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new from ".$this->bbs_table_name." where is_notice = 'Y' order by bbs_top_ix desc,bbs_ix_step asc LIMIT $start, $max ";
+
+			if(($this->bbs_config->dt[board_ename]=="after" || $this->bbs_config->dt[board_ename]=="premium_after")){
+				$valuation_str = ",round((valuation_goods+valuation_goods_info + valuation_delivery + valuation_package)/4*20) as uf_valuation ,round(IFNULL((valuation_goods+valuation_goods_info + valuation_delivery + valuation_package)/4,0)) as valuation
+					";
+			}
+
+			if($mdb->dbms_type == "oracle"){
+				$sql = "Select b.div_name,a.*,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name, $no as cno,bbs_name as writer,  concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link , case when a.regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new ".$valuation_str." from ".$this->bbs_table_name." a left join bbs_manage_div b on b.div_ix = a.bbs_div where is_notice = 'Y' order by bbs_top_ix desc,bbs_ix_step asc";
+			}else{
+				$sql = "Select b.div_name,a.*,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name , $no as cno,bbs_name as writer,  concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix=',bbs_ix,'&page=','".$page."') as link , case when a.regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new ".$valuation_str." from ".$this->bbs_table_name." a left join bbs_manage_div b on b.div_ix = a.bbs_div where is_notice = 'Y' order by bbs_top_ix desc,bbs_ix_step asc";
+			}
+			$mdb->query($sql);
+
+			$notices = $mdb->fetchall();
+			$tpl->assign('notices', $notices);
+
+			if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+				if($mdb->dbms_type == "oracle"){
+					$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+							FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+							where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+							group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+							order by view_order asc, div_depth asc";
+				}else{
+					$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+							FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+							where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+							group by div_ix
+							order by view_order asc, div_depth asc";//
+				}
+
+				$mdb->query($sql);
+
+				$bbs_divs = $mdb->fetchall();
+
+				$tpl->assign('bbs_divs', $bbs_divs);
+
+				if($bbs_div){
+					if($mdb->dbms_type == "oracle"){
+						$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+							FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+							where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 2 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+							group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+							order by view_order asc, div_depth asc,div_ix asc";
+					}else{
+						$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+							FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+							where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 2 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+							group by div_ix
+							order by view_order asc, div_depth asc,div_ix asc";
+					}
+
+					$mdb->query($sql);
+
+					$sub_bbs_divs = $mdb->fetchall();
+					//$sub_bbs_divs = $sql;
+					$tpl->assign('sub_bbs_divs', $sub_bbs_divs);
+				}
+			}
+		}else{
+			if($mdb->dbms_type == "oracle"){
+				$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 and bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+			}else{
+				$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 and bdiv.disp = 1
+					group by div_ix
+					order by view_order asc, div_depth asc";
+			}
+			$mdb->query($sql);
+
+
+
+			$bbs_divs = $mdb->fetchall();
+
+			$tpl->assign('bbs_divs', $bbs_divs);
+
+			if($bbs_div){
+				if($mdb->dbms_type == "oracle"){
+					$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 2 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+				}else{
+					$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 2 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+					group by div_ix
+					order by view_order asc, div_depth asc,div_ix asc";
+				}
+				$mdb->query($sql);
+
+				$sub_bbs_divs = $mdb->fetchall();
+				//$sub_bbs_divs = $sql;
+				$tpl->assign('sub_bbs_divs', $sub_bbs_divs);
+			}
+		}
+
+		/**
+		 * 1:1 문의 카운팅 추가
+		 * 2014.07.13 bgh
+		 */
+		if($board == 'qna'){
+			$complete_cnt = 0;
+			$in_progress_cnt = 0;
+			if(! empty($loop)){
+				foreach($loop as $lp):
+					switch($lp['status']){
+						case '1':
+						case '2':
+						case '3':
+							$in_progress_cnt++;
+							break;
+						case '5':
+							$complete_cnt++;
+							break;
+					}
+				endforeach;
+			}
+			$tpl->assign('in_progress_cnt',$in_progress_cnt);
+			$tpl->assign('complete_cnt',$complete_cnt);
+		}
+
+		$tpl->assign('page', $page);
+		$tpl->assign('start', $start);
+		$tpl->assign($this->bbs_config->dt);
+		$tpl->assign('template_dir', $tpl->template_dir);
+		$tpl->assign('templet_src', $this->site_template_src);
+		$tpl->assign('bbs_table_name',$this->bbs_table_name);
+		$tpl->assign('bbs_data_dir', $this->bbs_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_file_dir', $this->bbs_file_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_admin_mode', $this->bbs_admin_mode);
+		$tpl->assign('total', $total);
+		$tpl->assign('bbs_div', $bbs_div);
+		$tpl->assign('board', $board);
+		$tpl->assign('product_src', $this->site_product_src);
+		$tpl->assign('bbs_after_admin_confirm', $this->bbs_after_admin_confirm);
+
+
+		//$query_string = str_replace("nset=$nset&page=$page&","",$QUERY_STRING) ; // 아래 처럼 별도 분리
+		$query_string = str_replace("nset=".$_GET["nset"]."&","",$QUERY_STRING) ;
+		$query_string = str_replace("page=".$_GET["page"]."&","",$query_string) ;
+		//$query_string = str_replace("bbs_div=$bbs_div&","",$query_string) ;//주석 처리 kbk 12/10/08
+		//$query_string = str_replace("board=$board&","",$query_string) ;// 게시판 자신의 이름이 이 부분에서 삭제 됨 kbk 2011/11/01
+
+
+		$tpl->assign('paging_str', $this->bbs_page_bar($total, $page, $max,$HTTP_URL,$tpl->template_dir, "&".$query_string));
+		$tpl->assign('paging_str2', $this->bbs_page_bar2($total, $page, $max,$HTTP_URL,$tpl->template_dir, "&".$query_string));
+		$tpl->assign('page_mobile_string', $this->bbs_page_bar_mobile($total, $page, $max,$HTTP_URL,$tpl->template_dir, "&".$query_string));
+		$tpl->assign('token',$this->getToken());
+
+		if(is_dir($this->bbs_data_dir."/".$this->bbs_table_name."/".$bbs_ix)) {//faq 게시판처럼 bbs_file_1 컬럼이 없는 게시판은 오류 발생해서 검사함 kbk 12/01/27
+			$bbs_file_1_image_info = getimagesize ($this->bbs_data_dir."/".$this->bbs_table_name."/".$bbs_ix."/".$mdb->dt[bbs_file_1]);
+			$bbs_file_1_image_type = strtolower(substr($bbs_file_1_image_info['mime'] , strpos($bbs_file_1_image_info['mime'],"/")+1,strlen($bbs_file_1_image_info['mime'])));
+
+			//print_r($bbs_file_1_image_info);
+
+			$tpl->assign('bbs_file_1_image_info',$bbs_file_1_image_info);
+		}
+
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			$sql = 	"SELECT bms.status_ix , bms.status_name FROM ".TBL_BBS_MANAGE_STATUS." bms
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					order by view_order asc";
+
+			$mdb->query($sql);
+			$bbs_status = $mdb->fetchall('object');
+			//print_r($bbs_status);
+			//$bbs_status = $mdb->getrows();
+			for($i=0;$i < count($bbs_status); $i++){
+				$status_info[$bbs_status[$i][status_ix]] = $bbs_status[$i][status_name];
+			}
+			//print_r($status);
+
+			//$tpl->assign('status', $status);
+			$tpl->assign('bbs_status', $bbs_status);// kbk 12/10/08
+		}
+
+		if($pid){
+			$sql = "select * from shop_order o , shop_order_detail od
+				where o.oid=od.oid and o.uid = '".$user["code"]."'
+				and od.pid = '$pid'
+				and od.status NOT IN ('".ORDER_STATUS_SETTLE_READY."','".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_CANCEL_APPLY."','".ORDER_STATUS_CANCEL_COMPLETE."') ";
+			$mdb->query($sql);
+			if(!$mdb->total){
+				$order_yn = "N";
+			} else {
+				$order_yn = "Y";
+			}
+			$tpl->assign('order_yn',$order_yn);
+
+			$sql="SELECT bbs_ix FROM bbs_premium_after WHERE mem_ix='".$_SESSION["user"]["code"]."' AND bbs_etc1='".$pid."' ";
+			$mdb->query($sql);
+			if($mdb->total) $write_yn="Y";
+			else $write_yn="N";
+			$tpl->assign('write_yn',$write_yn);
+		}
+
+		//[Start] 게시판 분류 불러옴 kbk 13/07/14
+		$sql="SELECT * FROM ".TBL_BBS_MANAGE_DIV." where bm_ix ='".$this->bbs_config->dt[bm_ix]."' AND div_depth='1' AND disp='1' ORDER BY view_order ASC ";
+		$mdb->query($sql);
+		$fetch_bbs_div=$mdb->fetchall();
+		$tpl->assign('fetch_bbs_div',$fetch_bbs_div);
+
+		if($bbs_div){
+			$sql="SELECT * FROM ".TBL_BBS_MANAGE_DIV." where bm_ix ='".$this->bbs_config->dt[bm_ix]."' AND div_depth='2' AND parent_div_ix = '".$bbs_div."' AND disp='1' ORDER BY view_order ASC ";
+			$mdb->query($sql);
+			$fetch_sub_bbs_div=$mdb->fetchall();
+			$tpl->assign('fetch_sub_bbs_div',$fetch_sub_bbs_div);
+		}
+		//[End] 게시판 분류 불러옴 kbk 13/07/14
+
+		return $tpl->fetch('bbs_list');
+
+	}
+
+
+	function PrintMsBoardRead($article_no, $bbs_ix, $page, $comp=""){
+		global $user,$board , $admininfo;
+		global $status_info;
+		$mdb = new Database();
+		$cdb = new Database();
+		$ndb = new Database();
+
+		//게시물 정보를 읽어온다.
+		$mdb->query(" update ".$this->bbs_table_name." set bbs_hit = bbs_hit+1 where bbs_ix = '$bbs_ix' ");
+
+			if(($this->bbs_config->dt[board_ename]=="after" || $this->bbs_config->dt[board_ename]=="premium_after")){
+				$valuation_str = ",round((valuation_goods+valuation_goods_info + valuation_delivery + valuation_package)/4*20) as uf_valuation ,round(IFNULL((valuation_goods+valuation_goods_info + valuation_delivery + valuation_package)/4,0)) as valuation
+				";
+		}
+
+		if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+			/*
+			$sql = "Select bdiv.div_name, bbs.*, case when bbs.regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new
+				from ".$this->bbs_table_name." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div  and bm_ix = '".$this->bbs_config->dt[bm_ix]."' where bbs_ix = '$bbs_ix' ";
+			*/
+
+			if($mdb->dbms_type == "oracle"){
+				$sql = "Select bbs_ix,bbs_div,sub_bbs_div,mem_ix,bbs_name as writer, CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name,bbs_pass,bbs_email,bbs_contents,bbs_hidden,bbs_top_ix,bbs_ix_level,bbs_ix_step,bbs_hit,bbs_down_cnt,bbs_re_cnt,bbs_file_1,bbs_file_2,bbs_file_3,bbs_etc1,bbs_etc2,bbs_etc3,bbs_etc4,bbs_etc5,is_notice,is_html,ip_addr,status,bbs.regdate, case when bsdiv.div_name != '' then concat(bdiv.div_name||' > ',bsdiv.div_name) else bdiv.div_name end as div_name, case when LENGTH(SUBSTRING(bbs.bbs_subject,(".$this->bbs_config->dt[board_titlemax_cnt]."+1-bbs.bbs_ix_level),1))>0 then CONCAT(SUBSTRING(bbs.bbs_subject,1,".$this->bbs_config->dt[board_titlemax_cnt]."-bbs.bbs_ix_level),'...') else bbs.bbs_subject end as bbs_subject, bbs_subject as nocut_bbs_subject,
+				concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link , case when bbs.regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new ".$valuation_str."
+				from ".$this->bbs_table_name." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div  and bdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+				left join ".TBL_BBS_MANAGE_DIV." bsdiv on bsdiv.div_ix = bbs.sub_bbs_div  and bsdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+				where bbs_ix = '$bbs_ix' ";
+			}else{
+				$sql = "Select case when bsdiv.div_name != '' then concat(bdiv.div_name,' > ',bsdiv.div_name) else bdiv.div_name end as div_name,bbs_name as writer, bbs.*,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name, case when bbs.regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new ".$valuation_str."
+				from ".$this->bbs_table_name." bbs left join ".TBL_BBS_MANAGE_DIV." bdiv on bdiv.div_ix = bbs.bbs_div  and bdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+				left join ".TBL_BBS_MANAGE_DIV." bsdiv on bsdiv.div_ix = bbs.sub_bbs_div  and bsdiv.bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+				where bbs_ix = '$bbs_ix' ";
+			}
+			/*sub_bbs_div 부분 변경하면서 위에 주석처리 하고 아래 추가 2008-09-09 11:27*/
+
+		}else{
+			//$sql = "Select * , case when regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new  from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' ";
+			//오라클 에러때문에
+			$sql = "Select *, CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name ".$valuation_str." from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' ";
+		}
+
+
+		$mdb->query($sql);
+
+		if(!$mdb->total) {//게시글 정보를 못 불러올 경우 kbk 12/01/17
+			echo "<script type='text/javascript'>alert('".getLanguageText('05627754a73eb8899688e03c69e9c28f').".');location.href='?board=".$board."';</script>";
+			//해당 게시물은 삭제되었거나 존재하지 않습니다
+			exit;
+		}
+
+		if($this->bbs_template_name == ""){
+			$this->bbs_template_name = "bbs_read.htm";
+		}
+
+		$mdb->fetch();
+		$this->BoardAuth($_GET["mode"], $mdb->dt[mem_ix] , $mdb->dt[bbs_hidden],$mdb->dt[bbs_pass]);
+		$tpl = new Template_;
+		$tpl->template_dir = $this->bbs_template_dir;
+		$tpl->compile_dir  = $this->bbs_compile_dir;
+		//$tpl->define('bbs_read', $this->bbs_template_name);
+		$tpl->define(array('bbs_read'=> $this->bbs_template_name,'bbs_title'=>'bbs_title.htm'));
+
+		//print_r($mdb->dt);
+		$tpl->assign($mdb->dt);
+		$tpl->assign($this->bbs_config->dt);
+		//$tpl->assign('mem_ix',$user[mem_ix]);
+		$tpl->assign('page', $page);
+		$tpl->assign('article_no', $article_no);
+		$tpl->assign('bbs_table_name',$this->bbs_table_name);
+		$tpl->assign('bbs_admin_mode', $this->bbs_admin_mode);
+		$tpl->assign('bbs_after_admin_confirm', $this->bbs_after_admin_confirm);
+
+		$tpl->assign('token',$this->getToken());
+
+
+		$user_id = getUserCodeById($mdb->dt['mem_ix']);
+
+		if($mdb->dt[bbs_file_1]){
+			if(file_exists($this->bbs_data_dir."/".$this->bbs_table_name."/".$bbs_ix."/".$mdb->dt[bbs_file_1])) {
+				$bbs_file_1_image_info = getimagesize ($this->bbs_data_dir."/".$this->bbs_table_name."/".$bbs_ix."/".$mdb->dt[bbs_file_1]);
+				$bbs_file_1_image_type = strtolower(substr($bbs_file_1_image_info['mime'] , strpos($bbs_file_1_image_info['mime'],"/")+1,strlen($bbs_file_1_image_info['mime'])));
+			} else if(file_exists($this->bbs_data_dir."/".str_replace('bbs_','',$this->bbs_table_name)."/".$user_id."/".$mdb->dt[bbs_file_1])){
+                $bbs_file_1_image_info = getimagesize ($this->bbs_data_dir."/".str_replace('bbs_','',$this->bbs_table_name)."/".$user_id."/".$mdb->dt[bbs_file_1]);
+                $bbs_file_1_image_type = strtolower(substr($bbs_file_1_image_info['mime'] , strpos($bbs_file_1_image_info['mime'],"/")+1,strlen($bbs_file_1_image_info['mime'])));
+			}
+		}
+
+		//print_r($bbs_file_1_image_info);
+
+		$tpl->assign('bbs_file_1_image_info',$bbs_file_1_image_info);
+
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			//if($_SESSION["admininfo"][admin_level] != 9 || $admininfo == ""){
+
+				if($this->bbs_admin_mode){
+					//$where .= " and mem_ix = '$_SESSION["admininfo"][company_id]'"; //2011.05.31 신훈식 수정
+					$where .= " and mem_ix = '".$_SESSION["admininfo"][charger_ix]."'";
+				}else{
+					if($_SESSION["admininfo"][company_id] && $_SESSION["admininfo"][use_work] == 1){
+						$where .= " and bbs_etc5 = '".$_SESSION["admininfo"][company_id]."' ";
+					}else{
+
+						if( $mdb->dt[mem_ix] != $user[code]){
+							echo "<script type='text/javascript'>alert('".getLanguageText('f1b03ab7611f445635e33b914dd412e4').".');history.back();</script>";
+                            //echo "<script>alert('글내용 보기  권한이 없습니다.');history.back();</script>";
+							exit;
+						}
+
+						$where .= " and mem_ix = '$user[code]' ";
+					}
+				}
+
+			//}
+		}else{
+			if($_SESSION["admininfo"][company_id] && $_SESSION["admininfo"][use_work] == 1){
+				$where .= " and bbs_etc5 = '".$_SESSION["admininfo"][company_id]."' ";
+			}
+		}
+
+		if(($this->bbs_config->dt[board_ename]=="after" || $this->bbs_config->dt[board_ename]=="premium_after") && substr_count($_SERVER["PHP_SELF"],"/mypage/")>0) {//일반후기와 프리미엄후기의 경우 마이페이지에서만 자신의 글 볼 수 있음 kbk 13/07/08
+			$where .= " and mem_ix = '$user[code]' ";
+		}
+
+
+
+		//, bbs_rec_cnt 추가 kbk 13/07/08
+		if($ndb->dbms_type == "oracle"){
+			$ndb->query("Select bbs_pass,mem_ix,bbs_ix,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name,bbs_name as writer,bbs_subject, bbs_hidden, bbs_re_cnt, bbs_hit, regdate,
+			concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link ,
+			case when regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new,bbs_etc1,bbs_etc2, bbs_rec_cnt ".$valuation_str."
+			from ".$this->bbs_table_name." where  bbs_ix < '$bbs_ix'  and bbs_ix_level = 0 $where order by bbs_ix desc LIMIT 0,1 ");
+		}else{
+			$ndb->query("Select bbs_pass,mem_ix,bbs_ix,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name,bbs_name as writer,bbs_subject, bbs_hidden, bbs_re_cnt, bbs_hit, regdate,
+			concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix=',bbs_ix,'&page=','".$page."') as link ,
+			case when regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new,bbs_etc1,bbs_etc2, bbs_rec_cnt ".$valuation_str."
+			from ".$this->bbs_table_name." where  bbs_ix < '$bbs_ix'  and bbs_ix_level = 0 $where order by bbs_ix desc LIMIT 1 ");
+		}
+
+		$before_loop = $ndb->fetchall();
+		$test = $ndb->total;
+		$tpl->assign('test',$this->bbs_table_name);
+		$tpl->assign('test',$this->bbs_table_name);
+		$tpl->assign('test2',$this->bbs_config->dt[board_ename]); //weaning
+		$tpl->assign('before_loop', $before_loop);
+		//print_r($next_loop);
+
+
+		if($ndb->dbms_type == "oracle"){
+			$ndb->query("Select bbs_pass,mem_ix,bbs_ix,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name,bbs_name as writer, bbs_subject, bbs_hidden, bbs_re_cnt, bbs_hit, regdate,
+			concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link ,
+			case when regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new,bbs_etc1,bbs_etc2, bbs_rec_cnt ".$valuation_str."
+			from ".$this->bbs_table_name." where bbs_ix > '$bbs_ix'  and bbs_ix_level = 0 $where order by bbs_ix asc LIMIT 0,1 ");
+		}else{
+			$ndb->query("Select bbs_pass,mem_ix,bbs_ix,CONCAT(SUBSTR(bbs_name,1,1),'*',SUBSTR(bbs_name,3)) AS bbs_name,bbs_name as writer, bbs_subject, bbs_hidden, bbs_re_cnt, bbs_hit, regdate,
+			concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix=',bbs_ix,'&page=','".$page."') as link ,
+			case when regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new,bbs_etc1,bbs_etc2, bbs_rec_cnt ".$valuation_str."
+			from ".$this->bbs_table_name." where bbs_ix > '$bbs_ix'  and bbs_ix_level = 0 $where order by bbs_ix asc LIMIT 1 ");
+		}
+		$next_loop = $ndb->fetchall();
+		$tpl->assign('next_loop', $next_loop);
+
+
+
+		$cdb->query("Select * from ".$this->bbs_table_name."_comment where  bbs_ix = '$bbs_ix' order by regdate asc ");
+		$cmt_loop = $cdb->fetchall();
+		$tpl->assign('cmt_loop', $cmt_loop);
+
+		$tpl->assign('board_file_yn', $this->bbs_config->dt[board_file_yn]);
+		$tpl->assign('template_dir', $tpl->template_dir);
+		$tpl->assign('templet_src', $this->site_template_src);
+		$tpl->assign('bbs_data_dir', $this->bbs_data_dir."/".$this->bbs_table_name."/".$bbs_ix);
+        $tpl->assign('bbs_file_dir', $this->bbs_file_dir."/".$this->bbs_table_name);
+        $tpl->assign('bbs_data_dir_new', $this->bbs_data_dir."/".str_replace('bbs_','',$this->bbs_table_name)."/".$user_id);
+		$tpl->assign('bbs_templet_dir',$this->bbs_config->dt[bbs_templet_dir]);
+		$tpl->assign('board', $board);
+		$tpl->assign('product_src', $this->site_product_src);
+
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			$sql = 	"SELECT bms.status_ix , bms.status_name FROM ".TBL_BBS_MANAGE_STATUS." bms
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					order by view_order asc";
+
+			$mdb->query($sql);
+
+			$bbs_status = $mdb->fetchall('object');
+			//print_r($bbs_status);
+			//$bbs_status = $mdb->getrows();
+			for($i=0;$i < count($bbs_status); $i++){
+				$status_info[$bbs_status[$i][status_ix]] = $bbs_status[$i][status_name];
+			}
+			//print_r($status);
+
+			//$tpl->assign('status', $status);
+		}
+
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			$sql = 	"SELECT bms.* FROM ".TBL_BBS_MANAGE_STATUS." bms
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					order by view_order asc";
+
+			$mdb->query($sql);
+
+			$bbs_status = $mdb->fetchall('object');
+			//print_r($bbs_status);
+			$tpl->assign('bbs_status', $bbs_status);
+		}
+
+		return $tpl->fetch('bbs_read');
+		exit;
+
+
+	}
+
+
+	function PrintMsBoardModify($bbs_ix, $article_no, $page, $bbs_div=""){
+		global $bbs_pass, $user,$board;
+
+		if($this->bbs_template_name == ""){
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$this->bbs_template_name = "bbs_modify.htm";
+			}else if($this->bbs_config->dt[board_style] == "faq"){
+				$this->bbs_template_name = "faq_modify.htm";
+			}
+		}
+
+
+
+		$mdb = new Database();
+		if($this->bbs_config->dt[board_style] == "bbs"){
+			if($user || $this->bbs_admin_mode){
+				$mdb->query("Select * from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' ");
+			}else{
+				$mdb->query("Select * from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' and bbs_pass ='$bbs_pass'");
+			}
+		}else if($this->bbs_config->dt[board_style] == "faq"){
+			$mdb->query("Select * from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' ");
+		}
+		if(!$mdb->total) {//게시글 정보를 못 불러올 경우 kbk 12/01/17
+			echo "<script type='text/javascript'>alert('".getLanguageText('05627754a73eb8899688e03c69e9c28f').".');location.href='?board=".$board."';</script>";
+			exit;
+		}
+		$mdb->fetch();
+		if(!$bbs_div) $bbs_div=$mdb->dt["bbs_div"];// 서브 카테고리를 가져오기 위해 추가 kbk
+		//print_r($mdb->dt);
+		$this->BoardAuth($_GET["mode"], $mdb->dt[mem_ix] ,"", $mdb->dt[bbs_pass]);
+
+		$tpl = new Template_;
+		$tpl->template_dir = $this->bbs_template_dir;
+		$tpl->compile_dir  = $this->bbs_compile_dir;
+
+		//$tpl->define('bbs_modify', $this->bbs_template_name);
+		$tpl->define(array('bbs_modify'=> $this->bbs_template_name,'bbs_title'=>'bbs_title.htm'));
+
+		$tpl->assign($mdb->dt);
+		$tpl->assign($this->bbs_config->dt);
+		$tpl->assign('page', $page);
+		$tpl->assign('article_no', $article_no);
+		$tpl->assign('bbs_table_name',$this->bbs_table_name);
+		$tpl->assign('bbs_admin_mode', $this->bbs_admin_mode);
+
+
+		$tpl->assign('board_file_yn',$this->bbs_config->dt[board_file_yn]);
+		$tpl->assign('board_hidden_yn',$this->bbs_config->dt[board_hidden_yn]);
+		$tpl->assign('templet_src', $this->site_template_src);
+		$tpl->assign('template_dir', $tpl->template_dir);
+		$tpl->assign('bbs_data_dir', $this->bbs_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('edit_data_dir', $this->edit_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_file_dir', $this->bbs_file_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_templet_dir',$this->bbs_config->dt[bbs_templet_dir]);
+		$tpl->assign('product_src', $this->site_product_src);
+		$tpl->assign('bbs_after_admin_confirm', $this->bbs_after_admin_confirm);
+
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			$sql = 	"SELECT bms.* FROM ".TBL_BBS_MANAGE_STATUS." bms
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					order by view_order asc";
+
+			$mdb->query($sql);
+
+			$bbs_status = $mdb->fetchall('object');
+			//print_r($bbs_status);
+			$tpl->assign('bbs_status', $bbs_status);
+		}
+
+		if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+
+			if($mdb->dbms_type == "oracle"){
+				$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+			}else{
+				$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+					group by div_ix
+					order by view_order asc, div_depth asc";
+			}
+
+			$mdb->query($sql);
+
+			$bbs_divs = $mdb->fetchall();
+			$tpl->assign('bbs_divs', $bbs_divs);
+
+			if($bbs_div){
+				if($mdb->dbms_type == "oracle"){
+					$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+						FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+						where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 2 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+						group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+						order by view_order asc, div_depth asc,div_ix asc";
+				}else{
+					$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+						FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+						where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 2 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+						group by div_ix
+						order by view_order asc, div_depth asc,div_ix asc";
+				}
+				$mdb->query($sql);
+				//echo $sql;
+				$sub_bbs_divs = $mdb->fetchall();
+				$tpl->assign('sub_bbs_divs', $sub_bbs_divs);
+			}
+		}
+
+		return $tpl->fetch('bbs_modify');
+		exit;
+
+	}
+
+
+	function PrintMsBoardWrite($comp=""){
+
+		$this->BoardAuth($_GET["mode"]);
+
+		if($this->bbs_template_name == ""){
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$this->bbs_template_name = "bbs_write.htm";
+			}else if($this->bbs_config->dt[board_style] == "faq"){
+				$this->bbs_template_name = "faq_write.htm";
+			}
+		}
+		$mdb = new Database();
+
+		$tpl = new Template_;
+		$tpl->template_dir = $this->bbs_template_dir;
+		$tpl->compile_dir  = $this->bbs_compile_dir;
+
+		//$tpl->define('bbs_write', $this->bbs_template_name);
+		$tpl->define(array('bbs_write'=> $this->bbs_template_name,'bbs_title'=>'bbs_title.htm'));
+		//$tpl->assign($mdb->dt);
+		$tpl->assign($this->bbs_config->dt);
+		$tpl->assign('board_file_yn',$this->bbs_config->dt[board_file_yn]);
+		$tpl->assign('board_hidden_yn',$this->bbs_config->dt[board_hidden_yn]);
+		$tpl->assign('board_user_write_auth_yn',$this->bbs_config->dt[board_user_write_auth_yn]);
+		$tpl->assign('board_write_auth',$this->bbs_config->dt[board_write_auth]);
+		$tpl->assign('bbs_templet_dir',$this->bbs_config->dt[bbs_templet_dir]);
+
+		$tpl->assign('bbs_admin_mode', $this->bbs_admin_mode);
+		$tpl->assign('bbs_table_name',$this->bbs_table_name);
+		$tpl->assign('templet_src', $this->site_template_src);
+		$tpl->assign('template_dir', $tpl->template_dir);
+		$tpl->assign('bbs_data_dir', $this->bbs_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('edit_data_dir', $this->edit_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_file_dir', $this->bbs_file_dir."/".$this->bbs_table_name);
+		$tpl->assign('product_src', $this->site_product_src);
+		$tpl->assign('bbs_after_admin_confirm', $this->bbs_after_admin_confirm);
+
+		$tpl->assign('token',$this->getToken());
+		if($this->bbs_config->dt[board_qna_yn] == "Y"){
+			$sql = 	"SELECT bms.* FROM ".TBL_BBS_MANAGE_STATUS." bms
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					order by view_order asc";
+
+			$mdb->query($sql);
+
+			$bbs_status = $mdb->fetchall('object');
+			//print_r($bbs_status);
+			$tpl->assign('bbs_status', $bbs_status);
+		}
+		if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+
+			if($mdb->dbms_type == "oracle"){
+				$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+			}else{
+				$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+						FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+						where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+						group by div_ix
+						order by view_order asc, div_depth asc";
+			}
+			$mdb->query($sql);
+
+			$bbs_divs = $mdb->fetchall();
+			$tpl->assign('bbs_divs', $bbs_divs);
+
+			if($bbs_div){
+				if($mdb->dbms_type == "oracle"){
+					$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+				}else{
+					$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+					group by div_ix
+					order by view_order asc, div_depth asc,div_ix asc";
+				}
+				$mdb->query($sql);
+
+				$sub_bbs_divs = $mdb->fetchall();
+				$tpl->assign('sub_bbs_divs', $sub_bbs_divs);
+			}
+		}
+
+
+		return $tpl->fetch('bbs_write');
+		exit;
+
+
+
+	}
+
+	function PrintMsBoardResponse($bbs_ix, $article_no, $page){
+		global $board;
+		$this->BoardAuth($_GET["mode"]);
+
+		$mdb = new Database();
+
+		if($this->bbs_template_name == ""){
+			if($this->bbs_config->dt[board_style] == "bbs"){
+				$this->bbs_template_name = "bbs_response.htm";
+			}else if($this->bbs_config->dt[board_style] == "faq"){
+				$this->bbs_template_name = "faq_response.htm";
+			}
+		}
+
+		if($mdb->dbms_type == "oracle"){
+			$sql = "Select bbs_pass,mem_ix,bbs_ix, bbs_name,bbs_subject, bbs_hidden, bbs_re_cnt, bbs_hit, regdate,
+						concat('?mode=read&board=".$this->bbs_config->dt[board_ename]."&bbs_ix='||bbs_ix||'&page=','".$page."') as link ,
+						case when regdate > DATE_SUB(now(), interval '".$this->bbs_config->dt[design_new_priod]."' HOUR) then 1 else 0 end as new  from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' ";
+		}else{
+			$sql = "Select * , case when regdate > DATE_SUB(now(), interval ".$this->bbs_config->dt[design_new_priod]." HOUR) then 1 else 0 end as new  from ".$this->bbs_table_name." where bbs_ix = '$bbs_ix' ";
+		}
+		//echo $sql;
+		$mdb->query($sql);
+
+		if(!$mdb->total) {//게시글 정보를 못 불러올 경우 kbk 12/01/17
+			echo "<script type='text/javascript'>alert('".getLanguageText('05627754a73eb8899688e03c69e9c28f').".');location.href='?board=".$board."';</script>";
+			exit;
+		}
+
+		$tpl = new Template_;
+		$tpl->template_dir = $this->bbs_template_dir;
+		$tpl->compile_dir  = $this->bbs_compile_dir;
+		$tpl->assign('bbs_admin_mode', $this->bbs_admin_mode);
+
+		//$tpl->define('bbs_response', $this->bbs_template_name);
+		$tpl->define(array('bbs_response'=> $this->bbs_template_name,'bbs_title'=>'bbs_title.htm'));
+		if($mdb->total){
+			$mdb->fetch(0);
+			$tpl->assign($mdb->dt);
+		}
+		$tpl->assign($this->bbs_config->dt);
+		$tpl->assign('board_file_yn',$this->bbs_config->dt[board_file_yn]);
+		$tpl->assign('board_hidden_yn',$this->bbs_config->dt[board_hidden_yn]);
+
+
+
+		$tpl->assign('bbs_table_name',$this->bbs_table_name);
+		$tpl->assign('templet_src', $this->site_template_src);
+		$tpl->assign('template_dir', $tpl->template_dir);
+		$tpl->assign('bbs_data_dir', $this->bbs_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('edit_data_dir', $this->edit_data_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_file_dir', $this->bbs_file_dir."/".$this->bbs_table_name);
+		$tpl->assign('bbs_templet_dir',$this->bbs_config->dt[bbs_templet_dir]);
+		$tpl->assign('product_src', $this->site_product_src);
+
+		$tpl->assign('token',$this->getToken());
+
+		if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+			$sql = 	"SELECT bms.* FROM ".TBL_BBS_MANAGE_STATUS." bms
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."'
+					order by view_order asc";
+
+			$mdb->query($sql);
+
+			$bbs_divs = $mdb->fetchall();
+			$tpl->assign('bbs_status', $bbs_status);
+		}
+		if($this->bbs_config->dt[board_category_use_yn] == "Y"){
+
+			if($mdb->dbms_type == "oracle"){
+				$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+			}else{
+				$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 AND bdiv.disp = 1
+					group by div_ix
+					order by view_order asc, div_depth asc";
+			}
+			$mdb->query($sql);
+
+			$bbs_divs = $mdb->fetchall();
+			$tpl->assign('bbs_divs', $bbs_divs);
+
+			if($bbs_div){
+				if($mdb->dbms_type == "oracle"){
+					$sql = 	"SELECT bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+					FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+					where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+					group by bdiv.div_ix,bm_ix,parent_div_ix,div_name,div_depth,view_order,disp,bdiv.regdate
+					order by view_order asc, div_depth asc,div_ix asc";
+				}else{
+					$sql = 	"SELECT bdiv.*, sum(case when bbs_div is NULL then 0 else 1 end) as  div_bbs_cnt , case when div_depth = 1 then div_ix  else parent_div_ix end as div_order
+						FROM ".TBL_BBS_MANAGE_DIV." bdiv left join bbs_".$this->bbs_config->dt[board_ename]." bbs on bdiv.div_ix = bbs.bbs_div
+						where bm_ix = '".$this->bbs_config->dt[bm_ix]."' and div_depth = 1 and parent_div_ix = '$bbs_div' AND bdiv.disp = 1
+						group by div_ix
+						order by view_order asc, div_depth asc,div_ix asc";
+				}
+				$mdb->query($sql);
+
+				$sub_bbs_divs = $mdb->fetchall();
+				$tpl->assign('sub_bbs_divs', $sub_bbs_divs);
+			}
+		}
+
+		return $tpl->fetch('bbs_response');
+	}
+
+
+
+
+	function bbs_page_bar($total, $page, $max,$bbs_list_url, $templet_path="/bbs/bbs_templet/basic/", $add_query=""){
+
+		global $nset;
+		global $HTTP_URL;
+		global $_LANGUAGE;
+
+		if(!$nset || $nset=="") $nset=1;//kbk
+
+
+		if ($total % $max > 0){
+			$total_page = floor($total / $max) + 1;
+		}else{
+			$total_page = floor($total / $max);
+		}
+
+		$total_nset = ceil($total_page/10);
+
+		$next = (($nset)+1);
+		$prev = (($nset)-1);
+
+		if ($total){
+			/*
+			$prev_mark_10 = ($prev > 0) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target."> <img src='".$templet_path."/img/icon_tenpre.gif' border=0 align=top></a>" : "<img src='".$templet_path."/img/icon_tenpre.gif' border=0 align=top>&nbsp; ";
+			$next_mark_10 = ($next <= floor($total_page/10)+1) ? "&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target."> <img src='".$templet_path."/img/icon_tennext.gif' border=0 align=top></a>" :  "&nbsp;<img src='".$templet_path."/img/icon_tennext.gif' border=0 align=top>";
+			*/
+			if($this->bbs_admin_mode){
+				//$prev_mark_10 = ($nset > 1) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target."><img src='".$templet_path."/img/arrow_prev.gif' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/arrow_prev_on.gif'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrow_prev.gif'\" style='vertical-align:middle;' /></a>&nbsp;" : "<img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrow_prev.gif' border=0 align=absmiddle style='vertical-align:middle;'>&nbsp;";
+				//$next_mark_10 = ($nset < $total_nset) ? "&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target."> <img src='".$templet_path."/img/arrow_next.gif' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/arrow_next_on.gif'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrow_next.gif'\" style='vertical-align:middle;' /></a>" :  "&nbsp;<img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrow_next.gif' border=0 align=absmiddle style='vertical-align:middle;'>";
+
+				$first = "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=1$add_query' ".$paging_type_target."><img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft01.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft01.png'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft01.png'\" style='vertical-align:middle;' /></a>&nbsp;";
+				$prev_mark_10 = ($nset > 1) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target."><img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft02.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft02.png'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrow_prev.gif'\" style='vertical-align:middle;' /></a>&nbsp;" : "<img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft02.png' border=0 align=absmiddle style='vertical-align:middle;'>&nbsp;";
+				$next_mark_10 = ($nset < $total_nset) ? "&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target."> <img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png'\" style='vertical-align:middle;' /></a>" :  "&nbsp;<img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png' border=0 align=absmiddle style='vertical-align:middle;'>";
+				$last = " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".$total_page."$add_query' ".$paging_type_target."><img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright01.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright01.png'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright01.png'\" style='vertical-align:middle;' /></a>&nbsp;";
+			}else{
+				//버튼 텍스트
+				$first = ($page == 1) ? "<button class='first-button disabled'></button> " : "<button class='first-button' onclick='location.href=".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=1$add_query' ".$paging_type_target."><em class='hidden'></em></button> ";
+				//$prev_mark_10 = ($nset > 1) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target.">&lt;".getLanguageText('cb1dc9f27a26fcf04724013c141c81c9')."</a>&nbsp;" : "&lt;".getLanguageText('cb1dc9f27a26fcf04724013c141c81c9')."&nbsp;";
+				$prev_mark_10 = ($nset > 1) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target." class='prev-button'></a>" : "<button class='prev-button disabled'></button>";
+				$next_mark_10 = ($nset < $total_nset) ? " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target." class='next-button'></a>" :  "<button class='next-button disabled'></button>";
+				//$next_mark_10 = ($nset < $total_nset) ? "&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target."> ".getLanguageText('fe6879802f984b240a7b717cbcd9e067')."</a>" :  "&nbsp;".getLanguageText('fe6879802f984b240a7b717cbcd9e067').">";
+				$last = ($page == $total_page) ? " <button class='last-button disabled'></button>" : " <button class='last-button' onclick='location.href=".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".$total_page."$add_query' ".$paging_type_target."><em class='hidden'></em></button> ";
+
+				/* 버튼 이미지
+				$first = "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=1$add_query' ".$paging_type_target."><img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft01.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft01.png' \" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft01.png'\" style='vertical-align:middle;' /></a>&nbsp;";
+				$prev_mark_10 = ($nset > 1) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target."><img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft02.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft02.png'\" onmouseout=\"this.src='".$templet_path."/img/arrow_prev.gif'\" style='vertical-align:middle;' /></a>&nbsp;" : "<img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowleft02.png' border=0 align=absmiddle style='vertical-align:middle;'>&nbsp;";
+				$next_mark_10 = ($nset < $total_nset) ? "&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target."> <img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png'\" style='vertical-align:middle;' /></a>" :  "&nbsp;<img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright02.png' border=0 align=absmiddle style='vertical-align:middle;'>";
+				$last = " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".$total_page."$add_query' ".$paging_type_target."><img src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright01.png' border=0 align=absmiddle onmouseover=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright01.png'\" onmouseout=\"this.src='".$templet_path."/img/".$_SESSION["admininfo"]["language"]."/arrowright01.png'\" style='vertical-align:middle;' /></a>&nbsp;";
+				*/
+			}
+
+		}
+
+
+		if ($page >= 1 && $page <= 10){
+			$nset = 1;
+		}else if($page >= 11 && $page <= 20){
+			$nset = 2;
+		}else if($page >= 21 && $page <= 30){
+			$nset = 3;
+		}else if($page >= 31 && $page <= 40){
+			$nset = 4;
+		}else if($page >= 41 && $page <= 50){
+			$nset = 5;
+		}else if($page >= 51 && $page <= 60){
+			$nset = 6;
+		}else if($page >= 61 && $page <= 70){
+			$nset = 7;
+		}else if($page >= 71 && $page <= 80){
+			$nset = 8;
+		}else if($page >= 81 && $page <= 90){
+			$nset = 9;
+		}else if($page >= 91 && $page <= 100){
+			$nset = 10;
+		}
+
+		$next = (($nset)+1);
+		$prev = (($nset)-1);
+
+	//	echo $total_page.":::".$next."::::".$prev."<br>";
+
+		if ($total){
+			/*
+			$prev_mark = ($total_page > 1 || $page > 1) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset)."&page=".($page-1)."$add_query' ".$paging_type_target."><a href='".$HTTP_URL."?nset=".($nset)."&page=".($page-1)."$add_query' ><img src='".$templet_path."/img/prev.gif' border=0 align=top>&nbsp;</a>" : "<img src='".$templet_path."/img/prev.gif' border=0 align=top>&nbsp;";
+			$next_mark = ($total_page > 1 || $total_page < $page) ? "&nbsp;&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset)."&page=".($page+1)."$add_query' ".$paging_type_target."><img src='".$templet_path."/img/next.gif' border=0 align=top></a>" :  "<img src='".$templet_path."/img/next.gif' border=0 align=top>&nbsp;";
+			*/
+
+		}
+
+		$page_string = $prev_mark;
+
+	//	for ($i = $page - 10; $i <= $page + 10; $i++)
+
+		for ($i = ($nset-1)*10+1 ; $i <= (($nset-1)*10 + 10); $i++)
+		{
+			if ($i > 0)
+			{
+				if ($i <= $total_page)
+				{
+					if ($i != $page){
+						//$page_string .= '<a href="javascript:void(0);" onclick="location.href=\''.$HTTP_URL.'?nset='.$nset.'&page='.$i.$add_query.'\';">'.$i.'</a>';
+
+						if($i != (($nset-1)*10+1)){
+							$page_string = $page_string.("<font color='silver'>|</font> <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&nset=$nset&page=$i$add_query' style='font-weight:bold;color:gray' >$i</a> ");
+						}else{
+							$page_string = $page_string.(" <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&nset=$nset&page=$i$add_query' style='font-weight:bold;color:gray' >$i</a> ");
+						}
+
+
+					}else{
+						//$page_string .= '<em class="on">'.$i.'</em>';
+
+						if($i != (($nset-1)*10+1)){
+							$page_string = $page_string.("<font color='silver'>|</font> <font color=#ff7635 style='font-weight:bold'>$i</font> ");
+						}else{
+							$page_string = $page_string.("<font color=#ff7635 style='font-weight:bold'>$i</font> ");
+						}
+
+					}
+
+
+				}
+			}
+		}
+
+		$page_string = $page_string.$next_mark;
+
+		$page_string = $first.$prev_mark_10.$page_string.$next_mark_10.$last;
+
+		$page_string="<div style='padding-bottom:1px;'>".$page_string."</div>";
+
+		return $page_string;
+	}
+
+	function bbs_page_bar2($total, $page, $max,$bbs_list_url, $templet_path="/bbs/bbs_templet/basic/", $add_query=""){
+
+		global $nset;
+		global $HTTP_URL;
+
+		if ($total % $max > 0){
+			$total_page = floor($total / $max) + 1;
+		}else{
+			$total_page = floor($total / $max);
+		}
+
+		if ($nset == ""){
+			$nset = 1;
+		}
+
+		$next = (($nset)*10+1);
+		$prev = (($nset-2)*10+1);
+
+		if($paging_type == "inner"){
+			$paging_type_param = "view=innerview&";
+			$paging_type_target = " target=act";
+		}else{
+			$paging_type_param = "";
+			$paging_type_target = "";
+		}
+
+
+		//echo $total_page.":::".$next."::::".$prev."<br>";
+		if ($total){
+			$prev_mark = ($page >= 2) ? " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset)."&page=".($page-1)."$add_query' ".$paging_type_target."><img src='/image/btn_pre' border=0 align=absmiddle></a> " : "";
+			$pre_mark .= ($prev == -9) ? " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($nset-2)*10+1)."$add_query' ".$paging_type_target."><img src='/image/btn_tenpre' border=0 align=absmiddle></a> " : "";
+			$next_mark = ($total_page > 1) ? " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset)."&page=".($nset+1)."$add_query' ".$paging_type_target."><img src='/image/btn_next' border=0 align=absmiddle></a>" :  "";
+			$next_mark .= (total_page > 10) ? " <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset+1)."&page=".($nset*10+1)."$add_query' ".$paging_type_target."><img src='/image/btn_tennext' border=0 align=absmiddle></a>" :  "";
+		}
+
+		$page_string2 = $prev_mark;
+
+	//	for ($i = $page - 10; $i <= $page + 10; $i++)
+
+		for ($i = ($nset-1)*10+1 ; $i <= (($nset-1)*10 + 10); $i++)
+		{
+			if ($i > 0)
+			{
+				if ($i <= $total_page)
+				{
+
+					if ($i != $page){
+						if($i != (($nset-1)*10+1)){
+							$page_string2 = $page_string2.("<font color='silver'>|</font> <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=$nset&page=$i$add_query' style='font-weight:bold;color:gray' ".$paging_type_target.">$i</a> ");
+						}else{
+							$page_string2 = $page_string2.(" <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=$nset&page=$i$add_query' style='font-weight:bold;color:gray' ".$paging_type_target.">$i</a> ");
+						}
+
+					}else{
+
+						if($i != (($nset-1)*10+1)){
+							$page_string2 = $page_string2.("<font color='silver'>|</font> <font color=ff7635 style='font-weight:bold'>$i</font> ");
+						}else{
+							$page_string2 = $page_string2.("<font color=ff7635 style='font-weight:bold'>$i</font> ");
+						}
+					}
+
+
+				}
+			}
+		}
+		if($nset < (floor($total_page/10)+1)){
+			$last_page_string = "<b style='color:gray'>...</b> <a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".(floor($total_page/10)+1)."&page=$total_page$add_query' style='font-weight:bold;color:gray' ".$paging_type_target.">$total_page</a> ";
+		}
+		$page_string2 = $page_string2.$last_page_string.$next_mark;
+
+		return $page_string2;
+	}
+
+	function bbs_page_bar_mobile($total, $page, $max,$bbs_list_url, $templet_path="/bbs/bbs_templet/basic/", $add_query=""){
+
+		global $nset,$layout_config;
+		global $HTTP_URL, $_LANGUAGE;
+
+
+		$templet_src = $_SESSION["layout_config"][mall_templet_webpath];
+
+		$total_page = ceil($total / $max);
+
+
+
+
+		$total_nset = ceil($total_page/10);
+		$next_nset = (($nset)*10+1);
+		$prev_nset = (($nset-2)*10+1);
+
+		$nset = ceil($page/10);
+
+		$first_page = ($nset-1)*10;
+
+		if($nset >= $total_nset) {
+			$last_page = $total_page;
+		}else {
+			$last_page = $nset*10;
+		}
+
+		// 10페이지 단위 이동버튼
+		/*
+		if ($total){
+			$prev_mark_10 = ($nset > 1) ? "<a href='".$HTTP_URL."?page=$first_page$add_query'><img src='".$templet_src."/images/arrow_prev.gif' border=0 align=absmiddle onmouseover=\"this.src='".$templet_src."/images/arrow_prev_on.gif'\" onmouseout=\"this.src='".$templet_src."/images/arrow_prev.gif'\" /></a>&nbsp;" : "<img src='".$templet_src."/images/arrow_prev.gif' border=0 align=absmiddle>&nbsp;";
+			$next_mark_10 = ($nset < $total_nset) ? "&nbsp;<a href='".$HTTP_URL."?page=".($last_page+1)."$add_query' > <img src='".$templet_src."/images/arrow_next.gif' border=0 align=absmiddle onmouseover=\"this.src='".$templet_src."/images/arrow_next_on.gif'\" onmouseout=\"this.src='".$templet_src."/images/arrow_next.gif'\" /></a>" :  "&nbsp;<img src='".$templet_src."/images/arrow_next.gif' border=0 align=absmiddle>";
+		}
+		*/
+		// next, prev 버튼
+		if ($total){
+			//$prev_mark = (($page-1) > 0) ? "<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=".($nset-1)."&page=".(($page-1))."$add_query'><img src='".$templet_src."/images/shop/befor_arrow.gif' border=0 align=absmiddle></a>&nbsp; " : "<img src='".$templet_src."/images/shop/befor_arrow.gif' border=0 align=absmiddle>&nbsp; ";
+			//$next_mark = ($total > ($page * $max)) ? "&nbsp;<a href='".$HTTP_URL."?board=".$this->bbs_config->dt[board_ename]."&".$paging_type_param."nset=$nset&page=".($page+1)."$add_query' > <img src='".$templet_src."/images/shop/next_arrow.gif' border=0 align=absmiddle></a>" :  "&nbsp;<img src='".$templet_src."/images/shop/next_arrow.gif' border=0 align=absmiddle>";
+		}
+
+		$page_string = $prev_mark;
+
+		if($max*$page > $total)
+			$curItem = $total;
+		else
+			$curItem = $max*$page;
+
+		$page_string .= "<div class='page_class'>";
+		$page_string .= "<span>";
+		$page_string .= getLanguageText('b5e087f6f0fdabdc4c163a3882ab6eb6')."(<span class='paging_item'>".$curItem."</span>/<span class='paging_total'>".$total."</span>)";
+		$page_string .= "</span>";
+		/*for ($i = ($nset-1)*10+1 ; $i <= (($nset-1)*10 + 10); $i++)
+		{
+			if ($i > 0)
+			{
+				if ($i <= $total_page)
+				{
+					if ($i == $page){
+						$page_string .= '<span>'.$i.'</span>';
+					}
+				}
+			}
+		}
+		if ($total) $page_string .= '/'.$total_page;*/
+
+
+		$page_string .= '</div>';
+
+		$page_string = $page_string.$next_mark;
+
+		$page_string = $prev_mark_10.$page_string.$next_mark_10;
+
+		return $page_string;
+	}
+
+	function BoardAuth($mode , $mem_ix = "" , $bbs_hidden ="" , $bbs_pass =""){
+		if($mode == 'list' || $mode == ''){
+			if(!$this->bbs_admin_mode){
+				if($this->bbs_config->dt[board_list_auth]){
+					if(!$_SESSION["user"] || $this->bbs_config->dt[board_list_auth] < $_SESSION["user"]["perm"]){
+						//echo "<script>alert('글 읽기 권한이 없습니다.');history.back();</script>";
+						echo "<script>alert('".getLanguageText('5589a6d7fcaa7a2e90a8273a49661147').".');location.href='/member/login.php?url=".urlencode($_SERVER['REQUEST_URI'])."';</script>";
+						exit;
+					}
+				}
+			}
+		}else if($mode == 'read'){
+			if(!$this->bbs_admin_mode){
+				if($this->bbs_config->dt[board_read_auth]){ // 사용자권한중 읽기 권한이 전체가 아닐때
+					if((!$_SESSION["user"] || $this->bbs_config->dt[board_read_auth] < $_SESSION["user"]["perm"]) || $_SESSION["user"]["code"] != $mem_ix && $bbs_hidden == "1"){
+						//echo "<script>alert('글내용 보기  권한이 없습니다.');history.back();</script>";
+						echo "<script>alert('".getLanguageText('f1b03ab7611f445635e33b914dd412e4').".');location.href='/member/login.php?url=".urlencode($_SERVER['REQUEST_URI'])."';</script>";
+						exit;
+					}
+				}else{ // 사용자권한중 읽기 권한이 전체일때
+					/*if(($_SESSION["user"]["code"] != $mem_ix && $bbs_hidden == "1") || ($mem_ix == "" && $bbs_hidden == "1" && $_GET["bbs_pass"] != $bbs_pass) ){
+						echo "<script>alert('글 내용 보기 권한이 없습니다.[2]');history.back();</script>";
+						exit;
+					}*/
+				}
+			}
+		}else if($mode == 'modify'){
+
+            //ISMS관련 수정(•	URL 에 표시 된 파라미터 중 mode 를 modify 로 조작하여 정상적으로는 수정이 불가한 1대1 문의 수정)
+			//1:1 문의를 수정하여 CS 와 분쟁소지를 막기 위하여 관리자, 프론트 모두 수정 못하게 처리함!
+            if($this->bbs_config->dt[board_ename] == 'qna'){
+                echo "<script>alert('고객 1:1문의는 수정할수 없습니다.');history.back();</script>";
+                exit;
+            }
+
+			if(!$this->bbs_admin_mode){
+				//echo ((empty($_GET["bbs_pass"]) && $_SESSION["user"]["code"] == "") ? "참":"거짓") ;
+				if(($_SESSION["user"]["code"] != $mem_ix && $_SESSION["admininfo"]["charger_ix"] != $mem_ix && $mem_ix != "") || ($_GET["bbs_pass"] != $bbs_pass) || (empty($_GET["bbs_pass"]) && $_SESSION["admininfo"]["charger_ix"] == "" && $_SESSION["user"]["code"] == "")){
+					echo "<script>alert('".getLanguageText('800e620fd86d72229b1e8fdbf73a6132').". ');history.back();</script>";
+					exit;
+				}
+			}
+		//}else if($mode == 'write' || $mode == 'response'){
+		}else if($mode == 'comment_insert' || $mode == 'comment_delete'){
+			if(!$this->bbs_admin_mode){
+				// 컴멘트 글쓰기 권한이 전체쓰기 가 아니면 권한체크
+				/*if($this->bbs_config->dt[board_comment_auth] != "0" || $this->bbs_config->dt[board_comment_yn] != "Y"){ //  || (empty($_GET["cmt_pass"]) && $_SESSION["user"]["code"] == "")
+					if($_SESSION["user"]["perm"] == "" || $this->bbs_config->dt[board_comment_auth] < $_SESSION["user"]["perm"]){*/
+				if($this->bbs_config->dt[board_comment_auth] != "0" && $this->bbs_config->dt[board_comment_yn] != "N"){ //  || (empty($_GET["cmt_pass"]) && $_SESSION["user"]["code"] == "")
+					if($_SESSION["user"]["perm"] == "" || $this->bbs_config->dt[board_comment_auth] > $_SESSION["user"]["perm"]){//수정 kbk 13/08/03
+						echo "<script>alert('".getLanguageText('0697f87ad3897f2247d0823a9cd6890d').".');history.back();</script>";
+						exit;
+					}
+				}
+			}
+		}else if($mode == 'write' || $mode == 'insert' || $mode == 'update' || $mode == 'delete' || $mode == 'response' || $mode == 'comment_insert' || $mode == 'comment_delete' || $mode == 'faq_insert' || $mode == 'faq_delete' ){
+			if(!$this->bbs_admin_mode){
+				/*if($this->bbs_config->dt[board_write_auth] != "0" || $this->bbs_config->dt[board_user_write_auth_yn] != "Y"){
+					if($_SESSION["user"]["perm"] == "" || $this->bbs_config->dt[board_write_auth] < $_SESSION["user"]["perm"]){*/
+				/*
+				if($this->bbs_config->dt[board_write_auth] != "0" && $this->bbs_config->dt[board_user_write_auth_yn] != "N"){//수정 kbk 13/08/03
+					if($_SESSION["user"]["perm"] == "" || $this->bbs_config->dt[board_write_auth] > $_SESSION["user"]["perm"]){*/
+
+				if($this->bbs_config->dt[board_write_auth] != "0" || $this->bbs_config->dt[board_user_write_auth_yn] != "Y"){
+					if($_SESSION["user"]["perm"] == "" || $this->bbs_config->dt[board_write_auth] < $_SESSION["user"]["perm"]){
+						if($mode == 'delete' || $mode == 'comment_delete' || $mode == 'faq_delete'){
+							echo "<script>alert('".getLanguageText('1c0be3c42f0f1045a0aad6502a36106b').".');history.back();</script>";
+						}else{
+							echo "<script>alert('".getLanguageText('0697f87ad3897f2247d0823a9cd6890d').".');history.back();</script>";
+						}
+						exit;
+					}
+				}
+			}
+		}
+	}
+
+	function getToken(){
+		$token = md5(uniqid(rand()));
+		setcookie("C_TOKEN",$token,0,"/","");
+		return $token;
+	}
+
+}
+}// 클래스 유무 판단
+?>

@@ -1,0 +1,207 @@
+<?
+include("../class/layout.class");
+
+
+$db1 = new Database;
+$odb = new Database;
+
+			
+$Contents = "
+<script language='javascript' src='"."tglib_orders.php?page=$page&ctgr=$ctgr&qstr=$qstr"."'></script>
+<table width='100%'>
+<tr>
+    <td align='left' colspan=6 > ".GetTitleNavigation("정산관리", "정산관리 > 정산리포트")."</td>
+</tr>
+<!--tr><td colspan=3 align=right style='padding-bottom:10px;'>".colorCirCleBox("#efefef","100%","<div style='padding:5px;'><img src='../image/title_head.gif' align=absmiddle><b> $title_str </b></div>")."</td></tr-->
+</table>";
+
+$Contents .= "
+<br>
+<form name=listform method=post action='orders.act.php' onsubmit='return CheckStatusUpdate(this)' target='act'>
+<input type='hidden' name='act' value='select_status_update'>
+<input type='hidden' name='page' value='$page'>
+<input type=hidden name='oid[]' id='oid' value=''>
+<table width='100%' border='0' cellpadding='3' cellspacing='0' align='center'>";
+if($admininfo[admin_level] == 9){
+$Contents .= "
+  <tr height=30><td colspan=8 align=left>".CompanyList($company_id,"")."</td></tr>";
+}
+$Contents .= "  
+  <tr height='25' >
+    <td class='s_td'><input type=checkbox  name='all_fix' onclick='fixAll(document.listform)'></td>
+    <td width='15%' align='center' class='m_td'><font color='#000000'><b>업체명</b></font></td>
+    <td width='15%' align='center' class='m_td'><font color='#000000'><b>정산일</b></font></td>
+    <td width='10%' align='center'  class='m_td' nowrap><font color='#000000'><b>정산진행상태</b></font></td>
+    <td width='10%' align='center' class='m_td' nowrap><font color='#000000'><b>판매건수</b></font></td>
+    <td width='20%' align='center' class='m_td'><font color='#000000'><b>판매금액(공급가기준)</b></font></td>
+    <td width='10%' align='right' class='m_td' nowrap><font color='#000000'><b>선불배송건수</b></font></td>
+    <td width='10%' align='center' class='m_td' nowrap><font color='#000000'><b>선불배송비</b></font></td>
+    <td width='15%' align='center' class='e_td'><font color='#000000'><b>정산금액</b></font></td>
+  </tr>
+ 
+  ";
+
+
+
+	$max = 15; //페이지당 갯수
+
+	if ($page == '')
+	{
+		$start = 0;
+		$page  = 1;
+	}
+	else
+	{
+		$start = ($page - 1) * $max;
+	}
+
+	$where = "WHERE status <> '' ";
+	
+	if ($oid != "")		$where .= "and oid = '$oid' ";
+	if ($bname != "")	$where .= "and bname = '$bname' ";
+	if ($rname != "")	$where .= "and rname = '$rname' ";
+	if ($vFromYY != "")	$where .= "and date_format(date,'%Y%m%d') between $startDate and $endDate ";
+	
+	if($search_type && $search_text){
+		$where .= "and $search_type LIKE '%$search_text%' ";
+	}
+	
+
+
+	
+	if($admininfo[admin_level] == 9){
+		if($company_id == ""){
+			$sql = "SELECT a.company_id
+				FROM ".TBL_MALLSTORY_ACCOUNTS." a, ".TBL_MALLSTORY_COMPANYINFO." c
+				where a.company_id = c.company_id ";
+			$db1->query($sql);
+			$total = $db1->total;	
+			
+			$sql = "SELECT a.*, c.company_name
+				FROM ".TBL_MALLSTORY_ACCOUNTS." a, ".TBL_MALLSTORY_COMPANYINFO." c
+				where a.company_id = c.company_id 
+				LIMIT $start, $max ";
+				
+			//echo $sql;
+			$db1->query($sql);
+			
+			
+			
+		}else{
+			
+			$sql = "SELECT a.company_id
+				FROM ".TBL_MALLSTORY_ACCOUNTS." a, ".TBL_MALLSTORY_COMPANYINFO." c
+				where  a.company_id = c.company_id and c.company_id = '$company_id' ";
+			$db1->query($sql);
+			
+			$db1->query($sql);
+			$total = $db1->total;	
+			
+			$sql = "SELECT a.*, c.company_name
+				FROM ".TBL_MALLSTORY_ACCOUNTS." a, ".TBL_MALLSTORY_COMPANYINFO." c
+				where  a.company_id = c.company_id and c.company_id = '$company_id'
+				LIMIT $start, $max ";
+				
+			$db1->query($sql);
+		}
+	}else if($admininfo[admin_level] == 8){
+		$sql = "SELECT a.company_id
+				FROM ".TBL_MALLSTORY_ACCOUNTS." a, ".TBL_MALLSTORY_COMPANYINFO." c
+				where  a.company_id = c.company_id and c.company_id = '".$admininfo[company_id]."' ";
+			
+			$db1->query($sql);
+			
+			$total = $db1->total;	
+			
+			$sql = "SELECT a.*, c.company_name
+				FROM ".TBL_MALLSTORY_ACCOUNTS." a, ".TBL_MALLSTORY_COMPANYINFO." c
+				where a.company_id = c.company_id and c.company_id = '".$admininfo[company_id]."'
+				LIMIT $start, $max ";
+			
+			$db1->query($sql);
+	}
+	
+	
+if($db1->total){
+	for ($i = 0; $i < $db1->total; $i++)
+	{
+		$db1->fetch($i);
+		
+		
+$Contents = $Contents."
+  <tr height='28' onMouseOver=\"this.style.backgroundColor='#E8ECF1'; \" onMouseOut=\"this.style.backgroundColor=''\">
+    <td nowrap><input type=checkbox name='oid[]' id='oid' value='".$db1->dt[oid]."'></td>    
+    <td align='center'  nowrap>".$db1->dt[company_name]."</td>
+    <td align='center'  nowrap><a href='accounts_detail.php?ac_ix=".$db1->dt[ac_ix]."'>".substr($db1->dt[ac_date],0,4)."-".substr($db1->dt[ac_date],4,2)."-".substr($db1->dt[ac_date],6,2)." </a></td>
+    <td align='center' nowrap>".getOrderStatus($db1->dt[status])."</td>
+    <td align='center'  nowrap>".$db1->dt[ac_cnt]."</td>
+    <td align='center' style='padding-left:10px' nowrap>".number_format($db1->dt[ac_price])." 원</td>
+    <td align='right' >".number_format($db1->dt[pre_shipping_cnt])." </td>
+    <td align='center' >".number_format($db1->dt[shipping_fee])." </td>
+    <td align='center'  nowrap>
+    	".number_format($db1->dt[ac_price]+$db1->dt[shipping_fee])." 원
+    </td>
+  </tr>
+  <tr height=1><td colspan=9 background='../image/dot.gif'></td></tr>";
+	}
+}else{
+$Contents .= "<tr height=50><td colspan=8 align=center>조회된 결과가 없습니다.</td></tr>
+			<tr height=1><td colspan=8 background='../image/dot.gif'></td></tr>";
+}	
+$Contents = $Contents."
+  <tr height=40>  
+    <td colspan=6 align=left valign=middle style='font-weight:bold' nowrap>
+    	
+    </td>
+    <td colspan='4' align='right' >&nbsp;".page_bar($total, $page, $max,"","")."&nbsp;</td>
+  </tr>
+</table>
+</form>
+<form name='lyrstat'>
+	<input type='hidden' name='opend' value=''>
+</form>";
+
+$help_text = "
+<table cellpadding=1 cellspacing=0 class='small' >
+	<col width=8>
+	<col width=*>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >정산완료된 내역을 확인하실수 있습니다.</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >정산일을 클릭하시면 정산 완료에 대한 상세 내역을 확인하실수 있습니다</td></tr>
+	<tr><td valign=top><img src='/admin/image/icon_list.gif' ></td><td class='small' >상단에 셀렉트 박스에 입점업체를 선택하하시면 해당업체의 내역을 확인하실수 있습니다</td></tr>
+</table>
+";
+
+if($admininfo[admin_level] == 9){
+	$Contents .= HelpBox("정산관리", $help_text);
+}
+
+
+$P = new LayOut();
+$P->strLeftMenu = order_menu();
+$P->OnloadFunction = "";//"onLoad('$sDate','$eDate');ChangeOrderDate(document.search_frm);";
+$P->addScript = "<script language='javascript' src='orders.js'></script>\n<script language='javascript' src='../include/DateSelect.js'></script>\n";
+$P->Navigation = "HOME > 주문관리 > 정산관리";
+$P->strContents = $Contents;
+
+
+echo $P->PrintLayOut();
+
+
+function SelectQuickLink($QuickCode, $deliverycode){
+	$divname = array ("#",
+	"http://www.ilogen.com/customer/reserve_03-1_ok.asp?f_slipno=",
+	"http://www.doortodoor.co.kr/jsp/cmn/Tracking.jsp?QueryType=3&pTdNo=",
+	"http://samsunghth.com/homepage/searchTraceGoods/SearchTraceDtdShtno.jhtml?dtdShtno=",
+	"#",
+	"#",
+	"http://service.epost.go.kr/trace.RetrieveRegiPrclDeliv.postal?sid1=",
+	"http://www.kgbls.co.kr/tracing.asp?number=",
+	"http://www.yellowcap.co.kr/branch/chase/listbody.html?a_gb=branch&a_cd=5&a_item=0&f_slipno=",
+	"#");
+	
+	
+	return "<a href='".$divname[$QuickCode]."$deliverycode' target=_blank>$deliverycode</a>";
+	
+}
+
+?>

@@ -1,0 +1,11 @@
+; ***************************************** ;
+; Catch Address		                    ;
+; ***************************************** ;
+
+ctc_title		= Catch address
+ctc_information		= Only addresses are displayed which are not stored in your address book yet.
+ctc_name		= Name
+ctc_email		= E-mail
+ctc_no_address		= No address available
+ctc_save		= Save
+ctc_close		= Close

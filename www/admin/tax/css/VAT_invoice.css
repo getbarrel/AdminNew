@@ -1,0 +1,18 @@
+@charset "utf-8";
+/*********************공통css [S]**********************/
+body,p,h1,h2,h3,h4,h5,h6,ul,ol,li,dl,dt,dd,table,th,td,form,fieldset,legend,input,textarea,button{margin:0;padding:0;font-size:12px;}
+body,input,textarea,select,table,button{font-size:12px;font-family:Tahoma,"나눔고딕",NanumGothic,"굴림",Gulim,Helvetica,AppleGothic,Sans-serif}
+img,fieldset{border:0px;}
+ul,ol{list-style:none;}
+a{text-decoration:none;}
+em,address{font-style:normal}
+.nobr{text-overflow:ellipsis; overflow:hidden;white-space:nowrap;}
+table	{ border-collapse:collapse;}
+td,th	{padding:0;margin:0;}
+
+/*********************공통css [E]**********************/
+
+
+
+
+

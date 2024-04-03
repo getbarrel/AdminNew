@@ -1,0 +1,676 @@
+<?
+// 대량 상품수정 실행파일 2014-07-02 이학봉
+include("../class/layout.class");
+include '../include/phpexcel/Classes/PHPExcel.php';
+ini_set('memory_limit','2048M');
+set_time_limit(9999999);
+if($admininfo[company_id] == ""){
+	//echo "<script language='javascript' src='../_language/language.php'></script><script language='javascript'>alert(language_data['common']['C'][language]);location.href='/admin/admin.php'</script>";
+	//'관리자 로그인후 사용하실수 있습니다.'
+	//exit;
+}
+
+if($search_searialize_value){
+	$unserialize_search_value = unserialize(urldecode($search_searialize_value));
+	extract($unserialize_search_value);
+}
+//echo "<pre>";
+//print_r($unserialize_search_value);exit;
+$db = new Database;
+$db2 = new Database;
+
+//search 조건	시작
+include ('../product/product_query_search.php');
+// search 조건	끝
+
+/*선택한 회원이나 , 전체 검색한 회원은 같기에 위에서 한번만 선언한다. 2014-04-16 이학봉*/
+if($update_type == '2'){		//선택한 상품
+	if(is_array($select_pid)){
+		$where.=" AND p.id IN ('".implode("','",$select_pid)."')";
+	}else if(is_array($cpid)){
+        $where.=" AND p.id IN ('".implode("','",$cpid)."')";
+    }
+}
+
+if($admininfo[admin_level] != '9'){
+	$where .= " and p.admin ='".$admininfo[company_id]."' ";
+}
+
+if($act == 'excel_down'){
+	
+	ini_set('memory_limit','2048M');
+	set_time_limit(9999999);
+
+	if($info_type == ""){	//다운받을 엑셀 약식값이 없을경우 본사양식으로 다운 2014-07-25 이학봉
+		$info_type = 'company';
+	}
+
+	if($update_type == '2'){
+
+		if(is_array($cpid)){
+		
+		$excel_down_where .=" AND p.id IN ('".implode("','",$cpid)."')";
+
+		$sql = "SELECT 
+					HIGH_PRIORITY p.id,
+					p.*,
+					r.cid,
+					csd.charge_code,
+					ccd.com_name,
+					(select gu.gid from inventory_goods_unit as gu where gu.gu_ix = p.pcode ) as gid,
+					(case when p.stock_use_yn='Y' then p.pcode else '' end) as gu_ix,
+					 p.bimg, p.mimg, p.msimg, p.simg, p.cimg
+				FROM
+					shop_product p
+					force index(regdate_desc) 
+					left join shop_product_relation r on (p.id = r.pid and r.basic = '1')
+					inner join common_company_detail ccd on (p.admin = ccd.company_id)
+					left join common_seller_detail csd on (ccd.company_id = csd.company_id)
+				where 
+					1
+					and p.is_delete = '0'
+					and p.regdate_desc < 0 
+					and p.id is NOT NULL AND p.product_type NOT IN ('4','5','6','21','31')
+					$excel_down_where";
+		}else{
+			echo "<script language='javascript'>alert('다운받을 상품정보가 없습니다.');</script>";
+		}
+
+	}
+
+}else{
+
+	$sql = "SELECT 
+				HIGH_PRIORITY p.id,
+				p.*,
+				csd.charge_code,
+				ccd.com_name,
+				(select gu.gid from inventory_goods_unit as gu where gu.gu_ix = p.pcode ) as gid,
+				(case when p.stock_use_yn='Y' then p.pcode else '' end) as gu_ix,
+				p.bimg, p.mimg, p.msimg, p.simg, p.cimg,
+				pg.pname as english_pname,
+				pg.shotinfo as english_shotinfo,
+				pg.search_keyword as english_search_keyword,
+				pg.coprice as english_coprice,
+				pg.listprice as english_listprice,
+                pg.sellprice as english_sellprice,
+                pg.m_basicinfo as english_m_basicinfo,
+                pg.basicinfo as english_basicinfo,
+                pg.add_info as english_add_info,
+                pg.preface as english_preface,
+				p.laundry_cid,
+				p.admin_memo
+			FROM
+				shop_product p force index(regdate_desc) 
+				left join shop_product_relation r on (p.id = r.pid and r.basic = '1')
+				inner join common_company_detail ccd on (p.admin = ccd.company_id)
+				left join common_seller_detail csd on (ccd.company_id = csd.company_id)
+				left join shop_product_global pg on (p.id = pg.id)
+			where
+				1
+				and p.is_delete = '0'
+				and p.regdate_desc < 0 
+				and p.id is NOT NULL AND p.product_type NOT IN ('4','5','6','21','31')
+				$where";
+
+}
+
+	$db->query($sql);
+	$goods_info = $db->fetchall();
+
+
+	if($act == 'list_down'){
+        $checked_colums = array();
+        $sql = "select data from shop_product_favorites_excel_info where idx = '".$favorites_excel_idx."' ";
+        $db->query($sql);
+        $db->fetch();
+        $excelInfo = json_decode(urldecode($db->dt['data']),true);
+        //print_r($excelInfo);
+        if(is_array($excelInfo)){
+            foreach($excelInfo as $key=> $val){
+                if($val['checked'] == '1'){
+                    $checked_colums[$val['code']] = $key;
+                }
+            }
+        }
+
+    }
+
+//echo "<pre>";
+//print_r($colums);exit;
+//if($info_type == 'company'){		//운영자용
+	$info_type = 'company';
+	$excel_file_name = "batch_products_update_excel_".$info_type.".xls";
+
+	//$objPHPExcel = PHPExcel_IOFactory::load($_SERVER["DOCUMENT_ROOT"]."/admin/product/".$excel_file_name);
+
+	//$etc_excel = new PHPExcel();
+	//include("excel_out_columsinfo.php");
+	$page_type = 'update';
+	include("goods_mandatory_info.lib2.php");
+	$objPHPExcel = new PHPExcel();
+
+///////////////////
+	// 속성 정의
+	$objPHPExcel->getProperties()->setCreator("포비즈 코리아")
+								 ->setLastModifiedBy("Mallstory.com")
+								 ->setTitle("etc code List")
+								 ->setSubject("etc code List")
+								 ->setDescription("generated by forbiz korea")
+								 ->setKeywords("mallstory")
+								 ->setCategory("etc code List");
+
+	$objPHPExcel->setActiveSheetIndex(0);
+	$objPHPExcel->getActiveSheet()->setTitle('대량상품수정');
+
+	$col = 'A';
+	foreach($checked_colums as $key => $value){
+		$objPHPExcel->getActiveSheet(0)->setCellValue($col . "1", $goods_basic_sample[$value][title]);
+		$objPHPExcel->getActiveSheet(0)->setCellValue($col . "2", $goods_basic_sample[$value][code]);
+		$objPHPExcel->getActiveSheet(0)->setCellValue($col . "3", $goods_basic_sample[$value][comment]."\n".$goods_basic_sample[$value][sample]);
+		$objPHPExcel->getActiveSheet(0)->getStyle($col . "3")->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
+		//$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
+		$col++;
+
+		//xlsWriteLabel(0,$j,$goods_basic_sampleinfo[$value][title]);
+		//$j++;
+	}
+
+	$check_key_array = array("basic_option_name","basic_opn_ix","basic_option_use","basic_option_kind","basic_opd_ix","basic_option_soldout","basic_option_div","basic_option_price","dp_ix","display_option","mandatory_info","pmi_ix","mandatory_info_global","pmi_ix_global","vi_ix","virals","opn_ix","option_name","option_div","stock_options_coprice","stock_options_wholesale_listprice","stock_options_wholesale_price","stock_options_listprice","stock_options_sellprice","stock_options_stock","stock_option_soldout","stock_options_safestock","stock_options_code","stock_options_barcode");
+
+	$z = 3;
+	for($i=0;$i<count($goods_info);$i++){
+
+		//$db->fetch($i);
+
+		//$col = 'A';
+
+        $goods_info[$i][pname] = htmlspecialchars_decode($goods_info[$i][pname],ENT_QUOTES);
+        $goods_info[$i][english_pname] = htmlspecialchars_decode($goods_info[$i][english_pname],ENT_QUOTES);
+        $goods_info[$i][basicinfo] = htmlspecialchars_decode($goods_info[$i][basicinfo],ENT_QUOTES);
+        $goods_info[$i][m_basicinfo] = htmlspecialchars_decode($goods_info[$i][m_basicinfo],ENT_QUOTES);
+        $goods_info[$i][english_add_info] = htmlspecialchars_decode($goods_info[$i][english_add_info],ENT_QUOTES);
+		
+		//print_r($checked_colums);
+		//exit;
+		$j="A";
+		foreach($checked_colums as $key => $value){
+			$value_setting = true;
+			if($key == "verson"){
+				$value_str = " ";
+			}else if($key == "md_id"){
+				$sql = "select id from common_user where code = '".$goods_info[$i][md_code]."'";
+				$db->query($sql);
+				$db->fetch();
+				$md_id = $db->dt[id];
+
+				$value_str = $md_id;
+			}else if($key == "id"){
+				$value_str = " ".$goods_info[$i][id];
+            }else if($key == "english_pname"){
+                $value_str = $goods_info[$i][english_pname];
+            }else if($key == "english_shotinfo"){
+                $value_str = $goods_info[$i][english_shotinfo];
+            }else if($key == "english_search_keyword"){
+                $value_str = $goods_info[$i][english_search_keyword];
+            }else if($key == "english_coprice"){
+                $value_str = $goods_info[$i][english_coprice];
+            }else if($key == "english_listprice"){
+                $value_str = $goods_info[$i][english_listprice];
+            }else if($key == "english_sellprice"){
+                $value_str = $goods_info[$i][english_sellprice];
+            }else if($key == "english_m_basicinfo"){
+                //$value_str = $goods_info[$i][english_m_basicinfo];
+				$value_str = str_replace("&nbsp;", "", $goods_info[$i][english_m_basicinfo]);
+            }else if($key == "english_basicinfo"){
+                //$value_str = $goods_info[$i][english_basicinfo];
+				$value_str = str_replace("&nbsp;", "", $goods_info[$i][english_basicinfo]);
+            }else if($key == "english_preface"){
+                $value_str = $goods_info[$i][english_preface];
+			}else if($key == "laundry_cid"){
+                $value_str = "/".$goods_info[$i][laundry_cid];
+			}else if($key == "admin_memo"){
+                $value_str = $goods_info[$i][admin_memo];
+            }else if($key == "basicinfo"){
+                //$value_str = $goods_info[$i][basicinfo];
+                $value_str = str_replace("&nbsp;", "", $goods_info[$i][basicinfo]);
+            }else if($key == "m_basicinfo"){
+                //$value_str = $goods_info[$i][m_basicinfo];
+                $value_str = str_replace("&nbsp;", "", $goods_info[$i][m_basicinfo]);
+            }else if($key == "english_add_info"){
+                $value_str = $goods_info[$i][english_add_info];
+			}else if($key == "pcode"){
+                $value_str = $goods_info[$i][pcode];
+			}else if($key == "mainimg"){
+				$value_str = " ";
+
+                $Pid = zerofill($goods_info[$i][id]);
+                $imgdir = UploadDirText($_SESSION["admin_config"]["mall_data_root"]."/images/productNew", $Pid);
+                $imgpath = $_SESSION["admin_config"]["mall_data_root"]."/images/productNew".$imgdir;
+
+                if (file_exists($imgpath)) {
+                    $handle  = opendir($imgpath); // 디렉토리 open
+
+                    $files = array();
+                    $eleCount = 0;
+
+                    // 디렉토리의 파일을 저장
+                    while (false !== ($filename = readdir($handle))) {
+                        // 파일인 경우만 목록에 추가한다.
+                        if(is_file($imgpath . "/" . $filename)){
+                            $files[] = $filename;
+
+                        }
+                    }
+                    closedir($handle); // 디렉토리 close
+
+                    sort($files);
+
+                    foreach ($files as $f) { // 파일명 출력
+                        if($eleCount == 0){
+                            $value_str = $f;
+                        }else{
+                            $value_str = $value_str."|".$f;
+                        }
+                        $eleCount++;
+                    }
+                }
+			}else if($key == "og_ix"){
+				$sql = "select og_ix from common_origin where origin_name = '".$goods_info[$i][origin]."'";
+					$db->query($sql);
+					$db->fetch();
+					$value_str = $db->dt[og_ix];
+			}else if($key == "category"){
+				$sql = "select cid from shop_product_relation where pid = '".$goods_info[$i][id]."' order by basic ASC";
+					$db->query($sql);
+					$category_array = $db->fetchall();
+					for($x=0;$x<count($category_array);$x++){
+						if($x != count($category_array) -1){
+							$category_enter = "|";
+						}
+						$cid_text .= $category_array[$x][cid].$category_enter;
+						$category_enter = "";
+					}
+					
+					$value_str = " ".$cid_text;
+			}else if($key == "sell_priod_date") {
+                $sell_priod_sdate = explode(" ", $goods_info[$i][sell_priod_sdate]);
+                $sell_priod_edate = explode(" ", $goods_info[$i][sell_priod_edate]);
+                $value_str = str_replace("-", "", $sell_priod_sdate[0]) . "-" . str_replace("-", "", $sell_priod_edate[0]);                //판매기간설정
+			}else if($key == "mandatory_type"){
+				$mandatory_type = explode("|",$goods_info[$i][mandatory_type]);
+				$value_str = $mandatory_type[0];			//상품고시유형
+/*
+			}else if($key == "basic_option_name" || $key == "basic_opn_ix" || $key == "basic_option_use" || $key == "basic_option_kind" || $key == "basic_opd_ix" || $key == "basic_option_soldout" || $key == "basic_option_div"|| $key == "basic_option_price"){
+				$value_setting = false;
+				if(!is_array($basic_option_infos)){	//상품기본옵션 
+					$sql = "select
+								po.*
+							from 
+								shop_product_options as po 
+							where
+								po.pid = '".$goods_info[$i][id]."'
+								and po.option_kind in ('c1','c2','i1','i2')
+								order by po.opn_ix ASC";
+								
+					$db2->query($sql);
+					$basic_options_info = $db2->fetchall();
+					
+						for($jj=0;$jj<count($basic_options_info);$jj++){
+
+							if($jj != count($basic_options_info) -1){
+								//$basic_option_div = "|";
+								$basic_option_enter = "^";
+							}
+
+							$basic_opn_ix .= $basic_options_info[$jj][opn_ix].$basic_option_enter;						//옵션키
+							$basic_option_name .= $basic_options_info[$jj][option_name].$basic_option_enter;				//옵션명
+							$basic_option_use .= $basic_options_info[$jj][option_use].$basic_option_enter;				//옵션사용여부
+							$basic_option_kind .= $basic_options_info[$jj][option_kind].$basic_option_enter;				//옵션종류
+
+							$sql = "select
+										*
+									from
+										shop_product_options_detail
+									where
+										pid = '".$goods_info[$i][id]."'
+										and opn_ix = '".$basic_options_info[$jj][opn_ix]."'
+										order by id ASC";
+							$db2->query($sql);
+							$basic_option_detail = $db2->fetchall();
+					
+							for($k=0;$k<count($basic_option_detail);$k++){
+								if($k != count($basic_option_detail) -1){
+									$detail_option_enter = "|";
+									//$detail_option_enter = "^";
+								}else{
+									$detail_option_enter = "^";
+								}
+								$basic_opd_ix .= $basic_option_detail[$k][id].$detail_option_enter;		//옵션구분 키
+								$basic_option_soldout .= $basic_option_detail[$k][option_soldout].$detail_option_enter;		//옵션품절여부
+								$basic_option_div .= $basic_option_detail[$k][option_div].$detail_option_enter;		//옵션구분 
+								$basic_option_price .= $basic_option_detail[$k][option_price].$detail_option_enter;		//옵션가격
+								
+								$detail_option_enter = '';
+							}
+
+							$basic_option_enter = '';
+							
+						}
+						
+				
+						$basic_option_infos[basic_opn_ix] = $basic_opn_ix;				//기본옵션(옵션키)
+						$basic_option_infos[basic_option_name] = $basic_option_name;				//기본옵션(옵션명)
+						$basic_option_infos[basic_option_use] = $basic_option_use;				//기본옵션(옵션사용여부)
+						$basic_option_infos[basic_option_kind] = $basic_option_kind;			//기본옵션(옵션종류)
+						
+						$basic_option_infos[basic_option_soldout] = $basic_option_soldout;			//기본옵션(품절여부)
+						$basic_option_infos[basic_option_div] = $basic_option_div;			//기본옵션(기본옵션구분)
+						$basic_option_infos[basic_option_price] = $basic_option_price;			//기본옵션(추가가격)
+						$basic_option_infos[basic_opd_ix] = $basic_opd_ix;			//기본옵션(옵션구분키)
+					
+				}
+*/
+			}else if($key == "mandatory_type_global"){
+                $mandatory_type_global = explode("|",$goods_info[$i][mandatory_type_global]);
+                $value_str = $mandatory_type_global[0];			//상품고시유형
+            }else if($key == "dp_ix" || $key == "display_option"){
+				$value_setting = false;
+				if(!is_array($display_option_infos)){	//상품 디스플레이
+					$sql = "select * from shop_product_displayinfo where pid = '".$goods_info[$i][id]."' and dp_use = '1' order by dp_ix asc ";
+					$db->query($sql);
+					$display_options = $db->fetchall();
+					for($kk=0;$kk<count($display_options);$kk++){
+
+						if($kk != count($display_options) -1){
+							$display_enter = "^\n";
+						}
+						$display_option .= $display_options[$kk][dp_title]."|".$display_options[$kk][dp_desc]."|".$display_options[$kk][dp_etc_desc].$display_enter;
+						//$dp_ix .= $display_options[$kk][dp_ix].$display_enter;
+
+						$display_enter = '';
+					}
+					
+					//$display_option_infos[dp_ix] = $dp_ix;			//디스플레이옵션 키
+					$display_option_infos[display_option] = $display_option;			//디스플레이옵션
+				}
+
+			}else if($key == "mandatory_info" || $key == "pmi_ix"){ 
+				$value_setting = false;
+				if(!is_array($mandatory_infos)){	//상품 고시정보
+					$sql = "select * from shop_product_mandatory_info where pid = '".$goods_info[$i][id]."' order by pmi_ix ASC";
+					$db->query($sql);
+					$mandatory_array = $db->fetchall();
+					for($ii=0;$ii<count($mandatory_array);$ii++){
+						if($ii != count($mandatory_array) -1){
+							$mandatory_enter = "^";
+						}
+						$pmi_code = explode("|",$mandatory_array[$ii][pmi_code]);
+						$mandatory .= $pmi_code[1]."|".$mandatory_array[$ii][pmi_desc].$mandatory_enter;
+						$pmi_ix .= $mandatory_array[$ii][pmi_ix].$mandatory_enter;
+
+						$mandatory_enter = '';
+					}
+
+				//	$objPHPExcel->getActiveSheet()->setCellValue('AX' . $z , $mandatory);	//상품고시 정보
+
+					$mandatory_infos[mandatory_info] = $mandatory;			//상품고시 정보
+					//$mandatory_infos[pmi_ix] = $pmi_ix;			//상품고시 정보키
+					
+					$mandatory = '';
+					//$pmi_ix = '';
+				}
+/*
+ *
+			}else if($key == "vi_ix" || $key == "virals"){ 
+				$value_setting = false;
+				if(!is_array($virals_infos)){	//상품 바이럴 정보
+					$sql = "select * from shop_product_viralinfo where pid = '".$goods_info[$i][id]."' and vi_use='1' order by vi_ix asc ";
+					$db->query($sql);
+					$virals = $db->fetchall();
+					for($aa=0;$aa<count($virals);$aa++){
+						if($aa != count($virals) -1){
+							$virals_enter = "^\n";
+						}
+						$virals_text .= $virals[$aa][viral_name]."|".$virals[$aa][viral_url]."|".$virals[$aa][viral_desc].$virals_enter;
+						$vi_ix .= $virals[$aa][vi_ix].$virals_enter;
+						$virals_enter = '';
+					}
+
+					$virals_infos[vi_ix] = " ".$vi_ix;			//상품고시 정보키
+					$virals_infos[virals] = $virals_text;			//상품고시 정보
+
+					$vi_ix = '';
+					$virals_text = '';
+				}
+
+			}else if($key == "opn_ix" || $key == "option_name" || $key == "option_div" || $key == "stock_options_coprice" || $key == "stock_options_wholesale_listprice" || $key == "stock_options_wholesale_price" || $key == "stock_options_listprice" || $key == "stock_options_sellprice" || $key == "stock_options_stock" || $key == "stock_option_soldout" || $key == "stock_options_safestock" || $key == "stock_options_code" || $key == "stock_options_barcode"){ 
+				$value_setting = false;
+				if(!is_array($stock_option_infos)){	//가격재고관리옵션
+
+					$sql = "select
+								po.*,
+								pod.*,
+								gu.gid
+							from 
+								shop_product_options as po 
+								inner join shop_product_options_detail as pod on (po.opn_ix = pod.opn_ix)
+								left join inventory_goods_unit as gu on (pod.option_code = gu.gu_ix)
+							where
+								po.pid = '".$goods_info[$i][id]."'
+								and po.option_kind = 'b'
+								order by pod.id ASC";
+					$db2->query($sql);
+					$options_info = $db2->fetchall();
+					
+					for($bb=0;$bb<count($options_info);$bb++){
+						if($bb != count($options_info) -1){
+							$option_enter = "|";
+						}
+
+						$option_div .= $options_info[$bb][option_div].$option_enter;						//옵션구분
+						$option_coprice .= $options_info[$bb][option_coprice].$option_enter;				//옵션공급가
+						$option_wholesale_listprice .= $options_info[$bb][option_wholesale_listprice].$option_enter;				//옵션도매판매가
+						$option_wholesale_price .= $options_info[$bb][option_wholesale_price].$option_enter;				//옵션도매할인가
+
+						$option_listprice .= $options_info[$bb][option_listprice].$option_enter;				//옵션소매판매가
+						$option_price .= $options_info[$bb][option_price].$option_enter;						//옵션소매할인가
+
+						$option_stock .= $options_info[$bb][option_stock].$option_enter;						//실재고
+						$option_safestock .= $options_info[$bb][option_safestock].$option_enter;				//안전재고
+						
+						if($goods_info[$i][stock_use_yn] == 'Y'){
+							$option_code .= $options_info[$bb][gid].$option_enter;					//옵션 품목코드
+						}else{
+							$option_code .= $options_info[$bb][option_code].$option_enter;					//옵션 품목코드
+						}
+						
+						$option_barcode .= $options_info[$bb][option_barcode].$option_enter;				//옵션 바코드
+						$option_soldout .= $options_info[$bb][option_soldout].$option_enter;				//옵션 품절여부
+
+						$option_enter = '';
+					}
+
+					$stock_option_infos[opn_ix] = $options_info[0][opn_ix];						//가격재고관리 옵션키
+					$stock_option_infos[option_name] = $options_info[0][option_name];			//가격재고관리 옵션명
+					$stock_option_infos[option_div] = $option_div;								//옵션구분
+					$stock_option_infos[stock_options_coprice] = $option_coprice;								//옵션공급가
+					$stock_option_infos[stock_options_wholesale_listprice] = $option_wholesale_listprice;		//옵션도매판매가
+					$stock_option_infos[stock_options_wholesale_price] = $option_wholesale_price;		//옵션도매할인가
+					$stock_option_infos[stock_options_listprice] = $option_listprice;		//옵션소매판매가
+					$stock_option_infos[stock_options_sellprice] = $option_price;		//옵션소매할인가
+					$stock_option_infos[stock_options_stock] = $option_stock;		//실재고
+					$stock_option_infos[stock_option_soldout] = $option_soldout;		//옵션(품절여부)
+					$stock_option_infos[stock_options_safestock] = $option_safestock;		//안전재고
+					$stock_option_infos[stock_options_code] = $option_code;		//옵션(품목코드)
+					$stock_option_infos[stock_options_barcode] = $option_barcode;		//옵션(바코드)
+
+				}
+
+			*/
+
+			}else if($key == "mandatory_info_global" || $key == "pmi_ix_global"){
+                $value_setting = false;
+                if(!is_array($mandatory_infos_global)){	//상품 고시정보
+                    $sql = "select * from shop_product_mandatory_info_global where pid = '".$goods_info[$i][id]."' order by pmi_ix ASC";
+                    $db->query($sql);
+                    $mandatory_array_global = $db->fetchall();
+                    for($ii=0;$ii<count($mandatory_array_global);$ii++){
+                        if($ii != count($mandatory_array_global) -1){
+                            $mandatory_enter_global = "^";
+                        }
+                        $pmi_code_global = explode("|",$mandatory_array_global[$ii][pmi_code]);
+                        $mandatory_global .= $pmi_code_global[1]."|".$mandatory_array_global[$ii][pmi_desc].$mandatory_enter_global;
+                        $pmi_ix_global .= $mandatory_array_global[$ii][pmi_ix].$mandatory_enter_global;
+
+                        $mandatory_enter_global = '';
+                    }
+
+                    //	$objPHPExcel->getActiveSheet()->setCellValue('AX' . $z , $mandatory);	//상품고시 정보
+
+                    $mandatory_infos_global[mandatory_info_global] = $mandatory_global;			//상품고시 정보
+                    //$mandatory_infos[pmi_ix] = $pmi_ix;			//상품고시 정보키
+
+                    $mandatory_global = '';
+                    //$pmi_ix = '';
+                }
+
+
+            }else if($key == "commission"){
+				$commission = $goods_info[$i][wholesale_commission]."|".$goods_info[$i][commission];
+				$value_str = $commission;				//판매기간설정
+			}else{
+				$value_str = $goods_info[$i][$key];
+			}
+
+			/*
+			if(is_array($basic_option_infos) && count($basic_option_infos) > 0){	//기본옵션
+
+				foreach($basic_option_infos as $__key => $__value){
+					//echo "$__key"." ::: "."$__value"."<br>";
+
+					$objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $__value);
+					$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+					$j++;
+				}
+				$basic_option_infos = array();
+
+			}else if(is_array($stock_option_infos) && count($stock_option_infos) > 0){	//가격재고관리 옵션
+
+				foreach($stock_option_infos as $__key => $__value){
+					//echo "$__key"." ::: "."$__value"."<br>";
+
+					$objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $__value);
+					$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+					$j++;
+				}
+				$stock_option_infos = array();
+
+			}else
+            */
+
+            if(is_array($mandatory_infos) && count($mandatory_infos) > 0){	//고시정보
+
+				foreach($mandatory_infos as $__key => $__value){
+					//echo "$__key"." ::: "."$__value"."<br>";
+
+					$objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $__value);
+					$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+					$j++;
+				}
+				$mandatory_infos = array();
+
+			}else if(is_array($mandatory_infos_global) && count($mandatory_infos_global) > 0){	//고시정보
+
+                foreach($mandatory_infos_global as $__key => $__value){
+                    //echo "$__key"." ::: "."$__value"."<br>";
+
+                    $objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $__value);
+                    $objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+                    $j++;
+                }
+                $mandatory_infos_global = array();
+
+            }else if(is_array($display_option_infos) && count($display_option_infos) > 0){	//디스플레이
+
+				foreach($display_option_infos as $__key => $__value){
+					//echo "$__key"." ::: "."$__value"."<br>";
+
+					$objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $__value);
+					$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+					$j++;
+				}
+				$display_option_infos = array();
+/*
+			}else if(is_array($virals_infos) && count($virals_infos) > 0){	//바이럴
+
+				foreach($virals_infos as $__key => $__value){
+					//echo "$__key"." ::: "."$__value"."<br>";
+
+					$objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $__value);
+					$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+					$j++;
+				}
+				$virals_infos = array();
+*/
+			}else if($value_setting){	//isset($value_str)
+				//echo "$key"." ::: "."$value_str"."<br>";
+
+				if($key == 'allow_order_type' && $value_str == ''){
+				    $value_str = '0';
+                }
+
+				$objPHPExcel->getActiveSheet()->setCellValue($j . ($z +1), $value_str);
+				$objPHPExcel->getActiveSheet()->getStyle($j . ($z +1))->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+				$j++;
+			}
+
+			unset($value_str);
+
+			//$objPHPExcel->getActiveSheet()->getStyle($j . $z)->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+
+		}
+		$z++;
+
+		$cid_text = '';
+		unset($basic_opd_ix,$basic_option_soldout,$basic_option_div,$basic_option_price,$basic_opn_ix,$basic_option_name,$basic_option_use,$basic_option_kind);	//기본옵션관련 변수 리셋
+		unset($option_div,$option_coprice,$option_wholesale_listprice,$option_wholesale_price,$option_listprice,$option_price,$option_stock,$option_safestock,$option_code,$option_barcode,$option_soldout);	//재고관리옵션 변수 리셋
+		unset($basic_option_detail);
+        unset($mandatory,$pmi_ix);	//고시정보 변수 리셋
+        unset($mandatory_global,$pmi_ix_global);	//고시정보 변수 리셋
+		unset($display_option,$dp_ix);	//디스플레이옵션 변수 리셋
+		unset($virals_text,$vi_ix);	//바이럴 변수 리셋
+
+		unset($basic_option_infos);
+		unset($stock_option_infos);
+        unset($mandatory_infos);
+        unset($mandatory_infos_global);
+		unset($virals_infos);
+		unset($display_option_infos);
+	}
+
+	$col="A";
+	foreach($checked_colums as $key => $value){
+		//$objPHPExcel->getActiveSheet()->getColumnDimension($col)->setAutoSize(true);
+		//echo $col.":".$colums[$value][width]."<br>";
+		$objPHPExcel->getActiveSheet()->getColumnDimension($col)->setWidth($goods_basic_sample[$value][width]);
+		$col++;
+	}
+	$objPHPExcel->getActiveSheet()->getRowDimension('2')->setVisible(false);
+	$objPHPExcel->getActiveSheet()->freezePaneByColumnAndRow(1,4);
+	//$sheet->getActiveSheet()->getStyle('A'.$start.':O'.($i+$start+4))->getFont()->setSize(10)->setName('돋움');
+	//$sheet->getActiveSheet()->getStyle('A2')->getFont()->setSize(15)->setBold(true)->setName('돋움');
+//exit;
+/////////////////////
+
+	header('Content-Type: application/vnd.ms-excel');
+	header('Content-Disposition: attachment;filename=batch_products_update_excel.xls');
+	header('Cache-Control: max-age=0');
+
+	$objPHPExcel->getActiveSheet()->getStyle('A1:'.$col."3")->getFont()->setSize(10)->setName('맑은고딕');
+	$objPHPExcel->getActiveSheet()->getStyle('A1:'.$col."3")->getFont()->setSize(8)->setBold(false)->setName('맑은고딕');
+
+	$objPHPExcel = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+	$objPHPExcel->save('php://output');
+
+?>

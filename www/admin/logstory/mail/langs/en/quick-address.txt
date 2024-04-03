@@ -1,0 +1,10 @@
+
+; ***************************************** ;
+; Quick address		                    ;
+; ***************************************** ;
+
+qad_title 			= Select receipent
+qad_select_address		= Select address
+qad_to				= To
+qad_cc				= CC
+qad_bcc				= BCC

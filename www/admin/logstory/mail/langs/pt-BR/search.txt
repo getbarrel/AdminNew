@@ -1,0 +1,12 @@
+
+; ***************************************** ;
+; Search				                    ;
+; ***************************************** ;
+
+sch_information_text			= Digite a frase ou palavra que deseja buscar.<br> A busca será efetuada somente nas mensagens que estão em <b>pastas locais</b> ou <b>que já foram lidas</b>.
+sch_button_text				= Buscar &gt;&gt;
+sch_subject_hea				= Assunto
+sch_from_hea				= De
+sch_date_hea				= Data
+sch_folder_hea				= Pasta
+sch_no_results				= Nenhuma mensagem foi encontrada

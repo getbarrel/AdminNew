@@ -1,0 +1,3 @@
+<?
+include("company.add.php");
+?>

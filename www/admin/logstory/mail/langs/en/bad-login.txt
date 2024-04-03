@@ -1,0 +1,7 @@
+; ***************************************** ;
+; Bad Login		                    ;
+; ***************************************** ;
+
+bdl_title			= Login failed
+bdl_msg				= Your account name and/or password is wrong <br><br>Please verify your data and try again!
+bdl_back			= Back

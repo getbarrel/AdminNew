@@ -1,0 +1,394 @@
+<?
+
+class MobileLayOut{
+	var $strContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $strLeftMenu;
+	var $default_path;
+	var $BodyFunctionAdd;
+	var $Config;
+	var $Navigation;
+	var $NaviTitle;
+	var $layout_display ;
+
+
+	function MobileLayOut(){
+		$this->strContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->BodyFunctionAdd = "";
+		$this->title = "";
+		$this->strLeftMenu = "";
+		$this->default_path = "/admin";
+		$this->Navigation = "HOME";
+		$this->NaviTitle = "";
+
+		if($_SESSION["admininfo"]["action_agent"]=="app"){
+			$this->layout_display = false;
+		}else{
+			$this->layout_display = true;
+		}
+
+		$mndb = new Database;
+		$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+		//echo $sql;
+		$mndb->query($sql);
+		if(!$mndb->total){
+			$paths = explode("/",$_SERVER["PHP_SELF"]);
+			$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+			$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+				values
+				('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+			echo $sql;
+			$mndb->query($sql);
+		}
+
+		$this->AdminConfig();
+	}
+
+
+
+
+	function AdminConfig(){
+	global $admin_config, $layout_config, $admininfo;
+
+		$cfg_db = new Database;
+
+		$cfg_db->query("select mall_use_templete, mall_domain, mall_use_multishop, mall_ename, mall_data_root from ".TBL_SHOP_SHOPINFO." where mall_ix = '".$admininfo[mall_ix]."' ");
+
+		$cfg_db->fetch();
+
+		$admin_config[mall_use_multishop] = $cfg_db->dt[mall_use_multishop];
+		$admin_config[mall_use_templete] = $cfg_db->dt[mall_use_templete];
+		$admin_config[mall_ename] = $cfg_db->dt[mall_ename];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_data_root] = $cfg_db->dt[mall_data_root];
+		$admin_config[mall_domain] = $cfg_db->dt[mall_domain];
+		$layout_config = $admin_config;
+		$this->Config = $admin_config;
+		session_register("admin_config");
+		session_register("layout_config");
+
+		$mndb = new Database;
+		return true;
+		$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+		//echo $sql;
+		$mndb->query($sql);
+		if(!$mndb->total){
+			$paths = explode("/",$_SERVER["PHP_SELF"]);
+			$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+			$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+				values
+				('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+			//echo $sql;
+			//$mndb->query($sql);
+		}
+	}
+
+	function PrintLayOut(){
+	global $admininfo, $admin_config;
+
+
+	$mndb = new Database;
+	$mnsdb = new Database;
+
+
+	$sql = "select text_korea, text_trans from admin_dic where menu_code = '".md5($_SERVER["PHP_SELF"])."' and language_type = '".$admininfo["language"]."' and dic_type = 'WORD' 
+		union
+		select text_korea, text_trans 
+		from admin_language 
+		where language_type = '".$admininfo["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb') 
+		order by CHAR_LENGTH(text_korea) desc
+		 ";
+	//echo $sql;
+	$mndb->query($sql);
+	if($mndb->total){
+	//echo "test";
+		$dics = $mndb->fetchall();
+		//print_r($dics);
+		$count = 10;
+		for($i=0;$i < count($dics);$i++){
+			$pattern = "[".$dics[$i]["text_korea"]."]";
+			//$this->strContents = preg_replace($pattern, $dics[$i]["text_trans"], $this->strContents,$count);
+			$this->strContents = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $this->strContents);
+		}
+	}
+
+if($this->layout_display){
+$mstring = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+<meta http-equiv='X-UA-Compatible' content='IE=EmulateIE8'/>
+<meta http-equiv='X-UA-Compatible' content='IE=7, IE=9'>
+<meta name='apple-mobile-web-app-capable' content='yes'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi'>
+
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/v3/include/admin.css?".rand()."' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'-->
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<LINK href='".$this->default_path."/css/facebox2.css' type='text/css' rel='stylesheet'>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/class.css' />
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/common.css' />
+ <link rel='stylesheet' type='text/css' href='".$this->default_path."/mobile/css/mobile.css' />
+<script language='javascript'>
+var language = \"".$admininfo[language]."\";
+</script>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+<script language='JavaScript' src='".$this->default_path."/js/jquery-1.8.3.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/jquery-ui.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.blockUI.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.cookie.js'></script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+<script language='JavaScript' src='/admin/js/zoom.js'></Script>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/dd.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/mobile/js/jquery.imagetick.min.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.php'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/facebox.js'></script>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 rightmargin=0 ".$this->BodyFunctionAdd." onload=\"winResize();".$this->OnloadFunction."\" ondragstart='return false' style='padding-bottom:56px;'>
+<div class='point_color' id='show_alert_box' style='z-index:10000;width:100%;height:22px;text-align:center;padding:10px;font-weight:bold;font-size:20px;position:absolute;top:-42px;'></div>
+<table cellpadding=0 cellspacing=0 border=0 width=100% height=100% >
+	<tr height=53 bgcolor=#000000>
+		<td  style='padding:0 0 0 0;'> 
+			<table width='100%' border='0' cellspacing='0' cellpadding='0'  style='position:fixed;top:0;background:#000;z-index:9999;' >
+				<tr> 
+					<td width='100%' height='43' valign='middle' style='padding-left:10px;text-align:center;height:49px;' nowrap><!--border-bottom:2px solid #ff9b00;-->
+						<a href='javascript:history.back()' style='float:left;padding-top:9px;'><img src='./images/btn_back_spacing.png' alt='뒤로가기' title='뒤로가기' width='40' /></a>
+						<a href='/admin/mobile/main_status.php'><img src='../v3/images/common/logo_img01.gif' alt='몰스토리' title='몰스토리' style='padding-top:14px;' /></a>
+						<a href='javascript:document.location.reload();'><img src='../v3/images/common/logo_img02.gif' alt='관리자' title='관리자'  style='padding-top:14px;' /></a>
+						<a href='#' style='display:none;'><img src='./images/btn_total_menu.png' alt='전체메뉴' title='전체메뉴' width='60'  style='float:right;'/></a>
+					</td>					
+				</tr>
+				<tr><td class='topmenu_bg01'></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td    style='height:93%;padding:0px;' bgcolor=#ffffff  align=left valign=top id='contentsarea'  >
+		<div id='contents_frame' style='overflow:auto;' ><!--width:100%;-->
+		".$this->strContents."
+		</div>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div class='footer_btns02'>
+				<table cellpadding=0 cellspacing=0 width=100%>
+					<tr>
+						<td><a href='/admin/mobile/main_status.php'><img src='../mobile/images/btn_home.png' /></a></td>
+						<td><a href='/admin/mobile/admin.php?act=logout'><img src='../mobile/images/btn_log_out.png'></a></td>
+						<!--td><a href='/admin/admin.php'><img src='../mobile/images/btn_pc.png'></a></td-->
+					</tr>
+				</table>
+				<p>(주)포비즈코리아<!--&nbsp;&nbsp;<span style='color:#818181;'><a href='http://www.mallstory.com/customer/bbs.php?mode=write&board=qna' style='text-decoration:underline;' target='_blank'>문의신고</a>▶</span--></p>
+			</div>
+		</td>
+	</tr>";
+	
+	//#버튼 이미지 온, 오프
+	
+	//몰카등록
+	if(basename($_SERVER["PHP_SELF"])=="choice_camera.php"||basename($_SERVER["PHP_SELF"])=="add_goods_image.php"){
+		$footer_btn_m="on";
+	}else{
+		$footer_btn_m="off";
+	}
+
+	if(basename($_SERVER["PHP_SELF"])=="goods_list.php"){
+		$footer_btn_p="on";
+	}else{
+		$footer_btn_p="off";
+	}
+
+	if(basename($_SERVER["PHP_SELF"])=="order_history.php"){
+		$footer_btn_o="on";
+	}else{
+		$footer_btn_o="off";
+	}
+	
+	if(basename($_SERVER["PHP_SELF"])=="view_post.php"){
+		$footer_btn_b="on";
+	}else{
+		$footer_btn_b="off";
+	}
+
+	if(basename($_SERVER["PHP_SELF"])=="option.php"){
+		$footer_btn_s="on";
+	}else{
+		$footer_btn_s="off";
+	}
+
+	//#NEW 아이콘
+
+	//상품 리스트
+	$sql="select count(*) as cnt from shop_product where date_format(regdate,'%Y%m%d') = '".date("Ymd")."' ";
+	$mndb->query($sql);
+	$mndb->fetch();
+	if($db->dt[cnt] > 0){
+		$footer_btn_p_n ="<img src='../mobile/images/footer_btns_new.png' class='footer_btns_new' />";
+	}else{
+		$footer_btn_p_n ="";
+	}
+
+	//주문 리스트
+	$sql="select count(*) as cnt from shop_order where date_format(order_date,'%Y%m%d') = '".date("Ymd")."' ";
+	$mndb->query($sql);
+	$mndb->fetch();
+	if($db->dt[cnt] > 0){
+		$footer_btn_o_n ="<img src='../mobile/images/footer_btns_new.png' class='footer_btns_new' />";
+	}else{
+		$footer_btn_o_n ="";
+	}
+
+	//게시판 리스트
+	$footer_btn_b_n ="";
+	$sql = "select * from bbs_manage_config  where board_style = 'bbs' and recent_list_display = 'Y' ";
+	$mndb->query($sql);
+	for($j=0;$j < $mndb->total;$j++){
+		$mndb->fetch($j);
+		$sql = "select * from bbs_".$mndb->dt[board_ename]." where date_format(regdate,'%Y%m%d') = '".date("Ymd")."' limit 0,1" ;
+		$mnsdb->query($sql);
+		
+		if($mnsdb->total){
+			$footer_btn_b_n ="<img src='../mobile/images/footer_btns_new.png' class='footer_btns_new' />";
+			break;
+		}
+	}
+
+	//<a href='mobile_alert.php?msg_type=page_ready' rel='facebox'>
+	$mstring .= "
+	<tr>
+		<td>
+			<table cellpadding=0 cellspacing=0 width=100% class='footer_btns'>
+				<tr>
+					<td><img src='../mobile/images/footer_btn01_".$footer_btn_m.".gif' onclick=\"document.location='/admin/mobile/choice_camera.php'\" /></td>
+					<td><img src='../mobile/images/footer_btn02_".$footer_btn_p.".gif' onclick=\"document.location='/admin/mobile/goods_list.php'\" />".$footer_btn_p_n."</td>
+					<td><img src='../mobile/images/footer_btn03_".$footer_btn_o.".gif' onclick=\"document.location='/admin/mobile/order_history.php'\"/>".$footer_btn_o_n."</td>
+					<td><img src='../mobile/images/footer_btn04_".$footer_btn_b.".gif'\" onclick=\"document.location='/admin/mobile/view_post.php'\"/>".$footer_btn_b_n."</td>
+					<td><img src='../mobile/images/footer_btn05_".$footer_btn_s.".gif'\" onclick=\"document.location='/admin/mobile/option.php'\"/></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<div id='loading' style='display:none;border:0px solid red;width:100%;height:100%;padding-top:13px;'><img src='../images/loading_large.gif' border=0></div>
+<div id='layerBg' style='border:0px solid gray;'></div>
+<iframe name='act' id='act' style='display:none;'></iframe>
+<iframe name='iframe_act' id='iframe_act' width=0 height=0 frameborder=0 style='display:none;'></iframe>
+<iframe name='bs_site_frame' id='bs_site_frame' width='100%' height='0px' frameborder=0></iframe>
+<script language='JavaScript' src='/admin/js/admin_bottom.js'></Script>
+</body>
+</html>";
+
+}else{
+
+$mstring = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+<meta http-equiv='X-UA-Compatible' content='IE=EmulateIE8'/>
+<meta http-equiv='X-UA-Compatible' content='IE=7, IE=9'>
+<meta name='apple-mobile-web-app-capable' content='yes'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi'>
+	<title></title>
+</head>
+<LINK REL='stylesheet' HREF='".$this->default_path."/v3/include/admin.css?".rand()."' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'-->
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<LINK href='".$this->default_path."/css/facebox2.css' type='text/css' rel='stylesheet'>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/class.css' />
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/common.css' />
+ <link rel='stylesheet' type='text/css' href='".$this->default_path."/mobile/css/mobile.css' />
+<script language='javascript'>
+var language = \"".$admininfo[language]."\";
+var permit = \"permit:".$permit_string."\";
+</script>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+<script language='JavaScript' src='".$this->default_path."/js/jquery-1.8.3.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/jquery-ui.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.blockUI.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.cookie.js'></script>
+<script language='JavaScript' src='/admin/js/admin.js'></Script>
+<script language='JavaScript' src='/admin/js/zoom.js'></Script>
+<script language='JavaScript' src='/admin/js/auto.validation.js'></Script>
+<script language='JavaScript' src='/admin/js/dd.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/mobile/js/jquery.imagetick.min.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.php'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/facebox.js'></script>
+".$this->addScript."
+<body topmargin=0 leftmargin=0 bottommargin=0 rightmargin=0 ".$this->BodyFunctionAdd." onload=\"winResize();".$this->OnloadFunction."\" ondragstart='return false' style='padding:0px;' ><tr height=53 bgcolor=#000000>
+<table cellpadding=0 cellspacing=0 border=0 width=100% height=100% >
+	<tr height=53 bgcolor=#000000>
+		<td  style='padding:0 0 0 0;'> 
+			<table width='100%' border='0' cellspacing='0' cellpadding='0'  style='position:fixed;top:0;background:#000;z-index:9999;' >
+				<tr> 
+					<td width='100%' height='43' valign='middle' style='padding-left:10px;text-align:center;height:49px;' nowrap><!--border-bottom:2px solid #ff9b00;-->
+						<a href='javascript:history.back()' style='float:left;padding-top:9px;'><img src='./images/btn_back_spacing.png' alt='뒤로가기' title='뒤로가기' width='40' /></a>
+						<a href='/admin/mobile/main_status.php'><img src='../v3/images/common/logo_img01.gif' alt='몰스토리' title='몰스토리' style='padding-top:14px;' /></a>
+						<a href='javascript:document.location.reload();'><img src='../v3/images/common/logo_img02.gif' alt='관리자' title='관리자'  style='padding-top:14px;' /></a>
+						<a href='#' style='display:none;'><img src='./images/btn_total_menu.png' alt='전체메뉴' title='전체메뉴' width='60'  style='float:right;'/></a>
+					</td>					
+				</tr>
+				<tr><td class='topmenu_bg01'></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td    style='height:93%;padding:0px;' bgcolor=#ffffff  align=left valign=top id='contentsarea'  >
+		<div id='contents_frame' style='overflow:auto;' ><!--width:100%;-->
+		".$this->strContents."
+		</div>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div class='footer_btns02'>
+				<table cellpadding=0 cellspacing=0 width=100%>
+					<tr>
+						<td><a href='/admin/mobile/main_status.php'><img src='../mobile/images/btn_home.png' /></a></td>
+						<td><a href='/admin/mobile/admin.php?act=logout'><img src='../mobile/images/btn_log_out.png'></a></td>
+						<!--td><a href='/admin/admin.php'><img src='../mobile/images/btn_pc.png'></a></td-->
+					</tr>
+				</table>
+				<p>(주)포비즈코리아<!--&nbsp;&nbsp;<span style='color:#818181;'><a href='http://www.mallstory.com/customer/bbs.php?mode=write&board=qna' style='text-decoration:underline;' target='_blank'>문의신고</a>▶</span--></p>
+			</div>
+		</td>
+	</tr>
+</table>
+<div id='loading' style='display:none;border:0px solid red;width:100%;height:100%;padding-top:13px;'><img src='../images/loading_large.gif' border=0></div>
+<div id='layerBg' style='border:0px solid gray;'></div>
+<iframe name='act' id='act' style='display:none;'></iframe>
+<iframe name='iframe_act' id='iframe_act' width=600 height=600 frameborder=0 style='display:none;'></iframe>
+<iframe name='bs_site_frame' id='bs_site_frame' width='100%' height='0px' frameborder=0></iframe>
+</body>
+<script language='JavaScript' src='/admin/js/admin_bottom.js'></Script>
+<!--script>
+linecss();
+</script-->
+</html>";
+}
+
+echo $mstring;
+
+	}
+
+}
+
+
+?>

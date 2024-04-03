@@ -1,0 +1,5 @@
+<?
+
+$view_type = "offline_order";
+include("../order/incom_after_cancel.php");
+?>

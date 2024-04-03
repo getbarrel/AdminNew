@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<Order>
+	<OrderInfo>
+		<Command>D0</Command>
+		<OwnerID>SGDATA</OwnerID>
+		<InterfaceDate>20150520</InterfaceDate>
+		<InterfaceType>N</InterfaceType>
+		<ErpOrderID>20150520-00001</ErpOrderID>
+		<OrderType>1</OrderType>
+		<ItemID>BS0101BK95</ItemID>
+		<OrderSeq>1</OrderSeq>
+		<OrgOrderSeq>1</OrgOrderSeq>
+		<ContentType>1</ContentType>
+		<OrderQty>2</OrderQty>
+		<SCustName><![CDATA[김재현]]></SCustName>
+		<Szip>730-020</Szip>
+		<Saddr1><![CDATA[경북 구미시 도량동 ]]></Saddr1>
+		<Saddr2><![CDATA[5주공 뜨란채apt 507동 1301호]]></Saddr2>
+		<SPhone>null</SPhone>
+		<SCellPhone>010-7541-5077</SCellPhone>
+		<CustName><![CDATA[김재현]]></CustName>
+		<BPhone> </BPhone>
+		<BCellPhone>010-7541-5077</BCellPhone>
+		<Description><![CDATA[하자없는 제품으로 빠르배송 바랍니다.]]></Description>
+		<GiftMsg><![CDATA[ ]]></GiftMsg>
+        <GiftYn>N</GiftYn>
+		<PayType>신용카드</PayType>
+		<SalePrice>20400</SalePrice>
+		<DeliYN>N</DeliYN>
+		<SumPrice>20400</SumPrice>
+		<Coupon>20400</Coupon>
+		<Mileage>20400</Mileage>
+		<ItemCouponNo>1512154121</ItemCouponNo>
+		<ItemCouponAmt>800</ItemCouponAmt>
+		<CouponList>
+			<CouponInfo>
+				<CouponCd>02</CouponCd>
+				<CouponNm>장바구니쿠폰</CouponNm>
+				<CouponNo>4754211412</CouponNo>
+				<CouponAmt>500</CouponAmt>
+			</CouponInfo>
+		</CouponList>
+		<PayConCd>3</PayConCd>
+	</OrderInfo>
+</Order>

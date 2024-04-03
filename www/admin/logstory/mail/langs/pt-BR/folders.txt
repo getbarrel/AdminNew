@@ -1,0 +1,14 @@
+; ***************************************** ;
+; Folders headers              ;
+; ***************************************** ;
+
+fld_name_hea					= Pasta
+fld_messages_hea				= Mensagens
+fld_size_hea					= Tam.
+fld_empty_hea					= Esvaziar
+fld_delete_hea					= Apagar
+fld_total					= Total:
+fld_make_new					= Criar nova pasta
+folders_to					= Pastas para <!--%UM_USER_EMAIL%-->
+quota_usage				= Limite de espaço: <!--%UM_USAGE_GRAPHIC%--> Usados <b><!--%UM_TOTAL_USED%--></b> de <b><!--%UM_AVAL_SIZE%--></b> disponíveis
+

@@ -1,0 +1,223 @@
+<?
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/database.class");
+
+class KakaoAlimTalk {
+
+    private $db;					//디비
+    private $url;					//요청 url
+    private $mall_ix;				//쇼핑몰 ix
+    private $configKeyList;			//설정정보 키 리스트
+    private $yn;					//알림톡 사용 여부
+    private $smsLimitbytes;			//sms 최대 bytes
+    private $requestData;			//요청 데이터
+
+    private $memberCode;			//(*)회원사코드 - 굿스플로에서 지정한 회 원사코드
+    private $apiKey;				//(*)발급받은 API key
+
+    //private $uniqueCode;			//(*)고객사용번호 - 굿스플로 전송단 위
+    //private $sectionCode;			//(*)요청에 대한 구분 코드 없으면 회원사 코드로 등록됨
+    //private $recipientNo;			//(*)받는분 핸드폰번호
+    private $talkType;				//(*)톡 구분코드 - A: 알림톡 F: 친구톡
+    //private $talkTemplateCode;	//(*)카카오톡 템플릿코드 - 알림톡(A)인 경우 필수 친구톡(F)인 경우 사용 안됨
+    //private $talkContent ;		//(*)메시지 내용
+    //private $buttonName;			//알림톡 버튼명
+    //private $buttonUrl;			//알림톡 버튼 연결 URL
+    //private $msgType;				//(*)문자 구분코드 - SMS: SMS 문자 LMS: LMS 문자
+    //private $msgContent;			//(*)메시지 내용
+    private $msgCallback;			//(*)발신번호
+    private $template_id;
+
+
+    function __construct($companyInfo){
+        $this->db = new Database;
+        $this->db->slave_db_setting();
+        $this->setMallIx();
+        $this->configKeyList = array('kakao_alim_talk_yn','kakao_alim_talk_memberCode','kakao_alim_talk_apiKey');
+        $this->setCodeAndKey();
+        $this->talkType = "A";
+        $this->smsLimitbytes = 80;
+        $this->msgCallback = $companyInfo[com_phone];
+        //$this->msgCallback = "07044371788";
+
+        $this->template_id = array(
+            'MG10001' => 73 // 회원가입완료
+            , 'MG10002' => 74 // 회원탈퇴
+            , 'MG10003' => 89 // 아이디찾기
+            , 'MG10004' => 90 // 비밀번호찾기
+            , 'MG20001' => 77 // 주문완료(신용카드)
+            , 'MG20002' => 78 // 주문완료(실시간계좌이체)
+            , 'MG20003' => 79 // 주문완료(가상계좌)
+            , 'MG20004' => 80 // 주문완료(휴대폰 소액결제)
+            , 'MG20005' => 81 // 입금완료(가상계좌)
+            , 'MG20006' => 92 // 상품발송 (구82)
+            , 'MG20007' => 83 // 주문취소
+            , 'MG20008' => 84 // 환불완료
+            , 'MG20009' => 85 // 교환신청
+            , 'MG20010' => 86 // 반품신청
+            , 'MG30001' => 87 // 1:1상담답변
+            , 'MG40001' => 88 // 휴면계정전환
+        );
+
+
+    }
+
+    public function send($mc_code, $datas){
+
+        if($this->yn != 'Y'){
+            return $this->result("0001","카카오 알림톡 사용안함");
+        }
+
+        if($this->memberCode == ''){
+            return $this->result("0002","카카오 알림톡 memberCode 설정 필요");
+        }
+
+        if($this->apiKey == ''){
+            return $this->result("0003","카카오 알림톡 apiKey 설정 필요");
+        }
+
+        $talkTemplateCode = $this->template_id[$this->getTalkTemplateCode($mc_code)];
+        if($talkTemplateCode == ''){
+            return $this->result("0004","카카오 알림톡 템플릿 설정안함");
+        }
+
+        // $this->url = "https://ws1.goodsflow.com/WebApi/MISS/Member/v2/SendTalkOrMsg/" . $this->memberCode;
+        $this->url = "https://api.lunasoft.co.kr/lunatalk/api/message/send";
+
+        $data = array(
+            'userid' => 'dewytree'
+            , 'api_key' => $this->apiKey
+            , 'template_id' => $talkTemplateCode
+            , 'messages' => array(array(
+                'no' => 0
+                , 'tel_num' => $datas['0']['recipientNo']
+                , 'msg_content' => $datas['0']['msgContent']
+                , 'sms_content' => $datas['0']['msgContent']
+                , 'use_sms' => 1
+                , 'btn_url' => array(array(
+                    'btn_url' => 'http://dewytree.devs'
+                ))
+            ))
+        );
+
+        $this->requestData  = $data;
+
+//
+/*        echo "<xmp>";
+        print_r($data);
+        echo "</xmp>";*/
+
+        
+        
+        /*
+         * 백업
+        $this->requestData = array(
+            "data" => array(
+                "items" => array(),
+            ),
+            "context" => date('YmdHis')
+        );
+
+        
+        foreach($datas as $data){
+            array_push ($this->requestData['data']['items'],
+                array(
+                    "uniqueCode" => uniqid(),
+                    "sectionCode" => $mc_code,
+                    "recipientNo" => $data['recipientNo'],
+                    "talkType" => $this->talkType,
+                    "talkTemplateCode" => $talkTemplateCode,
+                    "talkContent" => $data['msgContent'],
+                    "buttonName" => "",
+                    "buttonUrl" => "",
+                    "msgType" => $this->getMsgType($data['msgContent']),
+                    "msgContent" => $data['msgContent'],
+                    "msgCallback" => $this->msgCallback,
+                )
+            );
+        }
+*/
+  
+        //듀이트리 버전으로 사용중이기 때문에 임시 주석 진행
+//        $res = $this->request();
+//        if($res['success']){
+//            return $this->result();
+//        }else{
+//            return $this->result("9999","카카오톡 API Error");
+//        }
+    }
+
+    private function setMallIx(){
+        if(! empty($_SESSION ['layout_config'] ['mall_ix'])){
+            $this->mall_ix = $_SESSION ['layout_config'] ['mall_ix'];
+        }elseif(! empty($_SESSION ['admininfo'] ['mall_ix'])){
+            $this->mall_ix = $_SESSION ['admininfo'] ['mall_ix'];
+        }else{
+            $sql = "select mall_ix from shop_shopinfo  where mall_div = 'B'  ";
+            $this->db->query($sql);
+            $this->db->fetch();
+            $this->mall_ix = $this->db->dt[mall_ix];
+        }
+    }
+
+    private function setCodeAndKey(){
+        $this->db->query("select config_name, config_value from shop_mall_config where mall_ix='".$this->mall_ix."' and config_name in ('".implode("','",$this->configKeyList)."') ");
+        $configs = $this->db->fetchall("object");
+        for($i=0;$i<count($configs);$i++){
+            $property = str_replace("kakao_alim_talk_","",$configs[$i]['config_name']);
+            $this->$property = $configs[$i]['config_value'];
+        }
+    }
+
+    private function getTalkTemplateCode($mc_code){
+        $this->db->query("SELECT kakao_alim_talk_template_code FROM ".TBL_SHOP_MAILSEND_CONFIG." where mc_code= '".$mc_code."'");
+        $this->db->fetch();
+        return $this->db->dt['kakao_alim_talk_template_code'];
+    }
+
+    private function getMsgType($content){
+        if(mb_strwidth($content,'UTF-8') > $this->smsLimitbytes){
+            return 'LMS';
+        }else{
+            return 'SMS';
+        }
+    }
+
+
+
+    private function request(){
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+        curl_setopt($ch, CURLOPT_POST, true);
+
+        $data = http_build_query($this->requestData);
+        // $data = $this->requestData;
+
+        if ($this->requestData) curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $return = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($return,true);
+    }
+
+
+/*
+    private function request(){
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-type: application/json;charset=utf-8", "goodsFLOW-Api-Key: " . $this->apiKey));
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        if ($this->requestData) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($this->requestData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $return = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($return,true);
+    }
+  */
+
+
+    private function result($code = "0000",$msg = "성공"){
+        return array('code'=>$code, 'msg'=>$msg);
+    }
+}
+
+?>

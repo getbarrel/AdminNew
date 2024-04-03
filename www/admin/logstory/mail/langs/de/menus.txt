@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Menus                                     ;
+; ***************************************** ;
+
+messages_mnu				= Posteingang
+compose_mnu				= Neue E-Mail
+refresh_mnu				= Aktualisieren
+folders_mnu				= Ordner
+search_mnu				= Suchen
+address_mnu				= Adressbuch
+empty_trash_mnu				= Papierkorb leeren
+prefs_mnu				= Einstellungen
+logoff_mnu 				= Beenden

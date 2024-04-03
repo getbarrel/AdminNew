@@ -1,0 +1,3047 @@
+<?php
+header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
+header("Content-type: text/html; charset=utf-8");
+//session_start();
+require_once(str_replace("/www", "/config", $_SERVER['DOCUMENT_ROOT']) . "/constants.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/database.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/Template_.class.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/lib/control.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/include/global_util.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/include/lib.function.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/v3/include/menu.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/include/admin.util.php");
+
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/include/design.tmp.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/poplayout.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.project.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/mobilelayout.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/bbs/bbs.php");
+
+if(substr_count($_SERVER["HTTP_HOST"],"m.") || $type == "mobile" || substr_count($_SERVER["HTTP_USER_AGENT"],"Mobile") ){
+	$agent_type = "mobile";
+}
+
+
+global $admin_root;
+$admin_root = "/admin";
+
+global $admin_config, $layout_config, $admininfo;
+
+$db = new Database;
+$mdb = new Database;
+
+$master_db = new Database;
+$master_db->master_db_setting();
+
+$slave_db = new Database;
+$slave_db->slave_db_setting();
+
+$slave_mdb = new Database;
+$slave_mdb->slave_db_setting();
+
+if($_SESSION["admininfo"][admin_level] < 7 || empty($_SESSION["admininfo"])){
+	if($mmode == "pop"){
+		echo "<script>alert('관리자 로그인후 사용해주세요');self.close();</script>";
+		exit;
+	}else{
+		//echo "<script>alert('관리자 로그인후 사용해주세요');document.location.href='/admin/admin.php'</script>";
+		//아이프래임에서는 반응이 없으므로!
+		if(substr_count( $_SERVER["PHP_SELF"],"/mobile/") > 0){
+			echo "<script>alert('관리자 로그인후 사용해주세요');top.document.location.href='http://app.mallstory.com/login_mobile.php'</script>";
+		}else{
+			echo "<script>alert('관리자 로그인후 사용해주세요');top.document.location.href='/admin/admin.php'</script>";
+		}
+		exit;
+	}
+}
+
+class LayOut{
+	var $strContents;
+	var $addScript;
+	var $OnloadFunction;
+	var $title;
+	var $strLeftMenu;
+	var $default_path;
+	var $BodyFunctionAdd;
+	var $Config;
+	var $Navigation;
+	var $admin_home_link;
+	var $prototype_use;
+	var $jquery_use;
+	var $right_menu;
+	var $TitleBool ;
+	var $ServiceInfoBool;
+	var $RightMenuBool;
+	var $LeftMenuBool;
+	var $ContentsDefaultPadding;
+	var $footer_menu ;
+	var $ContentsWidth;
+	var $start_time;
+	var $end_time;
+	var $apl_ix;
+
+	function LayOut(){
+		global $admin_root;
+		global $mdb;
+
+		$this->start_time = time();
+
+		$sql="CREATE TABLE IF NOT EXISTS `logstory_admin_page_log` (
+		  `apl_ix` int(8) unsigned zerofill NOT NULL AUTO_INCREMENT,
+		  `page_code` varchar(32) NOT NULL COMMENT 'page code',
+		  `php_self` varchar(255) DEFAULT NULL,
+		  `query_string` varchar(255) DEFAULT NULL,
+		  `start_time` varchar(20) DEFAULT NULL,
+		  `end_time` varchar(20) DEFAULT NULL,
+		  `duration_time` bigint(10) DEFAULT NULL,
+		  `charger_ix` varchar(32) NOT NULL COMMENT '접속자코드',
+		  `charger_div` varchar(10) DEFAULT NULL,
+		  `charger_id` varchar(32) DEFAULT NULL,
+		  `charger_name` varchar(20) DEFAULT NULL,
+		  `server_ip` varchar(15) NOT NULL COMMENT '서버 IP Address',
+		  `client_ip_address` varchar(15) NOT NULL COMMENT '클라이언트 IP Address',
+		  `regdate_desc` int(10) unsigned NOT NULL COMMENT '등록일역순',
+		  `regdate` datetime NOT NULL,
+		  `status` int(1) DEFAULT '0' COMMENT '0:미처리 1:처리완료 2:대기',
+		  `update_date` datetime DEFAULT NULL COMMENT '처리날짜',
+		  `worker_name` varchar(100) DEFAULT NULL COMMENT '작업자',
+		  PRIMARY KEY (`apl_ix`),
+		  KEY `page_code` (`page_code`),
+		  KEY `duration_time` (`duration_time`),
+		  KEY `charger_ix` (`charger_ix`),
+		  KEY `charger_id` (`charger_id`),
+		  KEY `charger_name` (`charger_name`),
+		  KEY `charger_name_2` (`charger_name`)
+		) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COMMENT='사이트분석 관리자 페이지 접속 로그'";
+
+		$mdb->query($sql);
+
+		$sql = "insert into logstory_admin_page_log
+				(apl_ix,page_code, php_self,query_string,start_time,end_time,duration_time, charger_ix,charger_id,charger_div,charger_name,server_ip, client_ip_address, regdate) 
+				values
+				('','".md5($_SERVER["PHP_SELF"])."','".$_SERVER["PHP_SELF"]."','".$_SERVER["QUERY_STRING"]."','".$this->start_time."','','','".$_SESSION["admininfo"]["charger_ix"]."','".$_SESSION["admininfo"]["charger_id"]."','".$_SESSION['admininfo']['mem_type']."','".$_SESSION["admininfo"]["charger"]."','".$_SERVER["SERVER_ADDR"]."','".$_SERVER["REMOTE_ADDR"]."',NOW())";
+		//echo nl2br($sql);
+		$mdb->query($sql);
+		$mdb->query("SELECT apl_ix FROM logstory_admin_page_log WHERE apl_ix=LAST_INSERT_ID()");
+
+		$mdb->fetch();
+		$this->apl_ix = $mdb->dt[apl_ix];
+
+		$this->end_time = "";
+		$this->strContents = "";
+		$this->addScript = "";
+		$this->OnloadFunction = "";
+		$this->BodyFunctionAdd = "";
+		$this->title = "";
+		$this->strTopMenu = "";
+		$this->strLeftMenu = "";
+		$this_host = array( 'unimind.kr', 'www.unimind.kr', 'demo.unimind.kr');
+		if(in_array($_SERVER["HTTP_HOST"],$this_host)){
+			$this->default_path = $admin_root;
+		}else{
+			$this->default_path = $admin_root;
+		}
+
+		$this->Navigation = "HOME";
+		//$this->admin_home_link = $this->default_path."/store/main.php";
+		if($_SESSION["admininfo"]["mem_type"]=="S" || $_SESSION["admininfo"]["mem_type"]=="MD") {//kbk 셀러와 셀러메니저가 로그인 시 홈 경로 변경 11/11/09
+			$this->admin_home_link = $this->default_path."/seller/index.php";
+		}else if($_SESSION["admininfo"]["mem_type"]=="CS") {//kbk 가맹점회원 로그인 시 홈 경로 변경 11/11/09
+			$this->admin_home_link = $this->default_path."/chainstore/index.php";
+		} else {
+			$this->admin_home_link = $this->default_path."/store/main.php";
+		}
+		$this->theme_image_path = "/apps/images/orange/";
+		$this->prototype_use = true;
+		$this->jquery_use = false;
+		$this->right_menu = $this->view_favorite();
+		$this->TitleBool = true;
+		$this->ServiceInfoBool = false;
+		$this->RightMenuBool = true;
+		$this->LeftMenuBool = true;
+		$this->ContentsDefaultPadding = "1% 1%";
+		$this->ContentsWidth = "1400px";
+
+
+		//2013-12-03 Hong
+		$this->MenuCheck();
+		$this->RealTimeSellerLogin();
+
+		$this->AdminConfig();
+	}
+
+	function RealTimeSellerLogin(){
+//print_r($_SESSION["admininfo"]["mall_data_root"]);
+		if($_COOKIE["BACKOFFICE_LAST_CON_TIME"]){
+			$BACKOFFICE_BEFORE_LAST_CON_TIME = $_COOKIE["BACKOFFICE_LAST_CON_TIME"];
+		}else{
+			$BACKOFFICE_BEFORE_LAST_CON_TIME = date("Y-m-d H:i:s");
+			setcookie("BACKOFFICE_LAST_CON_TIME",time(), time()+1800,"/",$_SERVER["HTTP_HOST"]);
+		}
+
+		if($_COOKIE["BACKOFFICE_VISIT_ID"] == ""){
+			$_BACKOFFICE_VISIT_ID  = md5(uniqid(rand()));
+			setcookie("BACKOFFICE_VISIT_ID",$_BACKOFFICE_VISIT_ID, time()+1800,"/",$_SERVER["HTTP_HOST"]);
+		}else{
+			$_BACKOFFICE_VISIT_ID  = $_COOKIE["BACKOFFICE_VISIT_ID"];
+		}
+
+		if(class_exists("Memcache")){
+//			$memcache = new Memcache;
+//			//$memcache_obj = memcache_connect("183.111.154.6 ", 22);
+//			$memcache->connect(MEMCACHE_IP, MEMCACHE_PORT);
+//			$backoffice_realtime_data = $memcache->get('backoffice_realtime_data');
+//			$backoffice_realtime_data[$_COOKIE["BACKOFFICE_VISIT_ID"]] = array(
+//					'server_addr' => $_SERVER["SERVER_ADDR"],
+//					'ipaddr' => $_SERVER["REMOTE_ADDR"],
+//					'user_id' => $_SESSION["admininfo"]["charger_id"],
+//					'user_code' => $_SESSION["admininfo"]["charger_ix"],
+//					'page_id' => md5($_SERVER["PHP_SELF"]),
+//					'before_visit_date' => date("Y-m-d H:i:s",
+//					$BACKOFFICE_BEFORE_LAST_CON_TIME),
+//					'recent_visit_date' => date("Y-m-d H:i:s"),
+//					'BACKOFFICE_VISIT_ID' => $_COOKIE["BACKOFFICE_VISIT_ID"]
+//				);
+//
+//			$result = $memcache->add("backoffice_realtime_data", $backoffice_realtime_data, false, 100);
+//			if(!$result){
+//				$result = $memcache->set("backoffice_realtime_data", $backoffice_realtime_data, false, 100);
+//			}
+		}else{
+
+			include_once($_SERVER["DOCUMENT_ROOT"]."/admin/logstory/class/sharedmemory.class");
+			$shmop = new Shared("backoffice_realtime_data");
+			$shmop->filepath = $_SERVER["DOCUMENT_ROOT"].$_SESSION["admininfo"]["mall_data_root"]."/_shared/";
+			//echo $shmop->filepath;
+			$shmop->SetFilePath();
+			$backoffice_realtime_data = $shmop->getObjectForKey("backoffice_realtime_data");
+			//$backoffice_realtime_data[md5($_SERVER["REMOTE_ADDR"])] = array('ipaddr' => $_SERVER["REMOTE_ADDR"], 'user_id' => $this->USERID,  'user_code' => $this->UCODE, 'page_id' => $page_id, 'before_visit_date' => date("Y-m-d H:i:s",$BACKOFFICE_BEFORE_LAST_CON_TIME), 'recent_visit_date' => date("Y-m-d H:i:s"));
+			$backoffice_realtime_data[$_COOKIE["BACKOFFICE_VISIT_ID"]] = array('server_addr' => $_SERVER["SERVER_ADDR"],'ipaddr' => $_SERVER["REMOTE_ADDR"], 'user_id' => $_SESSION["admininfo"]["charger_id"],  'user_code' => $_SESSION["admininfo"]["charger_ix"], 'page_id' => md5($_SERVER["PHP_SELF"]), 'before_visit_date' => date("Y-m-d H:i:s",$BACKOFFICE_BEFORE_LAST_CON_TIME), 'recent_visit_date' => date("Y-m-d H:i:s"), 'BACKOFFICE_VISIT_ID' => $_COOKIE["BACKOFFICE_VISIT_ID"]);
+
+			if(count($backoffice_realtime_data) > 100){
+				foreach ($backoffice_realtime_data as $key => $row) {
+					if((time()- strtotime($row['recent_visit_date'])) > 600){
+					unset($backoffice_realtime_data[$key]);
+				  }
+				}
+			}
+
+
+			$shmop->setObjectForKey($backoffice_realtime_data, "backoffice_realtime_data") ;
+		}
+
+	}
+
+	//2013-12-03 Hong
+	function MenuCheck(){
+		global $admininfo;
+
+		$mdb = new Database;
+
+		// 판매가오류상품 아이콘 체크 시작 2013-11-15 이학봉
+		$st_date = date('Y-m-d 00:00:00');
+		$ed_date = date('Y-m-d 23:59:59');
+
+		if($_SESSION["admininfo"]["admin_level"] < 9){
+			$where_admin = " and p.admin ='".$_SESSION["admininfo"]["company_id"]."' ";
+			$where_company = " and od.company_id ='".$_SESSION["admininfo"]["company_id"]."' ";
+		}
+
+		$sql = "SELECT 
+					*
+				FROM 
+					shop_product p,
+					shop_product_relation r
+				Where 
+					p.id = r.pid 
+					and r.basic = 1 
+					and (p.coprice > p.sellprice or p.coprice > p.listprice or p.coprice > p.wholesale_price or p.coprice > p.wholesale_sellprice) 
+					AND p.product_type NOT IN ('4','5','6','21','31')
+					and p.editdate between '".$st_date."' and '".$ed_date."'
+					$where_admin
+				LIMIT 0,1";
+
+		$mdb->query($sql);
+		$mdb->fetch();
+		$total = $mdb->total;
+
+		//icon or num
+		$_SESSION['menu_check'][md5('/admin/product/error_product_list.php')]['type'] = 'icon';
+
+		if($total > 0){
+			$_SESSION['menu_check'][md5('/admin/product/error_product_list.php')]['value'] = $total;
+		}else{
+			$_SESSION['menu_check'][md5('/admin/product/error_product_list.php')]['value'] = '';
+		}
+		// 판매가오류상품 아이콘 체크 끝 2013-11-15 이학봉
+
+
+		//셀러관리 셀러관리자 문의 시작 2014-09-11 이학봉
+
+		if(!$_SESSION['menu_check'][md5('/admin/seller/b2b_qna.php')]['value']){
+			// - 1:1문의요청
+			$sql = "SELECT 
+						* 
+					FROM
+						common_seller_support as fs
+					where
+						type= 'Q'
+						and regdate between '".$st_date."' and '".$ed_date."
+					LIMIT 0,1'";
+			$mdb->query($sql);
+			$mdb->fetch();
+			$total = $mdb->total;
+
+			$_SESSION['menu_check'][md5('/admin/seller/b2b_qna.php')]['type'] = 'icon';	//1:1문의요청
+			$_SESSION['menu_check'][md5('/admin/seller/b2b_qna.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/seller/b2b_suggest.php')]['value']){
+			// - 상품제안문의(할인)
+			$sql = "SELECT 
+						* 
+					FROM
+						common_seller_support as fs
+					where
+						type= 'S'
+						and regdate between '".$st_date."' and '".$ed_date."'
+					LIMIT 0,1";
+			$mdb->query($sql);
+			$mdb->fetch();
+			$total = $mdb->total;
+
+			$_SESSION['menu_check'][md5('/admin/seller/b2b_suggest.php')]['type'] = 'icon';	//상품제안문의(할인)
+			$_SESSION['menu_check'][md5('/admin/seller/b2b_suggest.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/seller/b2b_account.php')]['value']){
+			// - 정산/세무 문의
+			$sql = "SELECT 
+						* 
+					FROM
+						common_seller_support as fs
+					where
+						type= 'A'
+						and regdate between '".$st_date."' and '".$ed_date."'
+					LIMIT 0,1";
+			$mdb->query($sql);
+			$mdb->fetch();
+			$total = $mdb->total;
+
+			$_SESSION['menu_check'][md5('/admin/seller/b2b_account.php')]['type'] = 'icon';	//정산/세무 문의
+			$_SESSION['menu_check'][md5('/admin/seller/b2b_account.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/seller/seller_cs_admin.php')]['value']){
+			// - 관리자 긴급사항
+			$sql = "SELECT 
+						* 
+					FROM
+						common_seller_support as fs
+					where
+						type= 'C'
+						and regdate between '".$st_date."' and '".$ed_date."'
+					LIMIT 0,1";
+			$mdb->query($sql);
+			$mdb->fetch();
+			$total = $mdb->total;
+
+			$_SESSION['menu_check'][md5('/admin/seller/seller_cs_admin.php')]['type'] = 'icon';	//관리자 긴급사항
+			$_SESSION['menu_check'][md5('/admin/seller/seller_cs_admin.php')]['value'] = $mdb->total;
+		}
+
+
+
+		if(!$_SESSION['menu_check'][md5('/admin/seller/seller_cs_product.php')]['value']){
+			// - 상품문의
+			if($admininfo[admin_level] == 9){
+				$sql = "select * from ".TBL_SHOP_PRODUCT_QNA." where bbs_ix <> '0' and regdate between '".$st_date."' and '".$ed_date."' LIMIT 0,1";
+			}else{
+				$sql = "select * from ".TBL_SHOP_PRODUCT_QNA." where bbs_ix <> '0' and regdate between '".$st_date."' and '".$ed_date."' and company_id = '".$admininfo["company_id"]."' LIMIT 0,1";
+			}
+			$mdb->query($sql);
+			$mdb->fetch();
+			$total = $mdb->total;
+
+			$_SESSION['menu_check'][md5('/admin/seller/seller_cs_product.php')]['type'] = 'icon';	//상품문의
+			$_SESSION['menu_check'][md5('/admin/seller/seller_cs_product.php')]['value'] = $mdb->total;
+		}
+
+
+
+
+		if(!$_SESSION['menu_check'][md5('/admin/seller/seller_cs_shop.php')]['value']){
+			// - 상점 1:1 문의
+			$sql = "select * from bbs_seller_shop_cs where regdate between '".$st_date."' and '".$ed_date."' LIMIT 0,1";
+			$mdb->query($sql);
+			$mdb->fetch();
+			$total = $mdb->total;
+
+			$_SESSION['menu_check'][md5('/admin/seller/seller_cs_shop.php')]['type'] = 'icon';	//상점 1:1문의
+			$_SESSION['menu_check'][md5('/admin/seller/seller_cs_shop.php')]['value'] = $mdb->total;
+		}
+
+		//셀러관리 셀러관리자 문의 끝 2014-09-11 이학봉
+
+		/*
+		$sql = "SELECT oid, count(*) as cnt, regdate
+			FROM shop_order_delivery
+			where regdate between '".$st_date."' and '".$ed_date."'
+			group by oid, company_id, delivery_type, delivery_package, delivery_policy, delivery_method, ori_company_id, delivery_addr_use, factory_info_addr_ix, pid
+			having cnt > 1
+
+			union all
+
+			SELECT distinct o.oid, 1 as cnt, o.order_date as regdate
+			FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_ORDER_DETAIL." od
+			WHERE o.oid = od.oid and od.status not in ('SR')
+			and od.regdate between '".$st_date."' and '".$ed_date."'
+			and od.order_from in ('self','offline','pos') and od.co_oid!=''
+			ORDER BY regdate DESC";
+
+		$mdb->query($sql);
+
+		$_SESSION['menu_check'][md5('/admin/order/error_orders.list.php')]['type'] = 'icon';	//비정상주문리스트
+		$_SESSION['menu_check'][md5('/admin/order/error_orders.list.php')]['value'] = $mdb->total;
+		*/
+
+
+		//주문리스트 아이콘및 count 처리 2013-12-04 Hong
+		/*
+		2014-11-11 Hong 속도 이슈떄문에 주석처리!
+		$sql = "SELECT
+					IFNULL(sum(case when od.regdate between '".$st_date."' and '".$ed_date."' then 1 else 0 end),0) as order_list,
+					IFNULL(sum(case when od.status='".ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE."' then 1 else 0 end),0) as incom_before_cancel,
+					IFNULL(sum(case when od.status='".ORDER_STATUS_CANCEL_COMPLETE."' then 1 else 0 end),0) as incom_after_cancel,
+					IFNULL(sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE."','".ORDER_STATUS_CANCEL_COMPLETE."') and op.method = '".ORDER_METHOD_BANK."' then 1 else 0 end),0) as bank,
+					IFNULL(sum(case when od.status='".ORDER_STATUS_DEFERRED_PAYMENT."' then 1 else 0 end),0) as deferred_payment,
+					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_COMPLETE."' then 1 else 0 end),0) as delivery_complete,
+					IFNULL(sum(case when od.status='".ORDER_STATUS_BUY_FINALIZED."' then 1 else 0 end),0) as buy_finalized,
+					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_ING."' and od.delivery_status='".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."' then 1 else 0 end),0) as w_delivery_complete,
+					IFNULL(sum(case when od.status in ('".ORDER_STATUS_EXCHANGE_APPLY."','".ORDER_STATUS_EXCHANGE_DENY."','".ORDER_STATUS_EXCHANGE_ING."','".ORDER_STATUS_EXCHANGE_DELIVERY."','".ORDER_STATUS_EXCHANGE_ACCEPT."','".ORDER_STATUS_EXCHANGE_DEFER."','".ORDER_STATUS_EXCHANGE_IMPOSSIBLE."') then 1 else 0 end),0) as exchange_list,
+					IFNULL(sum(case when od.status in ('".ORDER_STATUS_RETURN_APPLY."','".ORDER_STATUS_RETURN_DENY."','".ORDER_STATUS_RETURN_ING."','".ORDER_STATUS_RETURN_DELIVERY."','".ORDER_STATUS_RETURN_ACCEPT."','".ORDER_STATUS_RETURN_DEFER."','".ORDER_STATUS_RETURN_IMPOSSIBLE."','".ORDER_STATUS_RETURN_COMPLETE."') then 1 else 0 end),0) as return_list
+				FROM
+					shop_order o
+				LEFT JOIN
+					shop_order_detail od
+				ON
+					o.oid = od.oid
+				LEFT JOIN
+					shop_order_payment op
+				ON
+					op.oid = od.oid and op.pay_type='G' and op.method='".ORDER_METHOD_BANK."'
+				WHERE
+					od.status !='SR'
+				AND
+					(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+				$where_company";
+
+		$mdb->query($sql);
+		$mdb->fetch();
+		*/
+
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/orders.list.php')]['value']){
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status !='SR'
+					AND
+						od.regdate between '".$st_date."' and '".$ed_date."'
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/orders.list.php')]['type'] = 'icon';	//주문리스트
+			$_SESSION['menu_check'][md5('/admin/order/orders.list.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/incom_before_cancel.php')]['value']){
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status ='".ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE."'
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/incom_before_cancel.php')]['type'] = 'icon';	//입금전 취소리스트
+			$_SESSION['menu_check'][md5('/admin/order/incom_before_cancel.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/incom_after_cancel.php')]['value']){
+
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status ='".ORDER_STATUS_CANCEL_COMPLETE."'
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/incom_after_cancel.php')]['type'] = 'icon';	//입금후 취소리스트
+			$_SESSION['menu_check'][md5('/admin/order/incom_after_cancel.php')]['value'] = $mdb->total;
+		}
+
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/method_bank.php')]['value']){
+
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					,
+						shop_order_payment op
+					WHERE
+						op.oid = od.oid 
+					AND
+						op.pay_type='G' 
+					AND
+						op.method='".ORDER_METHOD_BANK."'
+					AND
+						od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_INCOM_BEFORE_CANCEL_COMPLETE."','".ORDER_STATUS_CANCEL_COMPLETE."')
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/method_bank.php')]['type'] = 'icon';	//무통장입금리스트
+			$_SESSION['menu_check'][md5('/admin/order/method_bank.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/deferred_payment_list.php')]['value']){
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status ='".ORDER_STATUS_DEFERRED_PAYMENT."'
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/deferred_payment_list.php')]['type'] = 'icon';	//후불(외상)리스트
+			$_SESSION['menu_check'][md5('/admin/order/deferred_payment_list.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/delivery_complete.php')]['value']){
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status ='".ORDER_STATUS_DELIVERY_COMPLETE."'
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/delivery_complete.php')]['type'] = 'icon';	//배송완료상품
+			$_SESSION['menu_check'][md5('/admin/order/delivery_complete.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/buy_finalized.php')]['value']){
+
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status ='".ORDER_STATUS_BUY_FINALIZED."'
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/buy_finalized.php')]['type'] = 'icon';	//거래완료
+			$_SESSION['menu_check'][md5('/admin/order/buy_finalized.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_complete.php')]['value']){
+
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status='".ORDER_STATUS_DELIVERY_ING."' 
+					AND
+						od.delivery_status='".ORDER_STATUS_WAREHOUSE_DELIVERY_COMPLETE."'
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_complete.php')]['type'] = 'icon';	//(WMS)출고완료
+			$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_complete.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/exchange_apply.php')]['value']){
+
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status in ('".ORDER_STATUS_EXCHANGE_APPLY."','".ORDER_STATUS_EXCHANGE_DENY."','".ORDER_STATUS_EXCHANGE_ING."','".ORDER_STATUS_EXCHANGE_DELIVERY."','".ORDER_STATUS_EXCHANGE_ACCEPT."','".ORDER_STATUS_EXCHANGE_DEFER."','".ORDER_STATUS_EXCHANGE_IMPOSSIBLE."')
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$_SESSION['menu_check'][md5('/admin/order/exchange_apply.php')]['type'] = 'icon';	//교환리스트
+			$_SESSION['menu_check'][md5('/admin/order/exchange_apply.php')]['value'] = $mdb->total;
+		}
+
+		if(!$_SESSION['menu_check'][md5('/admin/order/return_apply.php')]['value']){
+
+			$sql = "SELECT 
+						o.oid
+					FROM 
+						shop_order o
+					LEFT JOIN
+						shop_order_detail od
+					ON
+						o.oid = od.oid
+					WHERE
+						od.status in ('".ORDER_STATUS_RETURN_APPLY."','".ORDER_STATUS_RETURN_DENY."','".ORDER_STATUS_RETURN_ING."','".ORDER_STATUS_RETURN_DELIVERY."','".ORDER_STATUS_RETURN_ACCEPT."','".ORDER_STATUS_RETURN_DEFER."','".ORDER_STATUS_RETURN_IMPOSSIBLE."','".ORDER_STATUS_RETURN_COMPLETE."')
+					AND
+						(od.update_date between '".$st_date."' and '".$ed_date."' OR od.regdate between '".$st_date."' and '".$ed_date."')
+					$where_company
+					LIMIT 0,1";
+
+			$_SESSION['menu_check'][md5('/admin/order/return_apply.php')]['type'] = 'icon';	//반품리스트
+			$_SESSION['menu_check'][md5('/admin/order/return_apply.php')]['value'] = $mdb->total;
+
+		}
+
+
+
+		/*미수령 신고 접수 카운트 좌측 메뉴에 추가JK160406*/
+		$sql = "SELECT 
+					oid
+				FROM 
+					shop_order_unreceived_claim
+				WHERE
+					claim_status in ('".ORDER_UNRECEIVED_CLAIM."')
+				";
+		$mdb->query($sql);
+		$_SESSION['menu_check'][md5('/admin/order/unreceived_claim.php')]['type'] = 'num';	//교환리스트
+		$_SESSION['menu_check'][md5('/admin/order/unreceived_claim.php')]['value'] = $mdb->total;
+
+
+		$sql = "SELECT 
+					*
+				FROM 
+					shop_order o , shop_order_detail od
+				WHERE 
+					od.status !='SR' 
+				AND
+					o.oid=od.oid
+				AND
+					od.status in ('".ORDER_STATUS_INCOM_READY."')
+				$where_company
+				group by 
+					o.oid";
+
+		$mdb->query($sql);
+		$mdb->fetch();
+
+		$_SESSION['menu_check'][md5('/admin/order/before_payment.php')]['type'] = 'num';	//입금예정리스트
+		$_SESSION['menu_check'][md5('/admin/order/before_payment.php')]['value'] = $mdb->total;
+
+//		$sql = "SELECT
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_CANCEL_APPLY."' then 1 else 0 end),0) as cancel_apply,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_INCOM_COMPLETE."' then 1 else 0 end),0) as incom_complete,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_INCOM_COMPLETE."' and od.due_date not in ('0','') then 1 else 0 end),0) as send_ready,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_READY."' and ifnull(od.delivery_status,'')='' and ifnull(od.invoice_no,'')='' then 1 else 0 end),0) as delivery_ready,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_READY."' and ifnull(od.delivery_status,'')='' and ifnull(od.invoice_no,'')!='' then 1 else 0 end),0) as delivery_invoice,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_ING."' then 1 else 0 end),0) as delivery_ing,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_READY."' and od.delivery_status='".ORDER_STATUS_WAREHOUSE_DELIVERY_APPLY."' then 1 else 0 end),0) as w_delivery_apply,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_READY."' and od.delivery_status='".ORDER_STATUS_WAREHOUSE_DELIVERY_CONFIRM."' then 1 else 0 end),0) as w_delivery_confirm,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_READY."' and od.delivery_status='".ORDER_STATUS_WAREHOUSE_DELIVERY_PICKING."' then 1 else 0 end),0) as w_delivery_invoice,
+//					IFNULL(sum(case when od.status='".ORDER_STATUS_DELIVERY_READY."' and od.delivery_status='".ORDER_STATUS_WAREHOUSE_DELIVERY_READY."' then 1 else 0 end),0) as w_delivery_ready,
+//					IFNULL(sum(case when od.status in ('".ORDER_STATUS_EXCHANGE_ACCEPT."','".ORDER_STATUS_EXCHANGE_DEFER."','".ORDER_STATUS_EXCHANGE_IMPOSSIBLE."') then 1 else 0 end),0) as exchange_ing,
+//					IFNULL(sum(case when od.status in ('".ORDER_STATUS_RETURN_ACCEPT."','".ORDER_STATUS_RETURN_DEFER."','".ORDER_STATUS_RETURN_IMPOSSIBLE."') then 1 else 0 end),0) as return_ing
+//				FROM
+//					shop_order_detail od
+//				WHERE
+//					od.status !='SR'
+//				AND
+//					od.status in ('".ORDER_STATUS_CANCEL_APPLY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_EXCHANGE_ACCEPT."','".ORDER_STATUS_EXCHANGE_DEFER."','".ORDER_STATUS_EXCHANGE_IMPOSSIBLE."','".ORDER_STATUS_RETURN_ACCEPT."','".ORDER_STATUS_RETURN_DEFER."','".ORDER_STATUS_RETURN_IMPOSSIBLE."')
+//				$where_company
+//				";
+//
+//		$mdb->query($sql);
+//		$mdb->fetch();
+//
+//		//icon or num
+//		$_SESSION['menu_check'][md5('/admin/order/cancel_apply.php')]['type'] = 'num';	//배송취소요청리스트
+//		$_SESSION['menu_check'][md5('/admin/order/cancel_apply.php')]['value'] = $mdb->dt[cancel_apply];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/incom_complete.php')]['type'] = 'num';	//입금확인리스트
+//		$_SESSION['menu_check'][md5('/admin/order/incom_complete.php')]['value'] = $mdb->dt[incom_complete];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/going_to_send.php')]['type'] = 'num';	//발송예정리스트
+//		$_SESSION['menu_check'][md5('/admin/order/going_to_send.php')]['value'] = $mdb->dt[send_ready];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/delivery_ready.php')]['type'] = 'num';	//배송준비중리스트
+//		$_SESSION['menu_check'][md5('/admin/order/delivery_ready.php')]['value'] = $mdb->dt[delivery_ready];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/delivery_invoice.php')]['type'] = 'num';	//송장입력완료
+//		$_SESSION['menu_check'][md5('/admin/order/delivery_invoice.php')]['value'] = $mdb->dt[delivery_invoice];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/delivery_ing.php')]['type'] = 'num';	//배송중상품
+//		$_SESSION['menu_check'][md5('/admin/order/delivery_ing.php')]['value'] = $mdb->dt[delivery_ing];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_apply.php')]['type'] = 'num';	//(WMS)출고요청
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_apply.php')]['value'] = $mdb->dt[w_delivery_apply];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_confirm.php')]['type'] = 'num';	//(WMS)출고요청
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_confirm.php')]['value'] = $mdb->dt[w_delivery_confirm];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_invoice.php')]['type'] = 'num';	//(WMS)포장대기
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_invoice.php')]['value'] = $mdb->dt[w_delivery_invoice];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_ready.php')]['type'] = 'num';	//(WMS)출고대기
+//		$_SESSION['menu_check'][md5('/admin/order/warehouse_delivery_ready.php')]['value'] = $mdb->dt[w_delivery_ready];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/exchange_ing.php')]['type'] = 'num';	//	 교환 미처리스트
+//		$_SESSION['menu_check'][md5('/admin/order/exchange_ing.php')]['value'] = $mdb->dt[exchange_ing];
+//
+//		$_SESSION['menu_check'][md5('/admin/order/return_ing.php')]['type'] = 'num';	//반품 미처리리스트
+//		$_SESSION['menu_check'][md5('/admin/order/return_ing.php')]['value'] = $mdb->dt[return_ing];
+
+		session_register("menu_check");
+	}
+
+	function AdminConfig(){
+	global $admin_config, $layout_config, $admininfo,$DOCUMENT_ROOT,$slave_db;
+		if($admin_config[mall_data_root] == ""){// || true
+			$cfg_db = new Database;
+			//mall_use_templete,mall_use_mobile_templete, mall_page_type, mall_use_inventory, mall_domain, mall_use_multishop, mall_ename, mall_data_root , currency_unit
+			$sql = "select *
+				from ".TBL_SHOP_SHOPINFO." where mall_ix = '".$_SESSION["admininfo"][mall_ix]."' and mall_domain LIKE '".str_replace("www.","",$_SERVER["HTTP_HOST"])."%' ";
+			//echo $sql;
+			//exit;
+			$cfg_db->query($sql);
+
+			$cfg_db->fetch();
+			//print_r($cfg_db->dt);
+
+			$_SESSION["admin_config"][mall_use_multishop] = $cfg_db->dt[mall_use_multishop];
+			$_SESSION["admin_config"][mall_use_templete] = $cfg_db->dt[mall_use_templete];
+			//$_SESSION["admin_config"][selected_templete] = $cfg_db->dt[mall_use_templete];
+			$_SESSION["admin_config"][mall_use_mobile_templete] = $cfg_db->dt[mall_use_mobile_templete];
+			$_SESSION["admin_config"][minishop_templete] = "basic";
+			if($_SESSION["admin_config"][mall_page_type] == ""){
+				$_SESSION["admin_config"][mall_page_type] = "P";
+			}
+			$_SESSION["admin_config"][mall_ename] = $cfg_db->dt[mall_ename];
+			$_SESSION["admin_config"][mall_data_root] = $cfg_db->dt[mall_data_root];
+			$_SESSION["admin_config"][mall_admin_root] = $DOCUMENT_ROOT.$this->default_path;
+			$_SESSION["admin_config"][mall_domain] = $cfg_db->dt[mall_domain];
+			$_SESSION["admin_config"][mall_use_inventory] = $cfg_db->dt[mall_use_inventory];
+			$_SESSION["admin_config"][currency_unit]  = $cfg_db->dt[currency_unit];
+
+			/*세션정리
+			* 필요시 shared memory 파일로 저장
+			*/
+			//$_SESSION["admin_config"][contents_selling]  = $cfg_db->dt[contents_selling];
+
+
+			/*도로명 주소관련 api key 사용 및 몰스토리 DB사용 정보 세션등록 jk131219*/
+			$cfg_db->query("SELECT * FROM `shop_mall_config` where mall_ix = '".$_SESSION["admininfo"][mall_ix]."' and config_name in('zipcode_type','zipcode_key','mall_inventory_category_div','selling_type','popbill_id','search_engine_yn','search_engine_type', 'use_sellertool','sns','sns_link_yn')  ");
+			if($cfg_db->total){
+				for($i=0; $i < $cfg_db->total;$i++){
+				$cfg_db->fetch($i);
+				$_SESSION["admin_config"][$cfg_db->dt[config_name]] = $cfg_db->dt[config_value];
+				}
+			}else{
+				$_SESSION["admin_config"]["zipcode_type"] = "M";
+				$_SESSION["admin_config"]["zipcode_key"] = "";
+			}
+
+
+
+			if($_SESSION["admininfo"][mall_type] == "E"){
+				//$_SESSION["admininfo"][mall_type] = "O";
+				//exit;
+			}
+
+
+			$sql = "select  * 
+			from shop_mall_config 
+			where mall_ix = '".$admininfo[mall_ix]."'
+			and config_name in ('front_multiview','mall_use_standard_category')  ";
+			$cfg_db->query($sql);
+			$_shop_config = $cfg_db->fetchall();
+			//$payment_array = $db_payment->fetchall();
+
+			//print_r($payment_array);
+			for($i=0; $i < count($_shop_config);$i++){
+				$_SESSION["admin_config"][$_shop_config[$i][config_name]] = $_shop_config[$i][config_value];
+				//echo $payment_array[$i][config_name];
+			}
+
+			$_SESSION["layout_config"] = $_SESSION["admin_config"];
+
+
+			$this->Config = $_SESSION["admin_config"];
+			//session_register("admin_config");
+			//session_register("layout_config");
+		}else{
+			//print_r($_SESSION["admin_config"]);
+			//exit;
+		}
+
+		if(!$shopcfg){
+
+			$sql = "select ccd.company_id, csd.shop_name, csd.shop_desc, ccd.com_name , ccd.com_number, ccd.online_business_number, ccd.com_ceo, ccd.com_addr1, 
+				ccd.com_addr2, ccd.com_phone, ccd.com_fax, ccd.com_email ,ccd.com_business_status, ccd.com_business_category 
+				,ccd.opening_time,ccd.cs_phone,ccd.officer_name,ccd.officer_email,ccd.return_zip,ccd.return_addr1,ccd.return_addr2,ccd.return_disp,ccd.return_use
+				from common_seller_detail csd, common_company_detail ccd
+				where csd.company_id = ccd.company_id and ccd.com_type = 'A' ";
+			//echo nl2br($sql);
+			$slave_db->query($sql);
+			$slave_db->fetch();
+			//print_r($slave_db->dt);
+			//$_shopcfg = $slave_db->dt[0];
+			$_SESSION["shopcfg"][shop_name] = $slave_db->dt[shop_name];
+			$_SESSION["shopcfg"][shop_desc] = $slave_db->dt[shop_desc];
+			$_SESSION["shopcfg"][company_id] = $slave_db->dt[company_id];
+			$_SESSION["shopcfg"][com_name] = $slave_db->dt[com_name];//$slave_db->dt[company_name];
+			$_SESSION["shopcfg"][biz_no] = $slave_db->dt[com_number];
+			$_SESSION["shopcfg"][online_biz_no] = $slave_db->dt[online_business_number];
+			$_SESSION["shopcfg"][ceo] = $slave_db->dt[com_ceo];
+			$_SESSION["shopcfg"][company_address] = $slave_db->dt[com_addr1]." ". $slave_db->dt[com_addr2];
+			//$_SESSION["shopcfg"][setup] = $slave_db->dt[setup];
+			//$_SESSION["shopcfg"][capital] = $slave_db->dt[capital];
+			//$_SESSION["shopcfg"][person] = $slave_db->dt[person];
+			$_SESSION["shopcfg"][phone] = $slave_db->dt[com_phone];
+			$_SESSION["shopcfg"][fax] = $slave_db->dt[com_fax];
+			//$_SESSION["shopcfg"][charger] = $slave_db->dt[charger];
+			$_SESSION["shopcfg"][email] = $slave_db->dt[com_email];
+			$_SESSION["shopcfg"][biz_kind] = $slave_db->dt[com_business_category];
+			$_SESSION["shopcfg"][biz_item] = $slave_db->dt[com_business_status];
+			//$_SESSION["shopcfg"][company_intro_top] = $slave_db->dt[company_intro_top];
+			//$_SESSION["shopcfg"][company_location] = $slave_db->dt[company_location];
+			$_SESSION["shopcfg"]["opening_time"] = $slave_db->dt[opening_time];
+			list($l_cs_phone1,$l_cs_phone2,$l_cs_phone3)=explode("-",$slave_db->dt[cs_phone]);
+			if($l_cs_phone1!="") $l_cs_phone1_="-".$l_cs_phone1;
+			if($l_cs_phone2!="") $l_cs_phone2_="-".$l_cs_phone2;
+			if($l_cs_phone3!="") $l_cs_phone3_="-".$l_cs_phone3;
+			$l_cs_phone=substr($l_cs_phone1_.$l_cs_phone2_.$l_cs_phone3_,1);
+			$_SESSION["shopcfg"]["cs_phone"] = $l_cs_phone;//수정함 kbk 13/07/19
+			//$_SESSION["shopcfg"]["cs_phone"] = $slave_db->dt[cs_phone];
+
+
+			$_SESSION["shopcfg"]["officer_name"] = $slave_db->dt[officer_name];
+			$_SESSION["shopcfg"]["officer_email"] = $slave_db->dt[officer_email];
+			$_SESSION["shopcfg"]["return_zip"] = $slave_db->dt[return_zip];
+			$_SESSION["shopcfg"]["return_addr1"] = $slave_db->dt[return_addr1];
+			$_SESSION["shopcfg"]["return_addr2"] = $slave_db->dt[return_addr2];
+			$_SESSION["shopcfg"]["return_disp"] = $slave_db->dt[return_disp];
+			$_SESSION["shopcfg"]["return_use"] = $slave_db->dt[return_use];
+
+//			session_register("shopcfg");
+
+//print_r($shopcfg);
+		}
+	}
+
+	function PrintLayOut() {
+	global $admininfo, $admin_config, $_COOKIE, $DOCUMENT_ROOT;
+	global $mdb;
+
+	$templet_path = $_SESSION["admin_config"][mall_data_root]."/templet/".$_SESSION["admin_config"][mall_use_templete];
+
+	if($_SESSION["admininfo"][admin_level] == 9){
+
+	}else if($_SESSION["admininfo"][admin_level] == 8){
+		$permit_string = $_SESSION["admininfo"][permit];
+		//$this->admin_home_link = $this->default_path."/store/bbs.php";
+	}
+
+	if (file_exists($_SERVER["DOCUMENT_ROOT"]."".$_SESSION["admininfo"][mall_data_root]."/images/admin_logo.gif")){
+		$admin_logo_path = $_SESSION["admininfo"][mall_data_root]."/images/admin_logo.gif";
+	}else{
+		$admin_logo_path = $this->default_path."/images/admin_logo.gif";
+	}
+
+
+	$this->strTopMenu = topmenu($this->default_path."/v3/images/topmenu"); //
+
+	$mndb = new Database;
+	$sql = "select * from admin_menus where menu_code = '".md5($_SERVER["PHP_SELF"])."' ";
+	//echo $sql;
+	//echo $sql; //select * from admin_menus where menu_code = 'fd7e97d9d78693ee444eb486c0cd27cc'
+	$mndb->query($sql);
+	if(!$mndb->total){
+		$paths = explode("/",$_SERVER["PHP_SELF"]);
+		$navis = explode(">",str_replace("HOME > ","",$this->Navigation));
+
+		$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
+			values
+			('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
+		//echo $sql;
+		$mndb->query($sql);
+	}
+
+	if(!checkMenuAuth(md5($_SERVER["PHP_SELF"]),"R") && !checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U") && !checkMenuAuth(md5($_SERVER["PHP_SELF"]),"D")){
+		echo $_SERVER["PHP_SELF"]." 권한이 없습니다. ";
+		exit;
+	}
+
+	//print_r($_SESSION["admininfo"]);
+	$paths = explode("/",str_replace($admin_root,"/admin",$_SERVER["PHP_SELF"]));
+
+	if($_SESSION["admininfo"]["language"] != "korea"){
+		$sql = "select text_div, text_korea, text_trans
+			from admin_language
+			where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+			order by CHAR_LENGTH(text_korea) desc  ";
+		//echo nl2br($sql);
+
+		$mndb->query($sql);
+		if($mndb->total){
+		//echo "test";
+
+			$languages = $mndb->fetchall();
+			//print_r($dics);
+			$count = 10;
+			for($i=0;$i < count($languages);$i++){
+				//echo $languages[$i]["text_korea"]."<br>\n";
+				$this->strTopMenu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->strTopMenu);
+				$this->strLeftMenu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->strLeftMenu);
+				$this->right_menu = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $this->right_menu);
+			}
+		}
+	}
+	if($_SESSION["admininfo"]["language"] != "korea"){
+		if($mndb->dbms_type == "oracle"){
+			$sql = "select text_korea, text_trans, CHAR_LENGTH(text_korea) as text_korea_cnt
+			from admin_dic where menu_code = '".md5($_SERVER["PHP_SELF"])."' and language_type = '".$_SESSION["admininfo"]["language"]."' and dic_type = 'WORD'
+			union
+			select CAST(text_korea as varchar(255)) as text_korea, CAST(text_trans as varchar(255)) as text_trans , CHAR_LENGTH(text_korea) as text_korea_cnt
+			from admin_language
+			where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+			order by text_korea_cnt desc
+			 ";
+			//echo $sql;
+			$mndb->query($sql);
+			if($mndb->total){
+			//echo "test";
+				$dics = $mndb->fetchall();
+				//print_r($dics);
+				$count = 10;
+				for($i=0;$i < count($dics);$i++){
+					$pattern = "[".$dics[$i]["text_korea"]."]";
+					//$this->strContents = preg_replace($pattern, $dics[$i]["text_trans"], $this->strContents,$count);
+					$this->strContents = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $this->strContents);
+				}
+			}
+
+		}else{
+			if(true){
+				$sql = "select text_korea, text_trans from admin_dic where menu_code = '".md5(str_replace($admin_root,"/admin",$_SERVER["PHP_SELF"]))."' and language_type = '".$_SESSION["admininfo"]["language"]."' and dic_type = 'WORD'
+					union
+					select text_korea, text_trans
+					from admin_language
+					where language_type = '".$_SESSION["admininfo"]["language"]."' and text_div in ('common','gnb','".str_replace(" ","",$paths[2])."_lnb')
+					order by CHAR_LENGTH(text_korea) desc
+					 ";
+				//echo $sql;
+				$mndb->query($sql);
+				if($mndb->total){
+				//echo "test";
+					$dics = $mndb->fetchall();
+					//print_r($dics);
+					$count = 10;
+					for($i=0;$i < count($dics);$i++){
+						$pattern = "[".$dics[$i]["text_korea"]."]";
+						//$this->strContents = preg_replace($pattern, $dics[$i]["text_trans"], $this->strContents,$count);
+						$this->strContents = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $this->strContents);
+					}
+				}
+			}
+		}
+	}
+$mstring = "<!DOCTYPE html>
+<!--<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">-->
+<!--<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//ENg\">-->
+<!--<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">-->
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='pragma' content='no-cache'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge'/>
+<meta http-equiv=\"P3P\" content='policyref=\"http://w.about.com/w3c/p3p.xml\"'>
+	<title>".$_SESSION["admininfo"][company_name]."</title>
+<LINK REL='stylesheet' HREF='".$this->default_path."/v3/include/admin.css?".rand()."' TYPE='text/css'>
+<!--LINK REL='stylesheet' HREF='/css/design.css' TYPE='text/css'-->
+<LINK REL='stylesheet' HREF='".$this->default_path."/css/design.css' TYPE='text/css'>
+<LINK REL='stylesheet' HREF='".$this->default_path."/common/css/design.css' TYPE='text/css'>
+<LINK href='".$this->default_path."/css/facebox2.css' type='text/css' rel='stylesheet'>
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/class.css' />
+<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/common.css' />
+<STYLE>
+
+";
+
+$mstring .= "
+body{margin:0px; }
+</STYLE>
+<script language='javascript'>
+var language = \"".$_SESSION["admininfo"][language]."\";
+var permit = \"permit:".$permit_string."\";
+</script>";
+//if($_SERVER["HTTP_HOST"] == "unimind.kr" || $_SERVER["HTTP_HOST"] == "www.unimind.kr"){
+//	$mstring .= "<script language='JavaScript' src='".$this->default_path."/js/jquery-1.4.js'></Script>";
+//}else{
+if(true){
+	$mstring .= "
+	<link rel='stylesheet' type='text/css' href='".$this->default_path."/v3/css/jquery-ui.css' />
+	<script src='".$this->default_path."/js/jquery-1.8.3.js'></script>
+	<script src='".$this->default_path."/js/jquery-ui.js'></script>
+	<script language='javascript' src='".$this->default_path."/js/jquery.combobox.js'></script>";
+}else{
+	$mstring .= "<link rel='stylesheet' type='text/css' href='http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css' />
+	<script src='".$this->default_path."/js/jquery-ui-1.10.2/jquery-1.9.1.js'></script>
+	<script src='".$this->default_path."/js/jquery-ui-1.10.2/ui/jquery-ui.js'></script>
+	<script language='javascript' src='".$this->default_path."/js/jquery-ui-1.10.2/jquery.combobox.js'></script>";
+}
+$mstring .= "<link rel='stylesheet' type='text/css' href='" . $this->default_path . "/css/jquery.jscrollpane.css' />
+	<style>
+		.overflow_menu .jspVerticalBar { width:10px;background-color:#787878; }
+		.overflow_menu .jspTrack { background-color:#787878; }
+		.overflow_menu .jspDrag { 
+			background-color:#000000; 
+			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
+			border-radius: 5px;
+		}
+	</style>
+	<script src='".$this->default_path."/js/jquery.mousewheel.js'></script>
+	<script src='".$this->default_path."/js/jquery.jscrollpane.min.js'></script>
+	<script type='text/javascript'>
+		$(document).ready(function() {
+			$('.overflow_menu').each(function() {
+				$(this).show();
+				$(this).jScrollPane();
+				$(this).hide();
+			});
+		});
+
+		//$(window).bind('beforeunload',function(e){
+		//	retrun '창 닫자';
+		//});
+
+		/*function abc(){
+			event.returnValue = '창 닫자';
+		}*/
+	</script>
+";
+$mstring .= "
+<script language='javascript' src='".$this->default_path."/js/jquery.blockUI.js'></script>
+<script language='javascript' src='".$this->default_path."/js/jquery.cookie.js'></script>
+<script language='JavaScript' src='".$this->default_path."/js/admin.js'></Script>
+<!--script language='JavaScript' src='".$this->default_path."/js/zoom.js'></Script-->
+<script language='JavaScript' src='".$this->default_path."/js/auto.validation.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/js/dd.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/_language/language.php'></Script>
+<script language='JavaScript' >
+
+var menu_folding = false;
+$(document).ready(function(){
+	$('.top_menu_img').parent().css({'overflow':'hidden'});
+	$('#content_new').scroll(function(){
+		
+		var sc_top = $('#content_new').scrollTop();
+
+		if(sc_top==0)	sc_top=true;
+		else				sc_top=false;
+
+		top_menu_scroll(sc_top);
+	});
+});
+";
+
+if($admininfo[language]=="english") {
+	$mstring .= "
+	function top_menu_scroll(view){
+		//var scroll_top = $('#header').height();
+		//alert(view);
+		if (view){//un folding
+			if(menu_folding == true){
+				$('#content_new').animate({top:'128px'});
+				$('.top_menu_img').parent().animate({height:'53px'});
+				$('.top_menu_img').show();
+				$('.top_new_warp').animate({height:'89px','padding-top':'0px'});
+				$('.arrow01').animate({top:'89px'});
+				menu_folding = false;
+			}
+		}else{//folding
+			if(menu_folding == false){
+				$('.top_menu_img').parent().animate({height:'0px'});
+				$('.top_menu_img').hide();
+				$('.top_new_warp').animate({height:'36px','padding-top':'+=10px'});
+				$('#content_new').animate({top:'85px'});
+				$('.arrow01').animate({top:'46px'});
+				menu_folding = true;
+			}
+		}
+	}
+	";
+}else{
+	$mstring .= "
+	
+	function top_menu_scroll(view){
+		//var scroll_top = $('#header').height();
+		//alert(view);
+		if (view){//un folding
+			if(menu_folding == true){
+				$('#content_new').animate({top:'124px'});
+				$('.top_menu_img').parent().animate({height:'53px'});
+				$('.top_menu_img').show();
+				$('.top_new_warp').animate({height:'80px'});
+				$('.arrow01').animate({top:'80px'});
+				menu_folding = false;
+			}
+		}else{//folding
+			if(menu_folding == false){
+				$('.top_menu_img').parent().animate({height:'0px'});
+				$('.top_menu_img').hide();
+				$('.top_new_warp').animate({height:'24px'});
+				$('#content_new').animate({top:'68px'});
+				$('.arrow01').animate({top:'24px'});
+				menu_folding = true;
+			}
+		}
+	}
+	";
+}
+$mstring .= "
+$(function(){
+    $(window).resize(function(){
+
+        var width = parseInt($(this).width());
+	//alert(width);
+        //$('#wrapper').text(width);
+		/*
+        if (width < 1024) {
+			$('#ServiceInfoArea').hide();
+			$('#RightMenuArea').hide();
+       } else if (width > 1024 && width <= 1280) {
+			$('#ServiceInfoArea').hide();
+			$('#RightMenuArea').hide();
+       } else if (width > 1280 && width <= 1480)  {
+		    $('#admin_left_menu').hide();
+			$('#ServiceInfoArea').hide();
+			$('#RightMenuArea').hide();
+		} else if (width > 1480 && width <= 1920)  {
+			$('#admin_left_menu').show();
+			//$('#ServiceInfoArea').show();
+			$('#RightMenuArea').hide();
+		} else if (width > 1920)  {
+			$('#admin_left_menu').show();
+			$('#RightMenuArea').show();
+        }
+	*/
+
+    }).resize(); // 로딩되면서 창크기에 맞추기 위해 한 번 부름
+});
+
+$(document).ready(function(){
+	$('#top_searchdata').click(function(){
+		var search_type = $('#top_search_type').val();
+		var search_text = $('#top_search_text').val();
+		if(!search_type){
+			alert('검색 구분을 선택해 주세요.');
+			return false;
+		}else{
+			$('#top_search_frm').attr('action','../menu_search.php').submit();
+		}
+	});
+
+	
+});
+$(document).ready(function(){
+	 var height_gnb = 80;
+	 $('.top_new_warp').height(height_gnb);
+	$('.arrow01').click(function(){
+	var top_header = $('.top_new_warp').height();
+	if (top_header == 24)
+	{
+		$('.arrow01').css({'top':'80px'});
+	}else {
+		$('.arrow01').css({'top':'24px'});
+	}
+	 var height_gnb = 80;
+	 $('.top_new_warp').height(height_gnb);
+	});
+
+	".$this->OnloadFunction."
+
+});
+$(window).load(function(){
+	var top_header = 80;
+	if (top_header == 24)
+	{
+		$('.arrow01').css({'top':'24px'});
+	}else {
+		$('.arrow01').css({'top':'80px'});
+	}
+});
+</Script>
+<style type='text/css'>
+a img {
+	border: none;
+} #largeImage {
+	position: absolute;
+	padding: .5em;
+	background: #e3e3e3;
+	border: 1px solid;
+}
+
+
+.ui-combobox {
+	position: relative;
+	display: inline-block;
+}
+.ui-combobox-toggle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin-left: -1px;
+	padding: 0;
+	/* adjust styles for IE 6/7 */
+	*height: 1.5em;
+	*top: 0.1em;
+}
+.ui-combobox-input {
+	margin: 0;
+	padding: 0.2em;
+	background-color:#ffffff;
+}
+ .ui-autocomplete-input
+ {
+	 width:170px;
+ }
+
+
+
+#warp	{margin:0 auto;}
+#warp:after	{content:'';display:block;clear:both;}
+#header	{width:100%; margin:0 auto;}
+#header:after	{content:'';display:block;clear:both;}
+#content_new	{border-top:1px solid #d0d0d0; overflow-y:auto;overflow-x:auto; position:absolute; left:0;".($_COOKIE[TOP_MENU_HIDDEN] == "N" ? "top:68px;":"top:124px;")."  bottom:33px;  width:100%;background:#d2da9c;  background:#fff;}
+#container	{min-width:1400px; width:100%;position:relative; margin:0 auto; }
+#container:after	{width:100%;content:'';display:block;clear:both;}
+#footer	{float:left;width:100%;position:relative;}
+.top_new_warp {padding-left:25px; width:95%;}
+</style>
+".$this->addScript."
+</head><!-- onbeforeunload='abc();' -->
+<body topmargin=0 leftmargin=0 rightmargin=0 bottommargin=0 ".$this->BodyFunctionAdd." ><!-- onload=\"".$this->OnloadFunction."\" 2014-08-05 HONG 가끔 안되는 경우 있어서 document.ready 로 처리! -->
+<div class='point_color' id='show_alert_box' style='z-index:10000;width:100%;height:22px;text-align:center;padding:10px;font-weight:bold;font-size:20px;position:absolute;top:-42px;'></div>
+<div id='warp' style='width:100%;'> 
+	<div id='header' style='position:relative;  min-width:1300px;'>
+		<table cellpadding='0' cellspacing='0' border='0' width='100%' >
+			<tr>";
+				if($_SERVER["SERVER_NAME"]=="daisomall.co.kr"){
+					$mstring .= "<td class='top_menu_area' align='left' style='background:#424242;'>";
+				}else{
+				$mstring .= "<td class='top_menu_area' align='left'>";
+				}
+				$mstring .= "
+					<table cellpadding='0' cellspacing='0' border='0' width='100%' >
+						<col width='400' />
+						<col width='*' />
+						<col width='300' />
+						<tr>
+							<td>
+								<div class='left_menu01'>";
+						if(substr_count($_SERVER["HTTP_HOST"],"unimind.kr")){
+							$mstring .= "	<a href='/admin/work/'><img src='".$this->default_path."/v3/images/unimind/unimind_logo.gif' alt='유니마인드' title='유니마인드' /></a>";
+						}else if(substr_count($_SERVER["HTTP_HOST"],"forbiz")){
+
+							$mstring .= "	<a href='/admin'><img src='".$this->default_path."/v3/images/common/omnichannel_admin_title.png' alt='엔터프라이즈 관리자' title='' style='position:relative;top:2px;'  /></a>";
+						}else{
+
+							if($_SESSION["admininfo"][admin_level] == 9){
+								//상단 타이틀 이미지
+							   $mstring .= "	<a href='/admin/store/main.php'><img src='".$this->default_path."/v3/images/common/omnichannel_admin_title.png' alt='옵니채널' title='옵니채널' style='position:relative;top:2px;' /></a>";
+							}else{
+							  $mstring .= "	<a href='/admin/store/main.php'><img src='".$this->default_path."/v3/images/common/omnichannel_admin_title.png' alt='옵니채널' title='옵니채널' style='position:relative;top:2px;' /></a>";
+							}
+						}
+						$mstring .= "	<!--<img src='".$this->default_path."/v3/images/".$_SESSION["admininfo"]['language']."/logo_img02.gif' alt='관리자' title='관리자' />-->";
+						if($_SERVER["PHP_SELF"] == "/admin/store/tutorial.php"){
+							$mstring .= "	<a href='".$this->default_path."/store/main.php'><img src='".$this->default_path."/v3/images/".$_SESSION["admininfo"]['language']."/administration_mode_btn.gif' alt='튜토리얼모드' title='튜토리얼모드' /></a>";
+						}else{
+							$mstring .= "	<!--<a href='".$this->default_path."/store/tutorial.php'><img src='".$this->default_path."/v3/images/".$_SESSION["admininfo"]['language']."/tutorial_btn.gif' alt='튜토리얼모드' title='튜토리얼모드' /></a>-->";
+						}
+						$mstring .= "
+								</div>
+							</td>
+							<td style='text-align:center;'>
+							<!--form method='post' name='top_search_frm' id='top_search_frm' target=''>
+							<table cellspacing='0' cellpadding='0' border='0' style='width:333px; height:24px;'>
+							<col width='88px'>
+							<col width='195px'>
+							<col width='*'>
+								<tr>
+									<td style='text-align:left;'>
+									<select name='search_type' id='top_search_type' style='border:1px solid #c1c1c1;width:84px; height:20px; color:#7b7b7b;'  validation='true'  title='검색타입'>
+										<option value='' >선택</option>
+										<option value='bname' >주문자명</option>
+										<option value='rname' >수취인명</option>
+										<option value='deliverycode' >송장번호</option>
+										<option value='name' >회원명</option>
+										<option value='id' >아이디</option>
+										<option value='pname' >상품명</option>
+										<option value='pid' >상품코드</option>
+									</select>
+									</td>
+									<td style='text-align:left;'><input type='text' id='top_search_text'  name='search_text' title='검색명'  style='width:193px; padding:3px 0; padding:2px 0 3px 0 \9; border:0;'/></td>
+									<td>
+									<div style='height:24px; overflow:hidden;'>
+										<span style='margin-left:2px;'>
+											<img src='/admin/v3/images/btns/dev_adminbottom.png' id='top_searchdata' name='top_searchdata' style='margin-top:1px;cursor:pointer; position:relative; top:1px \9;'>
+										</span>
+									</div>
+									</td>
+								</tr>
+							</table>
+							</form-->
+							</td>
+							<td align='right' nowrap>
+								<div class='top_menu' >
+									<ul>";
+
+										$mstring .= "<li>";
+
+											//2014-11-06 Hong 다이소 임시처리 카페24관리자는 일정한 url로 보내기! id 는 box_cafe24 차후 삭제해도됨
+
+											if($_SESSION['admininfo']['charger_id'] == 'forbiz'){
+												$mstring .= "
+													<a href='http://".$_SERVER['HTTP_HOST']."/admin/store/errorlist.php' target='_self'>
+														<img src='http://".$_SERVER['HTTP_HOST']."/admin/images/btn/sysytem_manage.gif' border=0 align=absmiddle alt='시스템 관리' title='시스템 관리' id='left_menu_open'/>
+													</a>";
+											}
+
+											if($admininfo['mem_type'] == "A" && $_SESSION["admininfo"]["charger_ix"]!="53cac063a2cda1988c4d0529fe3796ab"){
+												//CRM
+												$mstring .= "
+												<img src='/admin/images/btn/btn_crm.png' border=0 align=absmiddle onClick=\"PopSWindow2('/admin/member/member_cti.php?mmode=pop&code=".$db->dt[code]."&mmode=pop&mode=cti',1280,800,'member_view')\" style='cursor:pointer;' alt='고객상담' title='고객상담' id='left_menu_open'/>";
+											}
+										$mstring .= "
+											</li>
+											<li style='padding-top:4px;'><img src='/admin/images/common/crm_gap.gif' border=0 align=absmiddle /></li>";
+										if($admininfo['admin_level'] >= 8 && $_SERVER["SERVER_NAME"]=="daisomall.co.kr"){
+											$mstring .= "<li>
+												<a href='http://daonmall.special105.freesell.co.kr/provider/index.html' target='_blank'>
+													<img src='/admin/images/".$admininfo["language"]."/before_shop.png' border=0 align=absmiddle alt='이전쇼핑몰' />
+												</a>
+											</li>
+											";
+										}
+        $db2 = new database;
+        $sql = "select            
+			  config_value as front_url
+			from
+			  shop_mall_config
+		    where
+			mall_ix = '".$_SESSION['admininfo']['mall_ix']."'
+			and config_name = 'front_url'";
+
+        $db2->query($sql);
+        $db2->fetch();
+        $front_url = $db2->dt['front_url'];
+
+        $client_host = $front_url;
+										$mstring .= "
+										<li class='top_menu_list01'>
+											[".$_SESSION["admininfo"][company_name]."] ".$_SESSION["admininfo"][admin_id]." 님
+										</li>
+										<li>
+											<a href='".$this->default_path."/admin.php?act=logout' class='btn-top-login'>LOG OUT</a>
+										</li>
+										<li class='top_menu_list01'>
+											<a href='".($_SESSION['admininfo']['mem_type'] == "A" ? $client_host : $client_host)."' target=_blank>마이스토어</a>
+										</li>
+										<!--li class='top_menu_list01'>ㅣ</li>
+										<li class='top_menu_list01'>
+											<a href='/admin/myservice/'>마이서비스</a>
+										</li-->
+										<!--li class='top_menu_list01'>ㅣ</li>
+										<li class='top_menu_list01'>
+											<a href='#'>도움말</a>
+										</li-->
+									</ul>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>";
+				if(substr_count($_SERVER["HTTP_HOST"],"forbiz")){
+					$mstring .= "<td class='topmenu_bg01' style='border-bottom:4px solid #ed1c24;'></td>";
+				}else{
+					$mstring .= "<td class='topmenu_bg01'></td>";
+				}
+			$mstring .= "
+			</tr>
+			<tr>
+				<td>
+					<div class='icon_menu_box'>
+						<table cellpadding='0' cellspacing='0' border='0' width='100%' >
+							<tr>
+								<td style='float:left;width:100%;'>
+									".$this->strTopMenu."
+								</td>
+							</tr>
+						</table>
+						<div class='arrow01'>
+							<img src='".$this->default_path."/v3/images/btns//top_arrowbox_".($_COOKIE[TOP_MENU_HIDDEN] == "N" ? "down":"up").".png' id='top_hidden_btn' up_btn='".$this->default_path."/v3/images/btns//top_arrowbox_up.png' down_btn='".$this->default_path."/v3/images/btns//top_arrowbox_down.png' alt='' title=''  onclick=\"TopMenuHidden()\" style='cursor:pointer;'/>
+						</div>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div id='content_new'>
+		<div id='container' >
+<table cellpadding='0' cellspacing='0' border='0' width='100%' >
+	
+	<tr>
+		<td>
+
+			<table cellpadding='0' cellspacing='0' border='0' width='100%' >
+				<!--페이지에 대한 레이아웃을 우선 설정하기 위해 해당 빈 tr 값을 넣어서 상단에서 구조설정을 선순위 로 작업 함 JK160317-->
+				<tr class='layout_setting'>
+					<td width='12%' ".((!$this->LeftMenuBool || $_COOKIE[HIDE_MENU] == "N") ? "style='display:none'":"")."></td>
+					<td width='8px'></td>
+					<td width='100%'></td>
+				</tr>
+				<tr>
+					<td width='210' align='center' class='sub_area' valign='top' id='admin_left_menu' rowspan=2 ".((!$this->LeftMenuBool || $_COOKIE[HIDE_MENU] == "N") ? "style='display:none'":"").">
+						<div style='padding:10px 0;display:none;'>
+							<img src='".$this->default_path."/v3/images/btns//order_btn01.gif' alt='주문관리' title='주문관리' />
+						</div>
+						<div class='close_btn01'>
+
+						</div>
+						
+						<div style='margin:5% auto 0px;width:212px;'>
+							".$this->strLeftMenu."
+						</div>";
+
+			if($_SESSION["admininfo"][admin_level] == 9 && substr_count($_SERVER["PHP_SELF"],"/admin/design")){
+	$mstring .= "	<table align=center width='100%' cellpadding=2 cellspacing=0>
+							<tr>
+								<td style='padding:0px 3px 0px 0px ;' align=center>
+								<!--a href=\"javascript:\" onclick=\"window.open('/admin/design/category.php','win_category','width=860,height=428');\"-->
+								<a href=\"/admin/design/category_frame.php\" rel='facebox' ><img src='../images/".$_SESSION["admininfo"]['language']."/btn_make_design2.gif'></a>
+								</td>
+							</tr>
+						</table>";
+						$mstring .= "	<table align=center width='100%' cellpadding=2 cellspacing=0>
+							<tr>
+								<td style='padding:5px 3px 3px 0px ;' align=center>
+								<!--a href=\"javascript:\" onclick=\"window.open('/admin/design/category.php','win_category','width=860,height=428');\"-->
+								<a href=\"javascript:PoPWindow3('/admin/manual/manual_ftp.php',800,800,'contact_info')\"><img src='../images/".$_SESSION["admininfo"]['language']."/btn_ALFTP_upload.gif'></a>
+								</td>
+							</tr>
+						</table>";
+			}
+			$mstring .= "
+					</td>
+					<td rowspan=2  style='width:7px;border-right:1px solid silver;vertical-align:top;padding-top:200px;background-color:#efefef;cursor:hand;' onclick=\"MenuHidden();\" onmouseover=\"$(this).css('background-color','silver');\" onmouseout=\"$(this).css('background-color','#efefef');\"><img src='".$this->default_path."/v3/images/btns//sub_arrowbox_".($_COOKIE[HIDE_MENU] == "N" ? "right":"left").".png' left_btn='".$this->default_path."/v3/images/btns//sub_arrowbox_left.png' right_btn='".$this->default_path."/v3/images/btns//sub_arrowbox_right.png' id='left_hidden_btn' alt='' title='' /></td>
+					
+				
+					<td width='*'  valign='top' >
+						<table cellpadding='0' cellspacing='0' border='0' width='100%' style='border:0px solid red;min-height:900px;'>
+							<!--col width='*' />
+							<col width='242' /-->
+							<tr>
+								<td width='*' align='left' class='box_border' style='border-left:0;overflow:hidden;' valign='top'>";
+									if($this->TitleBool){
+									$mstring .= "
+									<div style='text-align:left;border-bottom:solid 1px #c5c5c5;'>
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' >
+											<tr>
+												<td>
+													<div class='icon_title01'>
+													<span style='color:#000000;'>".$this->title."</span>
+													<a href='/admin/favorite.act.php?act=add&page_id=".md5($_SERVER["PHP_SELF"])."&favorite_link=".urlencode($_SERVER["REQUEST_URI"])."&favorite_name=".urlencode($this->title)."' target='iframe_act' class=small><img src='".$this->default_path."/v3/images/btns/bookmark_btn.gif' alt='즐겨찾기추가' title='즐겨찾기추가' style='position:relative;top:3px;' /></a>
+													</div>
+												</td>
+												<td align='right'>
+													<div style='margin:35px 10px 5px 0;'>
+														".$this->Navigation." <!--<img src='".$this->default_path."/images/icon_q.gif' style='cursor:pointer;' align=absmiddle onclick=\"HelpView()\">-->
+													</div>
+												</td>
+												<td width=28><img src='".$this->default_path."/images/btn/".(($_COOKIE[ALL_HIDE_MENU] == "Y" || $_COOKIE[ALL_HIDE_MENU] == "") ? "wide":"general")."_view.gif' wide_src='".$this->default_path."/images/btn/wide_view.gif' general_src='".$this->default_path."/images/btn/general_view.gif' wide_type='".$_COOKIE[ALL_HIDE_MENU]."' alt='".$_COOKIE[ALL_HIDE_MENU]."' title='".$_COOKIE[ALL_HIDE_MENU]."'  style='cursor:pointer;' id='wide_view' onclick=\"WideView();\" /></td>
+											</tr>
+										</table>
+									</div>";
+									}
+
+									$mstring .= "
+									<div style='".($this->ContentsDefaultPadding != "" ? "margin:".$this->ContentsDefaultPadding:"").";width:".$this->ContentsWidth.";min-width:".$this->ContentsWidth.";padding-bottom:75px;margin-right:20px;' id='contents_frame'>
+										".$this->strContents."
+										<div style='line-height:0;font-size:0;clear:both;'></div>
+									</div> 
+								</td>
+								<td style='border-left:1px solid silver;width:7px;vertical-align:top;text-align:center;;padding-top:200px;background-color:#efefef;cursor:hand;' onclick=\"RightMenuHidden();\" onmouseover=\"$(this).css('background-color','silver');\" onmouseout=\"$(this).css('background-color','#efefef');\"><img src='".$this->default_path."/v3/images/btns//sub_arrowbox_".($_COOKIE[RIGHT_MENU_HIDDEN] == "N" ? "left":"right").".png' left_btn='".$this->default_path."/v3/images/btns//sub_arrowbox_left.png' right_btn='".$this->default_path."/v3/images/btns//sub_arrowbox_right.png' id='right_hidden_btn' alt='' title='' /></td>
+								<td width='242' class='box_border' id='ServiceInfoArea' valign='top' ".($this->ServiceInfoBool  ? "style='display:none;' ":"style='display:none;' ").">
+									<div style='width:217px;margin:0 5%;padding-bottom:50px;'>
+										<!--상점한번에보기 [S]-->
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+											<col width='50%' />
+											<col width='*' />
+											<tr>
+												<td align='left'>
+													<div class='icon_title'><span>사용정보</span></div>
+												</td>
+												<td align='right'>
+													&nbsp;
+												</td>
+											</tr>
+										</table>
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' style='margin:0 auto;' class='table_box use_info'>
+											<tr>
+												<td>
+													<div>
+														상품 : <strong>소호형 </strong> <img src='".$this->default_path."/v3/images/btns//change_btn01.gif' alt='전환' title='전환' style='cursor:pointer;position:relative;top:3px;'/>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														최초설치 : <strong>2011.10.10</strong>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														도메인 : <strong>mallstory.com</strong> <img src='".$this->default_path."/v3/images/btns//change_btn02.gif' alt='변경' title='변경' style='cursor:pointer;position:relative;top:3px;'/>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														약전기간 : <strong>1년 </strong>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														남은기간 : <strong>1,100일 </strong> <img src='".$this->default_path."/v3/images/btns//extension_btn.gif' alt='연장' title='연장' style='cursor:pointer;position:relative;top:3px;'/>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														SMS : <strong>100건 </strong> <img src='".$this->default_path."/v3/images/btns//recharge_btn.gif' alt='충전' title='충전' style='cursor:pointer;position:relative;top:3px;'/>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														총 등록상품 : <strong>222개 </strong>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														사용 DB용량 : <strong><span style='color:#005aff;'>75M </span>/ 100M</strong>
+													</div>
+												</td>
+											</tr>
+										</table>
+										<!--상점한번에보기 [E]-->
+										<!--상점한번에보기 [S]-->
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+											<tr>
+												<td align='left'>
+													<div class='icon_title'><span>운영서비스 이용현황</span></div>
+												</td>
+											</tr>
+										</table>
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' style='margin:0 auto;' class='service_box'>
+											<col width='*' />
+											<col width='40' />
+											<tr>
+												<td>
+													<div>
+														정식도메인
+													</div>
+												</td>
+												<td align='center'>
+													<a href=\"javascript:alert('도메인 변경은 몰스토리 서비스 사이트에 신청 하실수 있습니다.')\"><img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/></a>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														SMS문자방송
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														전자결제(카드결제)
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														구매안전(에스크로)
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														실명확인
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//use_btn.gif' alt='사용' title='사용' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														전자세금계산서
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														통장자동입금확인
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														보안서버
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														이미지호스팅
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//use_btn.gif' alt='사용' title='사용' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														네이버지식쇼핑
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//use_btn.gif' alt='사용' title='사용' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														딥줌
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//use_btn.gif' alt='사용' title='사용' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														모바일쇼핑
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														로그분석
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														공유상품
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														대량메일발송
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														서셜커머스1.0
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														이커머스분석1.0
+													</div>
+												</td>
+												<td align='center'>
+													<img src='".$this->default_path."/v3/images/btns//application_btn.gif' alt='신청' title='신청' style='cursor:pointer;'/>
+												</td>
+											</tr>
+										</table>
+										<!--상점한번에보기 [E]-->
+										<!--div class='ad_box'>
+											<img src='".$this->default_path."/v3/images/common/ad_box01.gif' alt='몰스토리소셜커머스1.0' title='몰스토리소셜커머스1.0' style='cursor:pointer;'/>
+											<div class='ad_list01'>
+												<img src='".$this->default_path."/v3/images/btns//banner_01_on.gif' alt='' title='' style='cursor:pointer;'/>
+												<img src='".$this->default_path."/v3/images/btns//banner_02.gif' alt='' title='' style='cursor:pointer;'/>
+												<img src='".$this->default_path."/v3/images/btns//banner_03.gif' alt='' title='' style='cursor:pointer;'/>
+											</div>
+										</div>
+										<div class='ad_box'>
+											<img src='".$this->default_path."/v3/images/common/ad_box02.gif' alt='몰스토리매직스킨' title='몰스토리매직스킨' style='cursor:pointer;'/>
+											<div class='ad_list01'>
+												<img src='".$this->default_path."/v3/images/btns//banner_01_on.gif' alt='' title='' style='cursor:pointer;'/>
+												<img src='".$this->default_path."/v3/images/btns//banner_02.gif' alt='' title='' style='cursor:pointer;'/>
+												<img src='".$this->default_path."/v3/images/btns//banner_03.gif' alt='' title='' style='cursor:pointer;'/>
+											</div>
+										</div>
+										<div class='ad_box'>
+											<img src='".$this->default_path."/v3/images/common/ad_box03.gif' alt='몰스토리모바일쇼핑몰' title='몰스토리모바일쇼핑몰' style='cursor:pointer;'/>
+											<div class='ad_list01'>
+												<img src='".$this->default_path."/v3/images/btns//banner_01_on.gif' alt='' title='' style='cursor:pointer;'/>
+												<img src='".$this->default_path."/v3/images/btns//banner_02.gif' alt='' title='' style='cursor:pointer;'/>
+												<img src='".$this->default_path."/v3/images/btns//banner_03.gif' alt='' title='' style='cursor:pointer;'/>
+											</div>
+										</div-->
+									</div>
+								</td>
+								<td class='box_border' id='RightMenuArea' width=217 valign='top' ".((!$this->RightMenuBool || $_COOKIE[RIGHT_MENU_HIDDEN] == "N") ? "style='display:none'":"").">
+									<div id='help_info' style='display:none;width:90%;margin:0 5%;'>
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+											<col width='100%' />
+											<tr height=40>
+												<td align='left'>
+													<img src='".$this->default_path."/images/dot_org.gif' align=absmiddle> <b class='middle_title'>도움말</b>
+												</td>
+											</tr>
+											<tr>
+												<td id='help_movie'>
+
+												</td>
+											</tr>
+											<tr>
+												<td id='help_text' style='padding:30px 0px 30px 0px;line-height:140%;'>
+													원하는 레이아웃 이미지를 참조하여 각각의 위치에 해당되는 파일을 선택합니다.<br>
+													새로운 레이아웃을 만드실 경우에는 위와 같이 치환코드를 삽입해주셔야 합니다.<br>
+													자주 갱신되지 않으며 많이 노출되는 웹페이지를 캐쉬하는 '캐쉬설정 기능'을 이용하면 전체적인 웹사이트의 성능을 향상 시킬수 있습니다.
+													디자인 구성정보 및 디자인 페이지 내용이 갱신되면 자동으로 캐쉬가 갱신됩니다.<br>
+													게시판, 마이페이지는 캐쉬 설정을 하지 않토록 권장 합니다.<br>
+
+												</td>
+											</tr>
+										</table>
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+											<tr>
+												<td align='left'>
+													<img src='".$this->default_path."/images/dot_org.gif' align=absmiddle> <b class='middle_title'>실시간 몰스토리</b>
+												</td>
+											</tr>
+										</table>
+										<div id='mallstory_realtime_box' style=''>
+											<table cellpadding='0' cellspacing='0' border='0' width='100%' class='mallstory_realtime_box' id='mallstory_realtime_box'>
+												<col width='3px' />
+												<col width='*' />
+												<col width='3px' />
+												<tr>
+													<th class='memobox_left'></th>
+													<th class='memobox_bg'>
+														<input type=text name='mallstory_memo' id='mallstory_memo' style='border:0;background:transparent;width:100%;margin-top:2px;padding:4px 0;margin-left:10px;font-size:13px;' title='입력후 엔터키를 누르세요'>
+													</th>
+													<th class='memobox_right'></th>
+												</tr>
+											</table>
+										</div>
+									</div>
+									<div id='basic_info' style='display:block;width:95%;margin:0 5%;'>";
+
+
+								if($this->ServiceInfoBool){
+									$sms_design = new SMS;
+									$sms_cnt = $sms_design->getSMSAbleCount($_SESSION["admininfo"]);
+								$mstring .= "
+										<!--상점한번에보기 [S]-->
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+											<col width='50%' />
+											<col width='*' />
+											<tr>
+												<td align='left'>
+													<img src='".$this->default_path."/images/dot_org.gif' align=absmiddle> <b class='middle_title'>사용정보</b>
+												</td>
+												<td align='right'>
+													&nbsp;
+												</td>
+											</tr>
+										</table>
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' style='margin:0 auto;' class='table_box use_info'>
+											<tr>
+												<td class='point'>
+													<div>
+														상품 : <strong>".getSolutionType($_SESSION["admininfo"][mall_type])."  </strong> ".($_SESSION["admininfo"][mall_type] == "F" ? "<img src='".$this->default_path."/v3/images/btns//change_btn01.gif' alt='전환' title='전환' style='cursor:pointer;position:relative;top:3px;'/>":"")."
+													</div>
+												</td>
+											</tr>
+											<!--tr>
+												<td>
+													<div>
+														최초설치 : <strong>2011.10.10</strong>
+													</div>
+												</td>
+											</tr-->
+											<tr>
+												<td>
+													<div style='padding:5px 0px;'>
+														도메인 : <strong><br>".$_SESSION["admin_config"][mall_domain]."</strong> <a href=\"javascript:alert('도메인 변경은 몰스토리 서비스 사이트에 신청 하실수 있습니다.')\"><img src='".$this->default_path."/v3/images/btns//change_btn02.gif' alt='변경' title='변경' style='cursor:pointer;position:relative;top:3px;' /></a>
+													</div>
+												</td>
+											</tr>
+											<!--tr>
+												<td>
+													<div>
+														약정기간 : <strong>".($_SESSION["admininfo"][mall_type] == "F" ? "-":"-")." </strong>
+													</div>
+												</td>
+											</tr-->
+											<!--tr>
+												<td>
+													<div>
+														남은기간 : <strong>".($_SESSION["admininfo"][mall_type] == "F" ? "사용 종료일까지 <img src='".$this->default_path."/v3/images/btns//extension_btn.gif' alt='연장' title='연장' style='cursor:pointer;position:relative;top:3px;'/> ":" <img src='".$this->default_path."/v3/images/btns//change_btn01.gif' alt='전환' title='전환' style='cursor:pointer;position:relative;top:3px;'/> ")." </strong>
+													</div>
+												</td>
+											</tr-->
+											<tr>
+												<td>
+													<div>
+														SMS : <strong>".number_format($sms_cnt)." 건 </strong> <a href='/admin/store/sms.point.php'><img src='".$this->default_path."/v3/images/btns//recharge_btn.gif' alt='충전' title='충전' style='cursor:pointer;position:relative;top:3px;'/></a>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														총 등록상품 : <strong><a href='".$this->default_path."/product/product_list.php'>".number_format(regProductCnt())." 개 </a></strong>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div>
+														사용 DB용량 : <strong><span style='color:#005aff;'>".getMyDBinfo()."</span></strong>
+													</div>
+												</td>
+											</tr>
+										</table>
+										<!--상점한번에보기 [E]-->";
+									}
+								$mstring .= "
+										<!--즐겨찾기 [S]-->
+										<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+											<col width='50%' />
+											<col width='*' />
+											<tr>
+												<td align='left'>
+													<img src='".$this->default_path."/images/dot_org.gif' align=absmiddle> <b class='middle_title'>즐겨찾기</b>
+												</td>
+												<td align='right'>
+													&nbsp;
+												</td>
+											</tr>
+										</table>
+										".$this->right_menu."
+										<!--즐겨찾기 [E]-->
+
+
+									</div>
+								</td>
+								<td height=700></td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr> 
+</table>
+		</div>
+	</div>
+	<div id='footer'  >
+		<!-- 하단1 [S] -->
+		
+		<!-- 하단1 [E] -->
+	</div>
+<div style='clear:both;line-height:0;font-size:0;'></div>
+</div>
+<div id='footer_menu_01' style='position:absolute; bottom:0px; width:100%; height:30px; background:#ebeceb; border-top:2px solid #ea4200; min-width:1300px;'>";
+/*
+	$mstring .= "
+	<!-- 하단2 [S] -->
+	<table cellpadding='0' cellspacing='0' border='0' width='100%' height='30px'>
+				<col width='70%' />
+				<col width='30%' />
+				<col width='1%' />
+				<tr>
+					<td nowrap>";
+
+
+					if($this->footer_menu == ""){
+					$mstring .= "
+						<ul class='footer_list'>
+							<li>
+								<a href='http://www.mallstory.com/intro/' target=_blank>몰스토리</a>
+							</li>
+							<li style='color:#ffffff;'> ㅣ </li>
+							<li>
+								<a href='http://www.mallstory.com/shop/' target=_blank>디자인</a>
+							</li>
+							<li style='color:#ffffff;'> ㅣ </li>
+							<li>
+								<a href='http://www.mallstory.com/marketing/' target=_blank>마케팅</a>
+							</li>
+							<li style='color:#ffffff;'> ㅣ </li>
+							<li>
+								<a href='http://www.mallstory.com/addservice/' target=_blank>부가서비스</a>
+							</li>
+							<li style='color:#ffffff;'> ㅣ </li>
+							<li>
+								<a href='http://www.mallstory.com/customer/' target=_blank>고객센터</a>
+							</li>
+							<li style='color:#ffffff;'> ㅣ </li>
+							<li>
+								<a href='http://www.mallstory.com/customizing/' target=_blank>맞춤제작/이전</a>
+							</li>
+							<li style='color:#ffffff;'> ㅣ </li>
+							<li>
+								<a href='http://www.mallstory.com/customer/bbs.php?board=notice' target=_blank>공지사항 <img src='".$this->default_path."/v3/images/btns//new_icon.gif' alt='' title='' /></a>
+							</li>
+							<!--li> ㅣ </li>
+							<li>
+								<a href='#'>도움말</a>
+							</li-->
+						</ul>";
+					}else{
+					$mstring .= $this->footer_menu;
+					}
+
+					$mstring .= "
+					</td>
+					<td style='color:#383d41;' style='text-align:right;'>
+						Copyright ⓒ <strong>Mallstory</strong>. All Rights Reserved.
+					</td>
+					<td style='text-align:right;' align=right>
+
+						<!--ul class='footer_list'>
+							<li>
+								<a href='http://www.mallstory.com/customer/bbs.php?board=notice' target=_blank>공지사항 <img src='".$this->default_path."/v3/images/btns//new_icon.gif' alt='' title='' /></a>
+							</li>
+							<li> ㅣ </li>
+							<li>
+								<a href='#'>도움말</a>
+							</li>
+						</ul-->
+					</td>
+				</tr>
+			</table>
+	<!-- 하단2 [E] -->";
+*/
+$mstring .= "
+</div>
+<div id='loading' style='display:none;border:0px solid red;width:0px;height:0px;padding-top:13px;text-align:center;'>
+<table class='layer_box' border=0 cellpadding=0 cellspacing=0 style='width:250px;height:70px;' >
+		<col width='11px'>
+		<col width='*'>
+		<col width='11px'>
+		<tr>
+			<th class='box_01'></th>
+			<td class='box_02' ></td>
+			<th class='box_03'></th>
+		</tr>
+
+		<tr>
+			<th class='box_04' style='vertical-align:top'></th>
+			<td class='box_05' rowspan=2 valign=top style='padding:15px 15px 5px 25px;font-size:12px;line-height:150%;text-align:left;' >
+			<table>
+				<tr>
+					<td><img src='/admin/images/indicator_.gif' border=0><!--img src='../images/loading_large.gif' border=0--></td>
+					<td style='padding-left:20px;'> 정보를 처리중입니다...</td>
+				</tr>
+			</table>
+			</td>
+			<th class='box_06'></th>
+		</tr>
+		<tr>
+			<th class='box_04'></th>
+			<th class='box_06'></th>
+		</tr>
+		<tr>
+			<th class='box_07'></th>
+			<td class='box_08'></td>
+			<th class='box_09'></th>
+		</tr>
+	</table>
+</div>
+<div id='layerBg' style='border:0px solid gray;'></div>
+<iframe name='act' id='act' width=0 height=0 frameborder=0 style='display:none;' ></iframe><!-- style='display:none;'-->
+<iframe name='iframe_act' id='iframe_act' width=0 height=0 frameborder=0 style='display:none;'></iframe>
+<iframe name='bs_site_frame' id='bs_site_frame' width='0%' height='0px' frameborder=0></iframe>
+</body>
+<script>
+linecss();
+</script>
+<script>
+	//$.blockUI.defaults.css = {};
+	//$.blockUI({ message: $('#loading'), css: { width: '100px' , height: '100px' ,padding:  '10px'} });
+</script>
+<script language='JavaScript' src='".$this->default_path."/js/admin_bottom.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/v3/js/menus_layer.js'></Script>
+<script language='JavaScript' src='".$this->default_path."/v3/include/menus_data.php'></Script>
+";
+if($_SESSION["admininfo"][admin_access] == true || $_SESSION['admininfo']['change_access_pw'] == true){
+$mstring .= "
+<script type='text/javascript' language=javascript src='".$this->default_path."/js/facebox_nonclick.js'></script>
+<script type='text/javascript' language=javascript >";
+	if($_SESSION['admininfo']['admin_access'] == true){
+		$mstring .= "
+		$(document).ready(function() { 
+			jQuery.facebox({ ajax: '/admin/access_pop.php?charger_ix=".$_SESSION['admininfo']['charger_ix']."' })
+		}); 
+		";
+	}
+	if($_SESSION['admininfo']['admin_access']== false && $_SESSION['admininfo']['change_access_pw'] == true){
+		$mstring .= "
+		$(document).ready(function() { 
+			jQuery.facebox({ ajax: '/admin/change_pw_pop.php?charger_ix=".$_SESSION['admininfo']['charger_ix']."' })
+		}); 
+		";
+	}
+	$mstring .= "
+</script>
+";
+}else{
+    if($_SESSION['admininfo']['ch_type']== true){
+        $mstring .= "
+        <script type='text/javascript' language=javascript src='".$this->default_path."/js/facebox_nonclick.js'></script>
+        ";
+    } else {
+        $mstring .= "
+        <script type='text/javascript' language=javascript src='".$this->default_path."/js/facebox.js'></script>
+        ";
+    }
+
+$mstring .= "
+<script type='text/javascript' language=javascript >";
+	if($_SESSION['admininfo']['ch_type']== true){
+		$mstring .= "
+		$(document).ready(function() { 
+			jQuery.facebox({ ajax: '/admin/change_pw_pop_igeg.php?charger_ix=".$_SESSION['admininfo']['charger_ix']."' })
+		}); 
+		";
+	} else {
+
+    }
+$mstring .= "
+</script>
+";
+
+}
+$mstring .= "
+
+ <script type='text/javascript' src='".$this->default_path."/js/jquery.numeric.js'></script>
+<script type='text/javascript' src='".$this->default_path."/js/jquery.hotkeys-0.7.9.js'></script>
+
+<script language='javascript'>
+try{
+$('.numeric').numeric();
+}catch(e){}
+$('.integer').numeric(false, function() { alert(integer_only); this.value = ''; this.focus(); });
+$('.positive').numeric({ negative: false }, function() { alert(no_nagative_values); this.value = ''; this.focus(); });
+$('.positive-integer').numeric({ decimal: false, negative: false }, function() { alert('Positive integers only'); this.value = ''; this.focus(); });
+$('#remove').click(
+	function(e)
+	{
+		e.preventDefault();
+		$('.numeric,.integer,.positive').removeNumeric();
+	}
+);
+$(document).bind('keydown', 'Alt+1', function(){ location.href='/admin/store/main.php'});
+$(document).bind('keydown', 'Alt+m', function(){ location.href='/admin/member/member.php'});
+$(document).bind('keydown', 'Alt+p', function(){ location.href='/admin/product/product_list.php'});
+$(document).bind('keydown', 'Alt+w', function(){ location.href='/admin/inventory/stock_report.php'});
+$(document).bind('keydown', 'Alt+s', function(){ document.forms[0].submit();});
+//$(document).bind('keydown', 'F4', function(){ document.forms[0].submit();});
+//Remove the shortcut
+//shortcut.remove('Ctrl+B');
+</script>";
+if(true){
+$mstring .= "
+<script language='javascript'>
+	
+$(document).ready(function (){		//해상도 관련 width 값 주기 2014-07-07 이학봉 잠시 주석 
+	var width_screen = window.screen.width; //사용자의 해상도 가로픽셀값
+	//window.screen.height : 사용자의 해상도 세로픽셀값
+	
+	if(width_screen <= '1280'){
+		//alert(width_screen);
+		$('#contents_frame').css('width','98%');
+		$('#contents_frame').css('min-width','98%');
+		//$('#admin_left_menu').hide();
+		//$('#RightMenuArea').hide();
+	}else{
+		//alert(width_screen);
+		$('#contents_frame').css('width','".$this->ContentsWidth."');
+		$('#contents_frame').css('min-width','".$this->ContentsWidth."'); 
+		//$('#admin_left_menu').show();
+		//$('#RightMenuArea').show();
+	}
+	
+
+});
+</script>";
+}
+if(substr_count( $_SERVER["PHP_SELF"],"/store/main") > 0 || substr_count( $_SERVER["PHP_SELF"],"/seller/") > 0){
+$mstring .= MainPopUp("","","A");
+}
+$mstring .= "
+</html>";
+/*
+for($i=0;$i < count($languages);$i++){
+	$mstring = str_replace($languages[$i]["text_korea"], $languages[$i]["text_trans"], $mstring);
+}
+*/
+for($i=0;$i < count($dics);$i++){
+	$mstring = str_replace($dics[$i]["text_korea"], $dics[$i]["text_trans"], $mstring);
+}
+
+
+echo $mstring;
+//echo "<table border=1 width=100% height=100%><tr><td></td></tr></table>";
+	$this->end_time = time();
+	$sql = "update logstory_admin_page_log set end_time = '".$this->end_time."' , duration_time = '".($this->end_time-$this->start_time)."' where apl_ix = '".$this->apl_ix."' ";
+	/*
+	$sql = "insert into logstory_admin_page_log
+			(apl_ix,page_code, php_self,query_string,start_time,end_time,duration_time, charger_ix,charger_id,charger_name,server_ip, client_ip_address, regdate)
+			values
+			('','".md5($_SERVER["PHP_SELF"])."','".$_SERVER["PHP_SELF"]."','".$_SERVER["QUERY_STRING"]."','".$this->start_time."','".$this->end_time."','".($this->end_time-$this->start_time)."','".$_SESSION["admininfo"]["charger_ix"]."','".$_SESSION["admininfo"]["charger_id"]."','".$_SESSION["admininfo"]["charger"]."','"$_SERVER["SERVER_ADDR"]."','"$_SERVER["REMOTE_ADDR"]."',NOW())";
+	*/
+	//echo nl2br($sql);
+	$mdb->query($sql);
+	}
+
+	function view_favorite(){
+		global $admininfo;
+		$mdb = new Database;
+
+		if(!$mdb->table_exists("shop_admin_favorite")){
+			$sql = "CREATE TABLE `shop_admin_favorite` (
+			  `favorite_ix` int(4) unsigned NOT NULL auto_increment,
+			  `company_id` varchar(32) NOT NULL default '',
+			  `charger_id` varchar(30) NOT NULL default '',
+			  `page_id` varchar(32) default NULL,
+			  `favorite_name` varchar(255) default NULL,
+			  `favorite_link` varchar(255) default NULL,
+			  `view_order` int(4) default '1',
+			  `regdate` datetime default NULL,
+			  PRIMARY KEY  (`favorite_ix`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='관리자 즐겨찾기테이블'";
+			$mdb->query($sql);
+		}
+
+		$sql = "select * from shop_admin_favorite where company_id = '".$_SESSION["admininfo"]["company_id"]."' and charger_id = '".$_SESSION["admininfo"]["admin_id"]."'  ";
+		//echo $sql;
+		$mdb->query($sql);
+		$mstring .="<div style='text-align:left;'>
+			<table cellpadding='0' cellspacing='0' border='0' width='95%' style='margin:0 0px;' class='service_box'>";
+		//$mstring .="<tr><td  nowrap><b>즐겨찾기 메뉴</b></td></tr>";
+
+		if($mdb->total){
+			for($i=0;$i < $mdb->total;$i++){
+				$mdb->fetch($i);
+				$mstring .= "<tr>
+							<td align=left style='padding:0 0 0 5px' nowrap>
+								<a href='".$mdb->dt[favorite_link]."' class='small'> <img src='/admin/images/icon/dot_orange.gif' align=absmiddle> ".$mdb->dt[favorite_name]."</a>
+							</td>
+							<td nowrap>
+								<a href='#' onclick=\"javascript:$(this).parent().parent().remove();window.frames['iframe_act'].location.href='/admin/favorite.act.php?act=delete&page_id=".$mdb->dt[page_id]."'\"  class='small'><img src='".$this->default_path."/v3/images/btns/close_btn.gif'></a>
+							</td>
+						</tr>";
+				//$mstring .= "<tr><td colspan=2 class=dot-x></td></tr>";
+			}
+		}else{
+			$mstring .= "<tr height=30><td colspan=2 nowrap>추가된 즐겨찾기 메뉴가 없습니다.</td></tr>";
+		}
+		$mstring .="</table>
+		</div>";
+if($_SESSION["admininfo"][mall_type] != "O" || true){
+    if(strpos($_SESSION['admininfo']['admin_id'] ,'forbiz') !== false){
+        $mstring .= "
+		<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+			<tr>
+				<td align='left'>
+					<img src='" . $this->default_path . "/images/dot_org.gif' align=absmiddle> <b class='middle_title'>SMS 발송하기</b>
+				</td>
+			</tr>
+			<tr> 
+				<td> 
+					<input type='button' value='SMS발송하기' onclick=\"PoPWindow('../sms.pop_manual.php',500,380,'sendsms_manual')\"/>
+				</td>
+			</tr>
+		</table>";
+    }
+    $mstring .= "
+
+		<table cellpadding='0' cellspacing='0' border='0' width='100%' class='title_area'>
+			<tr>
+				<td align='left'>
+					<img src='".$this->default_path."/images/dot_org.gif' align=absmiddle> <b class='middle_title'>한줄 메모하기</b>
+				</td>
+			</tr>
+		</table>
+		<div id='work_tmp_box' style=''>
+			<div id='work_tmp_input' class='memo_box' style='border:0px solid red;width:220px;padding:3px 0px;'>
+			<input type=text name='work_memo' id='work_memo' style='border:0;background:transparent;width:200px;margin-top:2px;padding:4px 0;margin-left:10px;font-size:13px;' title='입력후 엔터키를 누르세요'>
+			</div>
+			<div id='external-events' style='width:95%;'>";
+
+$sql = "SELECT wt_ix, work_tmp_title FROM work_tmp  where charger_ix = '".$_SESSION["admininfo"][charger_ix]."' order by regdate desc";
+//	echo $sql;
+$mdb->query($sql);
+	$mstring .= "<div class='external-event' wt_ix='' style='display:none;'></div>";
+if(!$mdb->total){
+		$mdb->fetch($i);
+		$mstring .= "<div class='external-event' >메모를 남기실수 있습니다. 더블클릭시 메모가 삭제 됩니다</div>";
+}else{
+	for($i=0;$i < $mdb->total;$i++){
+		$mdb->fetch($i);
+		$mstring .= "<div class='external-event' wt_ix='".$mdb->dt[wt_ix]."' id='event_".$mdb->dt[wt_ix]."' style='word-break:break-all;' ondblclick=\"work_tmp_delete('event_".$mdb->dt[wt_ix]."');\">".$mdb->dt[work_tmp_title]."</div>";
+	}
+}
+	$mstring .= "	<p>";
+	if($_SESSION["admininfo"][use_work] == "Y"){
+	$mstring .= "	<input type='checkbox' id='drop-remove' checked /> <label for='drop-remove'>스케줄 등록후 삭제</label>";
+	}
+	$mstring .= "
+			</p>
+			</div>
+			<div style='display:none;'>Selected keys: <span id='echoSelection3'>-</span></div>
+			<div style='display:none;'>Selected root keys: <span id='echoSelectionRootKeys3'>-</span></div>
+			<div style='display:none;'>Selected root nodes: <span id='echoSelectionRoots3'>-</span></div>
+		</div>";
+}
+$mstring .= "";
+		return $mstring;
+	}
+
+}
+
+
+/*
+// 문자열 자르기
+function cut_str($str,$len){
+
+  if(strlen($str) < $len) return $str;
+
+  $str = substr($str, 0, $len);
+  $j = 0;
+
+  for($i = strlen($str) - 1; $i >= 0; $i--) {
+       if(ord($str[$i]) <= 127) break;
+       $j++;
+  }
+
+  $str = ($j % 2) ? substr($str, 0, strlen($str) - 1) : $str;
+
+  $str .= "...";
+
+  return $str;
+}
+*/
+
+
+function getSolutionType($solution_type){
+	if($solution_type == "H"){
+		return "홈빌더";//무료형
+	}else if($solution_type == "F"){
+		return "소호형";//무료형
+	}else if($solution_type == "R"){
+		return "임대형";
+	}else if($solution_type == "S"){
+		return "독립형";
+	}else if($solution_type == "B"){
+		return "비즈니스형";//입점형
+	}else if($solution_type == "BW"){
+		return "도매형";
+	}else if($solution_type == "O"){
+		return "오픈마켓형(스탠다드형)";
+	}else if($solution_type == "E"){
+		return "오픈마켓형(Enterprise)";
+	}else{
+
+	}
+}
+
+function PrintBoardSummary(){
+	global $db, $mdb;
+
+	$sql = "select * from bbs_manage_config  where board_style = 'bbs' and recent_list_display = 'Y' ";
+	//echo $sql ;
+	$mdb->query($sql);
+	$total = $mdb->total;
+	$max = 7;
+
+	//echo $total;
+
+	if ($page == ''){
+		$start = 0;
+		$page  = 1;
+	}else{
+		$start = ($page - 1) * $max;
+	}
+
+	$mString = "<table cellpadding=4 cellspacing=0 width=100% style='table-layout:fixed;' class='list_table_box'>";
+	$mString .= "<tr align=center bgcolor=#efefef height=30 style='font-weight:bold;'>
+		<td width='22%' class='s_td'>게시판</td>
+		<td width='45%' class='m_td'>제목</td>
+		<td width='10%' class='m_td'>작성자</td>
+		<td width='13%' class='m_td'>등록일</td>
+		<td width='10%' class='e_td'>조회수</td>
+		</tr>";
+	//$mString = $mString."<tr align=center bgcolor=#efefef height=30><td class=s_td width='20%'>게시판</td><td class=m_td width='40%'>제목</td><td class=m_td width='10%'>작성자</td><td class=m_td width='20%'>등록일</td><td class=e_td width='10%'>조회수</td></tr>";
+	//echo ($mdb->total);
+	if ($total == 0){
+		$mString .= "<tr bgcolor=#ffffff height=150><td colspan=9 align=center>최근 게시물 내역이 존재 하지 않습니다..</td></tr>";
+	}else{
+		$j=0;
+
+
+		if($mdb->dbms_type == "oracle"){
+			//$sql = "create global temporary table   bbs_tmp   AS ";
+			$sql = "  ";
+			$rownum_sql = " where rownum < 10  ";
+			$limit_sql = "";
+
+			$db->query("delete from bbs_tmp ");
+		}else{
+			$sql = "create temporary table IF NOT EXISTS bbs_tmp ENGINE = MEMORY ";
+			$limit_sql = " limit 10 ";
+			$rownum_sql = "";
+		}
+
+
+
+		for($j=0;$j < $mdb->total;$j++){
+			$mdb->fetch($j);
+			if($j == 0){
+				//2012-08-21 홍진영
+				//$sql .= "select '".$mdb->dt[board_name]."          ' as board_name, '".$mdb->dt[board_ename]."               ' as board_ename,  bbs_ix, bbs_subject, bbs_name, bbs_hit, bbs_re_cnt, regdate, case when regdate > DATE_SUB(now(), interval 3 day) then 1 else 0 end as new from bbs_".$mdb->dt[board_ename]." limit 10   ";
+				$column_len1=strlen($mdb->dt[board_name]);
+				$column_len2=strlen($mdb->dt[board_ename]);
+				if($mdb->dbms_type == "oracle"){
+				$sql .= "select CASE WHEN length('".$mdb->dt[board_name]."')>".$column_len1." THEN '".$mdb->dt[board_name]."               ' ELSE '".$mdb->dt[board_name]."' END as board_name,
+						CASE WHEN length('".$mdb->dt[board_ename]."')>".$column_len2." THEN '".$mdb->dt[board_ename]."               ' ELSE '".$mdb->dt[board_ename]."' END as board_ename,
+						bbs_ix, bbs_subject, bbs_name, bbs_hit, bbs_re_cnt, regdate,
+						case when regdate > SYSDATE - interval '3' day  then 1 else 0 end as new
+						from bbs_".$mdb->dt[board_ename]."
+						$rownum_sql
+						order by regdate desc
+						".$limit_sql ;
+				}else{
+				$sql .= "select if(length('".$mdb->dt[board_name]."')>".$column_len1.",'".$mdb->dt[board_name]."               ','".$mdb->dt[board_name]."') as board_name, if(length('".$mdb->dt[board_ename]."')>".$column_len2.",'".$mdb->dt[board_ename]."               ','".$mdb->dt[board_ename]."') as board_ename,  bbs_ix, bbs_subject, bbs_name, bbs_hit, bbs_re_cnt, regdate,
+						case when regdate > DATE_SUB(now(), interval '3' day) then 1 else 0 end as new
+						from bbs_".$mdb->dt[board_ename]."
+						$rownum_sql
+						order by regdate desc ".$limit_sql ;
+
+
+				}
+			}else{
+				//$sql = "insert into bbs_tmp select '".$mdb->dt[board_name]."' as board_name,  '".$mdb->dt[board_ename]."' as board_ename,  bbs_ix, bbs_subject, bbs_name, bbs_hit, bbs_re_cnt, regdate, case when regdate > DATE_SUB(now(), interval 3 day) then 1 else 0 end as new from bbs_".$mdb->dt[board_ename]."  limit 10   ";
+
+				$sql = "insert into bbs_tmp
+						select '".$mdb->dt[board_name]."' as board_name,  '".$mdb->dt[board_ename]."' as board_ename,  bbs_ix, bbs_subject, bbs_name, bbs_hit, bbs_re_cnt, regdate, case when regdate > DATE_SUB(now(), interval '3' day) then 1 else 0 end as new
+						from bbs_".$mdb->dt[board_ename]."
+						$rownum_sql
+						order by regdate desc ".$limit_sql;
+			}
+			//echo nl2br($sql)."<br />";
+
+			$db->query($sql);
+
+		}
+		//echo $sql;
+		//$db->query($sql);
+
+		$db->query("select * from bbs_tmp order by regdate desc");
+		$total = $db->total;
+		//echo$db->total;
+
+		if($mdb->dbms_type == "oracle"){
+			$db->query("select * from bbs_tmp where rownum < $max order by regdate desc ");
+		}else{
+			$db->query("select * from bbs_tmp order by regdate desc limit $start , $max");
+		}
+
+
+		if ($total == 0){
+			$mString .= "<tr bgcolor=#ffffff height=150><td colspan=9 align=center>최근 게시물 내역이 존재 하지 않습니다..</td></tr>";
+		}else{
+
+
+			for($i=0;$i<$db->total;$i++){
+				$db->fetch($i);
+
+				//$no = $no + 1;
+
+				$mString = $mString."<tr height=27 bgcolor=#ffffff align=center>
+				<td bgcolor='#fbfbfb'>[".$db->dt[board_name]."]</td>
+				<td align=left style='padding-left:20px;'><a href='/admin/bbsmanage/bbs.php?mode=read&board=".$db->dt[board_ename]."&bbs_ix=".$db->dt[bbs_ix]."'>".$db->dt[bbs_subject]."</a></td>
+				<td bgcolor='#fbfbfb'>".$db->dt[bbs_name]."</td>
+				<td>".str_replace("-",".",substr($db->dt[regdate],0,10))."</td>
+				<td bgcolor='#fbfbfb'>".$db->dt[bbs_hit]."</td>
+				<!--td align=center>
+					<a href=JavaScript:deleteDisplayOption('delete','".$db->dt[dp_ix]."','$pid')><img  src='/admin/image/si_remove.gif' border=0></a>
+				</td-->
+				</tr>
+				";
+
+			}
+		}
+	}
+	$mString = $mString."</table>";
+
+	return $mString;
+}
+
+
+function PrintOrderSummary(){
+	global $db, $admininfo;
+	if($_SESSION["admininfo"][admin_level] == 9){
+		$sql = 'SELECT o.oid, o.bname, o.order_date as regdate, o.payment_price,  COUNT(od.oid) AS od_cnt
+			FROM '.TBL_SHOP_ORDER.' o INNER JOIN '.TBL_SHOP_ORDER_DETAIL.' od ON od.oid = o.oid
+			WHERE  o.status != "SR"
+			GROUP BY o.oid
+			ORDER BY o.order_date DESC
+			LIMIT 0,7';
+	}else{
+		//$sql = "select o.* from ".TBL_SHOP_ORDER." o ,(select oid, company_id, regdate from ".TBL_SHOP_ORDER_DETAIL." od where od.company_id ='".$_SESSION["admininfo"][company_id]."' and od.status != 'SR' order by oid desc limit 40) od where o.status != 'SR' and o.oid = od.oid and od.company_id ='".$_SESSION["admininfo"][company_id]."' group by od.oid order by od.regdate desc limit 0, 7";
+		$sql = 'SELECT o.oid, o.bname, o.order_date as regdate, SUM(od.ptprice) AS payment_price, COUNT(od.oid) AS od_cnt
+			FROM '.TBL_SHOP_ORDER.' o INNER JOIN '.TBL_SHOP_ORDER_DETAIL.' od ON od.oid = o.oid
+			WHERE od.company_id = "'.$_SESSION["admininfo"][company_id].'" AND o.status != "SR"
+			GROUP BY o.oid ORDER BY o.order_date DESC LIMIT 7';// o.payment_price 를 SUM(od.ptprice) AS payment_price 로 변경 kbk 13/09/23
+	}
+	$db->query($sql);
+
+	//print_r($db->getrows());
+
+
+
+	$mString = "<table cellpadding=0 cellspacing=0 width=100% bgcolor=silver class='list_table_box'>
+		<col width='15%'>
+		<col width='15%'>
+		<col width='15%'>
+		<col width='15%'>
+		<col width='15%'>
+		<col width='15%'>
+		<col width='15%'>
+		<tr align=center bgcolor=#efefef height=30 style='font-weight:bold;'>
+		<td class='s_td' width=80>주문번호</td>
+		<td class='m_td'>이름</td>
+		<td class='m_td' nowrap>결제방법</td>
+		<td class='m_td'>주문일자</td>
+		<td class='m_td'>수량</td>
+		<td class='m_td' nowrap>결제총액</td>
+		<td class='e_td' nowrap>관리</td>
+		</tr>";
+
+	if ($db->total == 0){
+		$mString = $mString."<tr bgcolor=#ffffff height=150><td colspan=7 align=center>최근 매출내역이 존재 하지 않습니다..</td></tr>";
+	}else{
+		$i=0;
+		for($i=0;$i<$db->total;$i++){
+			$db->fetch($i);
+
+			$method=getMethodStatus($db->dt[method]);
+
+			$status = getOrderStatus($db->dt[status]);
+
+
+			$mString = $mString."<tr height=25 bgcolor=#ffffff align=center>
+			<td nowrap><a href='/admin/order/orders.read.php?oid=".$db->dt[oid]."'>".$db->dt[oid]."</a></td>
+			<td nowrap>".$db->dt[bname]."</td>
+			<td>".$method."</td>
+			<td nowrap>".$db->dt[regdate]."</td>
+			<!--td>".$status."</td-->
+			<td>".$db->dt[od_cnt]."</td>
+			<td class='point'>".number_format($db->dt[payment_price],0)."</td>";
+
+            if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"D")){
+			 $mString .= "
+                <td align=center valign=middle><a href=\"../order/orders.edit.php?oid=".$db->dt[oid]."\"><img src='../images/".$_SESSION["admininfo"]["language"]."/btn_modify.gif' border=0 align=absmiddle></a></td>
+                ";
+            }else{
+                $mString .= "
+                <td align=center valign=middle><a href=\"javascript:alert('수정권한이 없습니다.')\"><img src='../images/".$_SESSION["admininfo"]["language"]."/btn_modify.gif' border=0 align=absmiddle></a></td>
+                ";
+            }
+            $mstring.="
+			</tr>
+			";
+		}
+	}
+	$mString = $mString."</table>";
+
+	return $mString;
+}
+
+function PrintOrderSummary2(){
+	global $mdb;
+
+
+
+
+
+
+	$mString = "<table cellpadding=1 cellspacing=0 width=300 >";
+	$mString = $mString."<tr align=center bgcolor=#efefef height=25><td class=s_td  style='border-right:1px solid gray;' colspan=3><b style='color:orange'>".date("Y 년 m 월 d 일") ."</b> <b>현황</b></td></tr>";
+
+
+
+		$i=0;
+			$sql = "select sum(total_price) as total_price ,count(oid) as order_cnt, sum(case when status = 0 then 1 else 0 end) as not_payment_cnt,
+			sum(case when status = 1 then 1 else 0 end) as not_send_cnt
+			from ".TBL_SHOP_ORDER." where static_date = '".(date("Ymd"))."' group by static_date  ";
+
+
+			$mdb->query($sql);
+			$mdb->fetch();
+
+
+			$mString .= "
+			<tr height=25 bgcolor=#ffffff align=center height=25>
+			<td align=center bgcolor='#efefef' width='50%'>총 구매금액 :</td>
+			<td>".returnZeroValue($mdb->dt[total_price])."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'>총 구매 횟수 :</td>
+			<td>".returnZeroValue($mdb->dt[order_cnt])."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'>미결제건수 :</td>
+			<td>".returnZeroValue($mdb->dt[not_payment_cnt])."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'>미결제건수 :</td>
+			<td>".returnZeroValue($mdb->dt[not_send_cnt])."</td>
+			<td></td>
+			</tr>";
+
+			$sql2 = "select sum(case when code != '' then 1 else 0 end)  as reg_member_cnt
+					from ".TBL_COMMON_USER." where substring(date,1,10) = '".date("Y-m-d")."'  ";
+			$mdb->query($sql);
+			$mdb->fetch();
+
+			$mString .= "
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'>미결제건수 :</td>
+			<td>".returnZeroValue($mdb->dt[reg_member_cnt])."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			";
+
+//	}
+	$mString = $mString."</table>";
+
+	return $mString;
+}
+
+function PrintOrderSummary3(){
+	global $admininfo;
+	$odb = new Database;
+
+	$vdate = date("Ymd", time());
+	$today = date("Ymd", time());
+	$firstday = date("Ymd", time()-84600*date("w"));
+	$lastday = date("Ymd", time()+84600*(6-date("w")));
+
+
+	if($_SESSION["admininfo"][admin_level] == 9){
+		$sql = "Select
+					sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_DELIVERY_COMPLETE."')  and date_format(od.regdate,'%Y%m%d') =  '".date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4)))."' then ptprice else '0' end) as today_total_price,
+					sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_DELIVERY_COMPLETE."')  and date_format(od.regdate,'%Y%m%d') between '".$firstday."' and $lastday then ptprice else '0' end) as thisweek_total_price,
+					sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_DELIVERY_COMPLETE."')  and date_format(od.regdate,'%Y%m') = '".substr($vdate,0,6)."'  then ptprice else '0' end) as thismonth_total_price,
+					sum(case when od.status in ('".ORDER_STATUS_CANCEL_APPLY."','".ORDER_STATUS_CANCEL_COMPLETE."')  and date_format(od.regdate,'%Y%m') = '".substr($vdate,0,6)."'  then ptprice else '0' end) as thismonth_cancel_total_price,
+					sum(case when od.status = '".ORDER_STATUS_INCOM_READY."'  then 1 else '0' end) as ready_cnt,
+					sum(case when od.status = '".ORDER_STATUS_INCOM_COMPLETE."'  then 1 else '0' end) as order_end_cnt,
+					sum(case when od.status in ('".ORDER_STATUS_RETURN_APPLY."','".ORDER_STATUS_RETURN_COMPLETE."')  then 1 else '0' end) as thismonth_return_total_cnt
+				 	from ".TBL_SHOP_ORDER_DETAIL." od LEFT JOIN ".TBL_SHOP_PRODUCT." p ON od.pid=p.id WHERE p.product_type NOT IN ('4','5','6')  ";
+	}else if($_SESSION["admininfo"][admin_level] == 8){
+		$sql = "Select
+					sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_DELIVERY_COMPLETE."')  and date_format(date,'%Y%m%d') =  '".date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4)))."' then od.ptprice else '0' end) as today_total_price,
+					sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_DELIVERY_COMPLETE."')  and date_format(date,'%Y%m%d') between '".$firstday."' and $lastday then od.ptprice else '0' end) as thisweek_total_price,
+					sum(case when od.status in ('".ORDER_STATUS_INCOM_READY."','".ORDER_STATUS_INCOM_COMPLETE."','".ORDER_STATUS_DELIVERY_READY."','".ORDER_STATUS_DELIVERY_ING."','".ORDER_STATUS_DELIVERY_COMPLETE."')  and date_format(date,'%Y%m') = '".substr($vdate,0,6)."'  then od.ptprice else '0' end) as thismonth_total_price,
+					sum(case when od.status in ('".ORDER_STATUS_CANCEL_APPLY."','".ORDER_STATUS_CANCEL_COMPLETE."')  and date_format(date,'%Y%m') = '".substr($vdate,0,6)."'  then total_price else '0' end) as thismonth_cancel_total_price,
+					sum(case when od.status = '".ORDER_STATUS_INCOM_READY."'  then 1 else '0' end) as ready_cnt,
+					sum(case when od.status = '".ORDER_STATUS_INCOM_COMPLETE."'  then 1 else '0' end) as order_end_cnt,
+					sum(case when od.status in ('".ORDER_STATUS_RETURN_APPLY."','".ORDER_STATUS_RETURN_COMPLETE."')  then 1 else '0' end) as thismonth_return_total_cnt
+				 	FROM ".TBL_SHOP_ORDER." o, ".TBL_SHOP_PRODUCT." p, ".TBL_SHOP_ORDER_DETAIL." od
+				 	where o.oid = od.oid and od.pid = p.id and p.admin = '".$_SESSION["admininfo"][company_id]."' ";
+		//echo $sql;
+	}
+
+//	echo $sql;
+//	exit;
+
+
+	$odb->query($sql);
+	$odb->fetch();
+
+	return "<table border=0 bgcolor='#c0c0c0' cellspacing=1 cellspacing=0 width=100%  ><!--bgcolor=#c0c0c0 -->
+				<tr bgcolor=#ffffff>
+					<th width=130 align=left class='leftmenu small' nowrap><img src='../image/title_head.gif'> <a href='../order/orders.list.php?type=".ORDER_STATUS_INCOM_READY."' style='color:red'><b>입금예정(처리대기)</b> </a> </th>
+					<td 12% align=right style='padding-right:10px;'><b>".number_format($odb->dt[ready_cnt])." 건</b> </td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<td  class='leftmenu small' align=left nowrap><img src='../image/title_head.gif'> <a href='../order/orders.list.php?type=".ORDER_STATUS_INCOM_COMPLETE."' style='color:red' ><b>입금확인(결제완료)</b></a> </td>
+					<td  align=right 12%style='padding-right:10px;' ><b>".number_format($odb->dt[order_end_cnt])." 건</b> </td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<th align=left class='leftmenu'><img src='../image/title_head.gif'>  오늘주문  </th>
+					<td align=right 12%style='padding-right:10px;'>".number_format($odb->dt[today_total_price])." 원 </td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<th align=left class='leftmenu'><img src='../image/title_head.gif'>  금주주문  </th>
+					<td  align=right 12%style='padding-right:10px;' nowrap>".number_format($odb->dt[thisweek_total_price])." 원 </td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<th align=left class='leftmenu'><img src='../image/title_head.gif'>  금월주문  </th>
+					<td  align=right 12%style='padding-right:10px;' nowrap>".number_format($odb->dt[thismonth_total_price])." 원  </td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<th align=left class='leftmenu'><img src='../image/title_head.gif'>  금월주문취소  </th>
+					<td  align=right 12%style='padding-right:10px;'>".number_format($odb->dt[thismonth_cancel_total_price])." 원  </td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<th align=left class='leftmenu'><img src='../image/title_head.gif'> <a href='../order/orders.list.php?type=r1'> 반품요청건수 </a></th>
+					<td  align=right 12%style='padding-right:10px;'>".number_format($odb->dt[thismonth_return_total_cnt])." 건  </td>
+				</tr>
+			</table>
+					";
+
+
+}
+
+
+function PrintLogSummary(){
+	global $db, $mdb;
+
+
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_VISITTIME." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$visit = $db->dt[ncnt];
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_VISITOR." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$visitor = $db->dt[ncnt];
+
+	$sql2 = "select sum(case when code != '' then 1 else 0 end)  as reg_member_cnt
+			from ".TBL_COMMON_USER." where substring(date,1,10) = '".date("Y-m-d")."'  ";
+	$mdb->query($sql);
+	$mdb->fetch();
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_PAGEVIEWTIME." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$pageview = $db->dt[ncnt];
+
+/*
+	$sql = "Select r.cid, r.cname, sum(b.visit_cnt) as visit_cnt from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." r, ".TBL_LOGSTORY_BYREFERER." b where b.vdate = '".date("Ymd")."' and substring(r.cid,1,9) = substring(b.vreferer_id,1,9) and r.cid LIKE '000001%' group by r.cid, r.cname order by visit_cnt  desc limit 0,1";
+	$db->query($sql);
+	$db->fetch();
+	$referer_name = $db->dt[cname];
+	$visitreferer = $db->dt[visit_cnt];
+*/
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_PAGEVIEWTIME." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$pageview = $db->dt[ncnt];
+
+	$mString = "<table cellpadding=4 cellspacing=0 border=0 width=250 >";
+	$mString = $mString."<tr align=center bgcolor=#efefef height=25><td class=s_td  style='border-right:1px solid gray;' colspan=3><b >금일 접속자수 현황</b></td></tr>";
+
+/*	if ($db->total == 0){
+		$mString = $mString."<tr bgcolor=#ffffff height=50><td colspan=9 align=center>접속내역이  존재 하지 않습니다..</td></tr>";
+	}else{
+*/
+			$mString = $mString."
+			<tr height=25 bgcolor=#ffffff align=center height=25>
+			<td align=center bgcolor='#efefef' width=100><a href='/admin/logstory/report/pageview1.php?SubID=SM114641Sub'>금일 페이지뷰 </a></td>
+			<td>".returnZeroValue($pageview)."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'><a href='/admin/logstory/report/visit.php?SubID=SM11464243Sub'>금일 방문횟수 </a></td>
+			<td>".returnZeroValue($visit)."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'><a href='/admin/logstory/report/visitor.php?SubID=SM1146487Sub'>금일 방문자수 </a></td>
+			<td>".returnZeroValue($visitor)."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+			<td align=center bgcolor='#efefef'><a href='/admin/logstory/report/visitbyreferer.php?SubID=SM11464176Sub'>최다 유입사이트 </a></td>
+			<td>".$referer_name."</td>
+			<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			";
+
+//	}
+	$mString = $mString."</table>";
+
+	return $mString;
+}
+
+
+
+function PrintLogSummaryLeft(){
+	//global $db, $mdb;
+	$db = new Database;
+	$mdb = new Database;
+
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_VISITTIME." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$visit = $db->dt[ncnt];
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_VISITOR." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$visitor = $db->dt[ncnt];
+
+	$sql2 = "select sum(case when code != '' then 1 else 0 end)  as reg_member_cnt
+			from ".TBL_COMMON_USER." where substring(date,1,10) = '".date("Y-m-d")."'  ";
+	$mdb->query($sql);
+	$mdb->fetch();
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_PAGEVIEWTIME." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$pageview = $db->dt[ncnt];
+
+/*
+	$sql = "Select r.cid, r.cname, sum(b.visit_cnt) as visit_cnt from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." r, ".TBL_LOGSTORY_BYREFERER." b where b.vdate = '".date("Ymd")."' and substring(r.cid,1,9) = substring(b.vreferer_id,1,9) and r.cid LIKE '000001%' group by r.cid, r.cname order by visit_cnt  desc limit 0,1";
+	$db->query($sql);
+	$db->fetch();
+	$referer_name = $db->dt[cname];
+	$visitreferer = $db->dt[visit_cnt];
+*/
+
+	$sql = "select ncnt from ".TBL_LOGSTORY_PAGEVIEWTIME." where vdate = '".(date("Ymd"))."'  ";
+	$db->query($sql);
+	$db->fetch();
+	$pageview = $db->dt[ncnt];
+
+
+
+
+	$mString = "<table cellpadding=1 cellspacing=0 width=100% >
+			<col width=60%>
+			<col width=40%>
+			<tr height=25 bgcolor=#ffffff align=center height=25>
+				<td align=center bgcolor='#efefef' ><a href='/admin/logstory/report/pageview1.php?SubID=SM114641Sub' class=small title='금일페이지뷰'>금일페이지뷰 </a></td>
+				<td>".number_format($pageview,0)."</td>
+				<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+				<td align=center bgcolor='#efefef'><a href='/admin/logstory/report/visit.php?SubID=SM11464243Sub' class=small title='금일방문횟수'>금일방문횟수 </a></td>
+				<td>".number_format($visit,0)."</td>
+				<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+				<td align=center bgcolor='#efefef'><a href='/admin/logstory/report/visitor.php?SubID=SM1146487Sub' class=small title='금일방문자수'>금일방문자수 </a></td>
+				<td>".number_format($visitor,0)."</td>
+				<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			<tr bgcolor=#ffffff  align=center height=25>
+				<td align=center bgcolor='#efefef'><a href='/admin/logstory/report/visitbyreferer.php?SubID=SM11464176Sub' class=small title='최다유입사이트'>최다유입사이트 </a></td>
+				<td>".$referer_name."</td>
+				<td></td>
+			</tr>
+			<tr height=1><td colspan=6 class=dot-x></td></tr>
+			";
+
+
+	$mString = $mString."</table>";
+
+	return $mString;
+}
+
+
+
+
+
+
+
+
+	//	welshoop 길이로 마스킹 
+		function wel_masking_seLen($str, $len1, $len2=0, $limit=0, $mark='*')
+		{
+			$strlen = mb_strlen(trim($str), 'utf-8');
+					//	이름 마스킹
+						$arr_str = preg_split("//u", trim($str), -1, PREG_SPLIT_NO_EMPTY);
+						$str_len = count($arr_str);
+
+						$len1 = abs($len1);
+						$len2 = abs($len2);
+
+						//if($str_len <= ($len1 + $len2))
+						//	return $str;
+
+						$str_head = '';
+						$str_body = '';
+						$str_tail = '';
+
+						$str_head = join('', array_slice($arr_str, 0, $len1));
+						if($len2 > 0)
+							$str_tail = join('', array_slice($arr_str, $len2 * -1));
+
+						$arr_body = array_slice($arr_str, $len1, ($str_len - $len1 - $len2));
+
+						if(!empty($arr_body)) {
+							$len_body = count($arr_body);
+							$limit    = abs($limit);
+
+							if($limit > 0 && $len_body > $limit)
+								$len_body = $limit;
+
+							$str_body = str_pad('', $len_body, $mark);
+						}
+
+					if($strlen == "2") {
+						$wel_reData = mb_strcut($str, 0, 3, "UTF-8")."*";
+					} else {
+						$wel_reData = $str_head.$str_body.$str_tail;
+					}
+
+
+			return $wel_reData;
+		}
+
+
+	//	welshoop 연락처, 이메일 마스킹
+		function wel_masking($_type, $_data){
+			if($_data != ""){
+				$_data = trim(str_replace('-','',$_data));
+				$strlen = mb_strlen($_data, 'utf-8');
+				$maskingValue = "";
+				 
+				$useHyphen = "-";
+
+				if($_type == 'P'){
+					//	연락처 마스킹
+					switch($strlen){
+						case 10:
+							$maskingValue = mb_substr($_data, 0, 3)."{$useHyphen}***{$useHyphen}".mb_substr($_data, 6, 4);
+							break;
+						case 11:
+							$maskingValue = mb_substr($_data, 0, 3)."{$useHyphen}****{$useHyphen}".mb_substr($_data, 7, 4);
+							break;
+						default:
+							$maskingValue = mb_substr($_data, 0, 3)."{$useHyphen}****{$useHyphen}".mb_substr($_data, 7, 4);
+							break;
+					}
+				} else if($_type == 'E') {
+					//	이메일 마스킹
+					$e_val = @explode("@", $_data);
+					$maskingValue = wel_masking_seLen($e_val[0], 2)."@".$e_val[1];
+				} else if($_type == 'I') {
+					//	아이디 마스킹
+					$first = substr($_data, 0, 2);
+					$end   = substr($_data, -2);
+					$count = $strlen - 4;
+					for($c=0;$c<=$count;$c++){
+						if($c==0){
+							$masking = "*";
+						}else{
+							$masking .= "*";
+						}
+					}
+					$maskingValue = $first.$masking.$end;
+				}else{
+					$maskingValue = "****";
+				}
+			}else{
+				$maskingValue = "";
+			}
+			return $maskingValue;
+		}
+	//	//welshoop 마스킹
+
+
+
+
+
+
+?>

@@ -1,0 +1,341 @@
+<?
+
+//header("Cache-control: no-cache");
+//header("Pragma: no-cache");
+//header("P3P:CP=\"NOI DSP COR DEVa TAIa OUR BUS UNI COM NAV STA PRE\"");
+
+
+Class forbizGather
+{
+	var $fREQUEST_URI;
+	var $fPHP_SELF;
+	var $fHTTP_REFERER;
+	var $fHTTP_HOST;
+	var $fREMOTE_ADDR;
+	var $VISITID;
+	var $VISITORID;
+	var $VisitCookie;
+	var $VisitTime;
+	var $VisitDate;
+	var $fRefererID;
+	var $fetcRefererID;
+	var $SearchParam;
+	var $SearchKeyWordId;
+	var $PageID;
+	var $DurationTime;
+	var $BEFORE_LAST_CON_TIME;
+	
+	var $COOKIE_HOST;
+	var $OVER_TURE;
+	var $KID;
+	
+	var $fHOST;
+	
+	function forbizGather(){
+		global $PHP_SELF,$HTTP_REFERER,$HTTP_HOST,$REMOTE_ADDR, $REQUEST_URI, $HTTP_USER_AGENT;		
+		
+		
+		if(!(substr_count(strtolower($HTTP_HOST), strtolower("mallstory.com")) > 0)){
+			$adb = new forbizDatabase();
+			
+			$sql = "insert into ".TBL_LOGSTORY_ETCHOST." (idx,referer, etcuri,etchost) values ('','".strtolower($HTTP_REFERER)."','".strtolower($REQEUST_URI)."','".strtolower($HTTP_HOST)."') ";
+			//echo $sql;
+			//$adb->query($sql);
+		}	
+				
+		if(substr_count(strtolower($HTTP_HOST), "www") > 0){
+			$cookie_domain = str_replace("www.",".",$_SERVER["HTTP_HOST"]);
+		}else{
+			$cookie_domain = ".".$_SERVER["HTTP_HOST"];
+		}
+		//echo $cookie_domain;
+		$this->OVER_TURE = false;
+		$this->COOKIE_HOST = $cookie_domain; //".mallstory.com";
+		$this->fREQUEST_URI = $REQUEST_URI;
+		$this->fPHP_SELF = $PHP_SELF;
+		$this->fHTTP_REFERER = strtolower($HTTP_REFERER);
+		$this->fHTTP_HOST = strtolower($HTTP_HOST);
+		$this->fREMOTE_ADDR = $REMOTE_ADDR;
+		$this->fHTTP_USER_AGENT = $HTTP_USER_AGENT;
+		if($_COOKIE["VID"] == ""){
+			$this->VISITID  = md5(uniqid(rand()));
+		}else{
+			$this->VISITID  = $_COOKIE["VID"];
+		}
+		
+		if($_COOKIE["UVID"] == ""){
+			$this->VISITORID  = md5(uniqid(rand()));
+		}else{
+			$this->VISITORID  = $_COOKIE["UVID"];
+		}
+		
+		$this->VisitTime = date("H", time());
+		$this->VisitDate = date("Ymd", time());
+		
+		if($_COOKIE["LAST_CON_TIME"]){
+			$this->BEFORE_LAST_CON_TIME = $_COOKIE["LAST_CON_TIME"];
+		}else{
+			$this->BEFORE_LAST_CON_TIME = date("Y-m-d H:i:s");
+		}
+		
+		
+		
+		
+		$this->DurationTime = $this->CheckDuration();
+		if($_COOKIE["RFID"] && $_COOKIE["RFID"] != "000005000000000"){
+			$this->fRefererID = $_COOKIE["RFID"];
+		}else{
+			$this->fRefererID = $this->CheckReferer(strtolower($HTTP_REFERER),strtolower($REQUEST_URI) );
+		}
+		
+		$this->PageID = $this->GetPageID($PHP_SELF);
+		$this->SearchKeyWordId = $this->InsertKeyWord(strtolower($HTTP_REFERER),strtolower($REQUEST_URI));
+		if($this->SearchKeyWordId){
+			$this->KID = $this->SearchKeyWordId;
+		}else{
+			$this->KID = $_COOKIE["KWID"];
+		}
+	
+		//echo "fRefererID:".$this->fRefererID;
+		//echo "REFERER:".$HTTP_REFERER;
+	}
+	
+	function CheckDuration(){
+		global $HTTP_HOST;
+		if($_COOKIE["LAST_CON_TIME"] == ""){
+			setcookie("LAST_CON_TIME",time(), time()+1800,"/",$HTTP_HOST);
+			return 0;
+		}else{
+			$Before_Duration = $_COOKIE["LAST_CON_TIME"];
+			setcookie("LAST_CON_TIME",time(), time()+1800,"/",$HTTP_HOST);
+			return time()-$Before_Duration;
+		}
+		
+		
+	}	
+	
+	function VisitSetCookie(){
+		//setcookie("VID",$URL, time()+180000,"/",$HTTP_HOST);
+	
+	}
+	
+	function CheckReferer($this_referer, $this_url=''){
+		
+		if($_COOKIE["VID"] == ""){
+			$db = new forbizDatabase();
+			
+			
+			$db->query("select cid,vreferer_url,vkeyword, vparameter , case when vparameter = '' then 0 else 1 end as paramorder  from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." where vparameter <> '' and depth in (2,3,4) order by paramorder desc");
+			
+			for($i=0;$i<$db->total;$i++){
+			
+				$db->fetch($i);
+				
+				if($this->SearchString(str_replace("*.","",$db->dt[vreferer_url]),$db->dt[cid],$this_referer) && $this->SearchString($db->dt[vparameter],$db->dt[cid],$this_url)){					
+					$this->OVER_TURE = true;
+					$this->SearchParam = $db->dt[vparameter];
+					return $db->dt[cid];						
+					exit;
+				}
+				
+				
+			}
+			
+			if ($this_referer == ""){
+				return "000005000000000";
+			}
+			
+			
+			//$db->query("select cid,vreferer_url,vkeyword from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." where depth in (2,3,4)");
+			$db->query("select cid,vreferer_url,vkeyword, vparameter , case when vparameter = '' then 0 else 1 end as paramorder  from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." where vparameter = '' and depth in (2,3,4) order by paramorder desc");
+			
+			
+			
+			for($i=0;$i<$db->total;$i++){
+			
+				$db->fetch($i);
+				
+				if($db->dt[vreferer_url] != ""){
+					if($this->SearchString(str_replace("*.","",$db->dt[vreferer_url]),$db->dt[cid],$this_referer)){
+						$this->SearchParam = $db->dt[vkeyword];
+						return $db->dt[cid];						
+						exit;
+					}
+				}
+				
+				
+			}
+			if($this->SearchString($this->fHTTP_HOST,"000005000000000",$this_referer)){
+				return "000005000000000";
+			}else{
+				$this->fetcRefererID = $this->InsertEtcReferer($this_referer);
+				return "000004000000000";
+			}
+			
+		}else{
+			return $_COOKIE["RFID"];
+		}
+		
+		
+	}
+	
+	function GetPageID($pageurl){
+		
+			$db = new forbizDatabase();
+			
+			$db->query("select pageid from ".TBL_LOGSTORY_PAGEINFO." where vurl = '".strtolower($pageurl)."'");	
+					
+			if($db->total > 0){
+				$db->fetch(0);				
+				$this->PageViewInsertByPage($db->dt[pageid]);
+				setcookie("PAGEID",$db->dt[pageid], time()+180000,"/",$HTTP_HOST);				
+				return $db->dt[pageid];
+				
+				
+			}else{
+				$sql = "insert into ".TBL_LOGSTORY_PAGEINFO." (pageid,vurl,vdate) values ('','".strtolower($pageurl)."','".$this->VisitDate."') ";
+				$db->query($sql);
+				$db->query("SELECT pageid FROM ".TBL_LOGSTORY_PAGEINFO." WHERE pageid=LAST_INSERT_ID()");
+				
+				$db->fetch(0);
+				
+				$this->PageViewInsertByPage($db->dt[0]);
+				setcookie("PAGEID",$db->dt[0], time()+180000,"/",$HTTP_HOST);				
+				return $db->dt[0];
+			}		
+	}
+	
+	function PageViewInsertByPage($page_id){
+		global $user;
+		$db = new forbizDatabase();
+		
+		$db->query("select pageid from ".TBL_LOGSTORY_BYPAGE." where pageid = '$page_id' and vdate ='".$this->VisitDate."'");
+		
+		if($db->total > 0){
+			$db->query("update ".TBL_LOGSTORY_BYPAGE." set ncnt = ncnt+1, nduration = nduration + ".$this->DurationTime." where pageid = '".$page_id."' and vdate ='".$this->VisitDate."'");			
+		}else{
+			$db->query("insert into ".TBL_LOGSTORY_BYPAGE." (vdate,pageid) values ('".$this->VisitDate."','".$page_id."') ");			
+		}		
+		
+		$shmop = new Shared("realtime_data");
+		$realtime_data = $shmop->getObjectForKey("realtime_data");
+		$realtime_data[md5($_SERVER["REMOTE_ADDR"])] = array('ipaddr' => $_SERVER["REMOTE_ADDR"], 'user_id' => $user[id],  'user_code' => $user[code], 'page_id' => $page_id, 'before_visit_date' => date("Y-m-d H:i:s",$this->BEFORE_LAST_CON_TIME), 'recent_visit_date' => date("Y-m-d H:i:s"));
+		
+		if(count($realtime_data) > 100){
+			foreach ($realtime_data as $key => $row) {
+				if((time()- strtotime($row['recent_visit_date'])) > 600){		   
+			  	unset($realtime_data[$key]);			  
+			  }
+			}			
+		}
+	
+		
+		$shmop->setObjectForKey($realtime_data, "realtime_data") ;
+		
+	}
+	
+	function InsertEtcReferer($vreferer_url){
+		
+			$db = new forbizDatabase();
+			
+			
+			
+			$db->query("select vetcreferer_id from ".TBL_LOGSTORY_ETCREFERERINFO." where vetcreferer_url = '".strtolower($vreferer_url)."'");	
+			
+			
+					
+			if($db->total > 0){				
+				$db->fetch(0);
+				return $db->dt[0];
+			}else{
+				$sql = "insert into ".TBL_LOGSTORY_ETCREFERERINFO." (vetcreferer_id,vetcreferer_url,vdate) values ('','".strtolower($vreferer_url)."','".$this->VisitDate."') ";
+				$db->query($sql);
+				$db->query("SELECT vetcreferer_id FROM ".TBL_LOGSTORY_ETCREFERERINFO." WHERE vetcreferer_id=LAST_INSERT_ID()");
+				$db->fetch(0);
+				
+				return $db->dt[0];
+			}		
+	}
+	
+	function SearchString($str,$ref_id,$referer_url){	
+		$numarray = explode(",", $str);
+		$size = count($numarray);
+		parse_str($referer_url, $paraminfos);
+		//print_r($paraminfos);
+		for($i=0;$i < $size;$i++){
+			if(substr_count(strtolower($referer_url), strtolower($numarray[$i])) > 0){			
+			
+			//if($paraminfos[strtolower($numarray[$i])]){		
+				$this->SearchParam = strtolower($numarray[$i]);
+				return true;
+			}
+		}		
+		
+		return false;
+	}
+	
+	function InsertKeyWord($vreferer_url, $vrequest_uri){
+	
+		if($this->SearchParam == ""){
+			return "";
+			exit;
+		}
+		if($this->OVER_TURE){
+			parse_str(urldecode($vrequest_uri), $myarray);
+		}else{
+			parse_str(urldecode($vreferer_url), $myarray);
+		}
+	//	echo $myarray[$this->SearchParam];
+		
+			$db = new forbizDatabase();
+			
+			$encoding_type = mb_detect_encoding($myarray[$this->SearchParam]);
+			if($encoding_type == "UTF-8"){
+				$search_keyword = iconv('UTF-8','EUC-KR',$myarray[$this->SearchParam]);
+				if(!$search_keyword){
+					$search_keyword = $myarray[$this->SearchParam];
+				}
+			}else{
+				$search_keyword = $myarray[$this->SearchParam];
+			}
+			$db->query("select kid from ".TBL_LOGSTORY_KEYWORDINFO." where keyword = '".$search_keyword."'");	
+					
+			if($db->total > 0){				
+				$db->fetch(0);
+				return $db->dt[0];
+			}else{
+				//if($this->fRefererID == "000001001000000"){
+				
+				$sql = "insert into ".TBL_LOGSTORY_KEYWORDINFO." (kid,keyword,charset,vdate) values ('','".$search_keyword."', '".$encoding_type."',NOW()) ";
+				
+				$db->query($sql);
+				$db->query("SELECT kid FROM ".TBL_LOGSTORY_KEYWORDINFO." WHERE kid=LAST_INSERT_ID()");
+				$db->fetch(0);
+				
+				return $db->dt[0];
+			}		
+	}
+}
+
+//echo phpinfo();
+
+
+/*
+$fg = new forbizGather();
+
+echo "fRefererID".$fg->fRefererID."<br>";
+
+
+echo "URL:".$REQUEST_URI."<BR>";
+echo "PHP_SELF:".$PHP_SELF."<BR>";
+echo "HTTP_REFERER:".$HTTP_REFERER."<BR>";
+echo "HTTP_HOST:".$HTTP_HOST."<BR>";
+echo "REMOTE_ADDR:".$REMOTE_ADDR."<BR>";
+echo "QUERY_STRING:".$QUERY_STRING."<BR>";
+echo "TIME:".date("H", time())."<br>";
+echo "DATE_STR:".date("Ymd", time())."<br>";
+echo "DATE:".date("M d Y H:i:s", time())."<br>";
+echo "VID:".md5(uniqid(rand()))."<br>";
+*/
+
+?>

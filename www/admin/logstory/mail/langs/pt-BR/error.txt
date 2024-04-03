@@ -1,0 +1,9 @@
+
+; ***************************************** ;
+; Error			                    ;
+; ***************************************** ;
+
+err_title			= Ocorreram erros
+err_msg				= Ocorreram erros durante a execução<br><br>Por favor logue-se novamente
+err_system_msg			= Mensagem do sistema: 
+err_exit			= Sair

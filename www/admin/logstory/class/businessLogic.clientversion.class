@@ -1,0 +1,78 @@
+<?php
+
+$mall_data_root = '/data/barrel_data';
+
+include($_SERVER["DOCUMENT_ROOT"]."/logstory.config.php");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/gather.clientversion.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/database.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/visit.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/visitor.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/pageview.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/commerce.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/memberreg.class");
+include($_SERVER["DOCUMENT_ROOT"]."/".$use_path."class/sharedmemory.class");
+
+
+Class BusinessLogic
+{
+	var $gData;	
+	var $robot_bool = false;
+	
+	public function __construct($fg, $cdb){
+		global $REMOTE_ADDR;
+
+
+		if(!$fg){
+		$this->robot_bool = true;
+		$fg = new forbizGather();
+		}
+		$this->gData = $fg;
+		
+				
+		$vs = new visit();
+		$vs->gData = $fg;
+		$vs->VisitCheck();
+		//print_r($fg);
+		
+		
+		$vst = new visitor();
+		$vst->gData = $fg;
+		$vst->VisitorCheck();
+		
+		$pv = new PageView();
+		$pv->gData = $fg;
+		$pv->PageViewUpdate();
+		$pv->DurationUpdate();
+		if($fg->UCODE){
+			$pv->MemberDurationUpdate($fg->UCODE);
+		}
+	
+		
+	}
+	
+	function CommerceLogic($vucode,$vStep,$vcid, $vpid,$vquantity,$vprice){
+		if ($this->robot_bool) {		
+			$cmc = new Commerce();
+			$cmc->gData = $this->gData;
+			
+			
+			if($vStep == 0){
+				$cmc->ProductViewingUpdate($vcid, $vpid, $vucode);			
+			}else{
+				$cmc->SaleInfoUpdate($vucode,$vStep,$vcid, $vpid,$vquantity,$vprice);
+				
+			}
+		}
+	}
+	
+	function MemberRegLogic($vucode,$vStep){
+		$mrg = new MemberReg();
+		$mrg->gData = $this->gData;
+		
+		$mrg->MemberInfoUpdate($vucode,$vStep);
+		
+	}
+	
+	
+}
+?>

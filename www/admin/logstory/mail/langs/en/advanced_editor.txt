@@ -1,0 +1,33 @@
+; ***************************************** ;
+; Advanced Editor		            ;
+; ***************************************** ;
+
+adv_warning_text_mode			= Please uncheck "<!--%view_source%-->" before using the toolbar
+adv_type_path				= Please enter an URL:
+
+
+format_paragraph			= Paragraph
+format_h1				= Heading 1 <H1>
+format_h2				= Heading 2 <H2>
+format_h3				= Heading 3 <H3>
+format_h4				= Heading 4 <H4>
+format_h5				= Heading 5 <H5>
+format_h6				= Heading 6 <H6>
+format_pre				= Formatted <PRE>
+format_clear_all			= Remove all
+
+format_font				= Font
+format_size				= Size
+
+format_color				= Color
+format_back				= Background
+color_red				= Red
+color_blue				= Blue
+color_green				= Green
+color_black				= Black
+color_yellow				= Yellow
+color_white				= White
+
+view_source				= Display Source
+text_mode				= Plain text
+clear_format				= Clear format

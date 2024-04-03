@@ -1,0 +1,31 @@
+<?
+
+	include ("androidpush.php");
+	include ("iospush.php");
+
+	if (!class_exists(pushService))
+	{ // 클래스선언이 없으면...
+
+		class pushService{
+			var $android;
+			var $ios;
+
+			public function __construct($senderId = "",$apiKey = ""){
+				$this->android = new androidPush($senderId,$apiKey);
+				$this->ios = new iosPush($senderId,$apiKey);
+			}
+			
+			public function sendPushMessage($data){
+				$this->android->requestPush($data);
+				$this->ios->requestPush($data);
+			}
+			
+			public function sendPushMemberMessage($data){
+				$this->android->requestPushMember($data);
+				$this->ios->requestPushMember($data);
+			}
+		}
+
+	}
+
+?>

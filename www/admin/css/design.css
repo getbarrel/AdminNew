@@ -1,0 +1,110 @@
+@charset "euc-kr";
+/*@import url("./com.css");*/
+
+div.admin_tab *  				{ border-collapse: collapse; padding: 0px; margin: 0px; border:0px; vertical-align: top; word-break: break-all;}
+div.admin_tab				{ height: 29px;	margin: 0px 5px -11px; padding: 0px 10px; background: url(../images/tab/tab_bg.gif) repeat-x top; }
+div.admin_tab table.admin_tab		{ width: 100%; }
+div.admin_tab table.admin_tab td.tab	{ width: 80%; }
+div.admin_tab table.admin_tab td.btn	{ width: 40%; text-align: right; vertical-align: middle; }
+div.admin_tab table.admin_tab th.tab	{ width: 60%; text-align: right; }
+div.admin_tab table.admin_tab th.btn	{ width: 40%; text-align: left; vertical-align: middle; }
+
+/*
+table.admin_tab table { border-collapse: collapse; padding: 0px; margin: 0px; border:0px; vertical-align: top; }
+table.admin_tab table tr { border-collapse: collapse; padding: 0px; margin: 0px; border:0px; vertical-align: top; }
+table.admin_tab table th { border-collapse: collapse; padding: 0px; margin: 0px; border:0px; vertical-align: top; }
+table.admin_tab table td { border-collapse: collapse; padding: 0px; margin: 0px; border:0px; vertical-align: top; }
+*/
+		
+table.admin_tab table					{ float: left; margin-right: 2px; }
+table.admin_tab table th.box_01		{ background: url(../images/tab/tab_01.gif) no-repeat left top; width: 2px; height: 29px; }
+table.admin_tab table td.box_02		{ background: url(../images/tab/tab_02.gif) repeat-x top; padding: 8px 5px 0px; vertical-align: top; font-size:12px;cursor:pointer;}
+table.admin_tab table th.box_03		{ background: url(../images/tab/tab_03.gif) no-repeat right top; width: 2px; height: 29px; }
+table.admin_tab table.on				{ float: left; margin-right: 2px; }
+table.admin_tab table.on th.box_01		{ background: url(../images/tab/tab_01_on.gif) no-repeat left top; width: 2px; height: 29px; }
+table.admin_tab table.on td.box_02		{ background: url(../images/tab/tab_02_on.gif) repeat-x top; padding: 8px 5px 0px; vertical-align: top; font-weight: bold;  font-size:12px;}
+table.admin_tab table.on th.box_03		{ background: url(../images/tab/tab_03_on.gif) no-repeat right top; width: 2px; height: 29px; }
+
+
+table.sadow_tab table					{ float: left; margin-right: 2px; }
+table.sadow_tab table th.box_01		{ background: url(../images/sadow_tab/tab_01.gif) no-repeat left top; width: 5px; height: 29px; }
+table.sadow_tab table td.box_02		{ background: url(../images/sadow_tab/tab_02.gif) repeat-x top; padding: 10px 5px 0px; vertical-align: top; font-size:12px;cursor:pointer;}
+table.sadow_tab table th.box_03		{ background: url(../images/sadow_tab/tab_03.gif) no-repeat right top; width: 5px; height: 29px; }
+table.sadow_tab table.on				{ float: left; margin-right: 2px; }
+table.sadow_tab table.on th.box_01		{ background: url(../images/sadow_tab/tab_01_on.gif) no-repeat left top; width: 5px; height: 29px; }
+table.sadow_tab table.on td.box_02		{ background: url(../images/sadow_tab/tab_02_on.gif) repeat-x top; padding: 8px 5px 0px; vertical-align: top; font-weight: bold;  font-size:12px;}
+table.sadow_tab table.on th.box_03		{ background: url(../images/sadow_tab/tab_03_on.gif) no-repeat right top; width: 5px; height: 29px; }
+
+
+
+/* 회색 굵은(1px) 라운드 박스 - 풍선박스*/
+table.helpcloud 			{ border-collapse: collapse; padding: 0px; margin: 0px; border:0px; z-index:999999;}
+table.helpcloud			{ width: 100%; table-layout: fixed; }
+table.helpcloud th.box_01	{ background: url(/admin/images/box/box19/box_01.png) no-repeat left top; width: 3px; height: 3px; }
+table.helpcloud td.box_02	{ background: url(/admin/images/box/box19/box_02.png) repeat-x top; }
+table.helpcloud th.box_03	{ background: url(/admin/images/box/box19/box_03.png) no-repeat right top; width: 3px; height: 3px; }
+table.helpcloud th.box_04	{ background: url(/admin/images/box/box19/box_04.png) repeat-y left; width: 3px; }
+table.helpcloud td.box_05	{ padding: 3px; background-color:#ffffff;}
+table.helpcloud th.box_06	{ background: url(/admin/images/box/box19/box_06.png) repeat-y right; width: 3px; }
+table.helpcloud th.box_07	{ background: url(/admin/images/box/box19/box_07.png) no-repeat left bottom; width: 3px; height: 3px; }
+table.helpcloud td.box_08	{ background: url(/admin/images/box/box19/box_08.png) repeat-x bottom; background-color:#ffffff;}
+table.helpcloud th.box_09	{ background: url(/admin/images/box/box19/box_09.png) no-repeat right bottom; width: 3px; height: 3px; }
+table.helpcloud td.box_10	{ background: url(/admin/images/box/box19/box_10.png) no-repeat right bottom; width: 13px; height: 7px;}
+
+
+
+div.mallstory			{ margin: 10px 0px 20px; padding: 5px; border: solid 1px #c6c6c6; }
+div.t_no	{ border-top: none ! important; }
+
+div.menu 					{ background: #eeeeee; padding: 5px; margin: 5px; }
+div.my_box						{ }
+div.my_box div.doong			{ margin: 5px; padding: 5px; border: solid 1px #c6c6c6; }
+div.my_box table.doong			{ width: 100%; table-layout: fixed; margin-bottom: 5px; border-bottom: solid 1px #e0e0e0; }
+div.my_box table.doong th		{ text-align: left; height: 18px; padding: 5px; vertical-align: middle; }
+div.my_box table.doong td		{ width: 30%; text-align: right; padding: 5px; }
+div.my_box table.gl				{ width: 100%; table-layout: fixed; }
+div.my_box table.gl th			{ width: 100px; }
+div.my_box p					{ margin: 7px 0px 0px; }
+div.my_box p0 img.smore			{  }
+
+
+
+table.category			{ width: 100%; height:100%;table-layout: fixed; }
+table.category th		{ padding: 7px 5px 5px; border-bottom: solid 1px #c6c6c6; font-weight: bold; text-align: left; }
+table.category td		{ padding: 7px 5px 4px; }
+table.category td.select		{ background: #efefef; text-align: center; padding: 10px; }
+table.category td.select select	{ width: 100%; }
+
+
+
+.numeric {text-align:right;}
+
+
+#OptionArea {height:340px;}
+
+
+a		{ color: #484848; text-decoration: none; cursor: hand; }
+a:hover { text-decoration: underline; }
+
+
+*.rgt		{ float: right; }
+*.lft		{ float: left; }
+*.ctr		{ text-align: center; }
+*.str		{ font-weight: bold; }
+*.nor		{ font-weight: normal; }
+
+*.norg	{ color: #ea4200;}
+*.blk		{ color: #000000; }
+*.org		{ color: #ff8400; }
+*.grn		{ color: #4aa829; }
+*.cpz		{ color: #42ada6; }
+*.gry		{ color: #999999; }
+*.blu		{ color: #007fb4; }
+*.sky		{ color: #8be1e9; }
+*.red		{ color: #de093c; }
+*.pnk		{ color: #f74e71 ! important; }
+*.cmn		{ color: #ce0f3c ! important; }
+
+img		{ border: 0; }
+img.icn		{ float: left; vertical-align: middle; margin-right: 5px; }
+img.more	{ float: right; vertical-align: top; margin-top: 2px; }

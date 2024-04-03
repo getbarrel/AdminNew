@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Menus                                     ;
+; ***************************************** ;
+
+messages_mnu				= Inbox
+compose_mnu				= Compose
+refresh_mnu				= Refresh
+folders_mnu				= Folders
+search_mnu				= Search
+address_mnu				= Address book
+empty_trash_mnu				= Empty Trash
+prefs_mnu				= Preferences
+logoff_mnu 				= Logout

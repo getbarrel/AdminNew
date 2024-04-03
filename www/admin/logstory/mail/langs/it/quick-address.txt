@@ -1,0 +1,10 @@
+
+; ***************************************** ;
+; Quick address		                    ;
+; ***************************************** ;
+
+qad_title 			= Seleziona destinazione
+qad_select_address		= Seleziona indirizzo
+qad_to				= A
+qad_cc				= CC
+qad_bcc				= CCn

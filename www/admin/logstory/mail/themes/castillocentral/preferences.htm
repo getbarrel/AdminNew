@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>UebiMiau - <!--%prf_title%--></title>
+	<link rel="stylesheet" href="themes/castillocentral/webmail.css.php" type="text/css">
+
+<script language="JavaScript" src="themes/castillocentral/webmail.js" type="text/javascript"></script>
+
+<!--%UM_JS%-->
+
+</head>
+
+<body bgcolor="#ffffff" text="#FFFFFF" link="#FFFFFF" vlink="#FFFFFF" alink="#FFFFFF">
+
+<table cellspacing=0 cellpadding=2 border=0 align=center bgcolor=White width=700><tr><td align="center">
+	<img src="images/castillocentral/logo_cc.gif" border=0 alt="CastilloCentral"><br>
+	<img src="images/castillocentral/header.gif" border="0">
+</td></tr></table>
+
+<table cellspacing=2 cellpadding=0 border=0 align=center bgcolor=White width=700>
+	<tr>
+		<td valign=top width="15%">
+			<table cellspacing="0" cellpadding="0" width="100%" border="0"><tr><td bgcolor="#ffffff">
+			<table cellspacing="1" cellpadding="3" width="100%" border="0"> <tr align="center">
+
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:goinbox()">
+				<img src="images/castillocentral/inbox.gif" border=0><br><!--%messages_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:newmsg()">
+				<img src="images/castillocentral/compose.gif" border=0><br><!--%compose_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:folderlist()">
+				<img src="images/castillocentral/folders.gif" border=0><br><!--%folders_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:search()">
+				<img src="images/castillocentral/search.gif" border=0><br><!--%search_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:addresses()">
+				<img src="images/castillocentral/address.gif" border=0><br><!--%address_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:emptytrash()">
+				<img src="images/castillocentral/trash.gif" border=0><br><!--%empty_trash_mnu%--></a></td>
+				<td bgcolor="#ffffff"><a class="menu" href="javascript:goend()">
+				<img src="images/castillocentral/logout.gif" border=0><br><!--%logoff_mnu%--></a></td>
+
+			</tr></table>
+			</td></tr></table>		
+
+		</td></tr><tr>
+		<td valign=top>
+			<table cellspacing=1 cellpadding=1 width="100%" border=0 bgcolor=White>
+				<form name=form1 action=preferences.php method=POST>
+				<input type=hidden name=sid  value="<!--%UM_SID%-->">
+				<input type=hidden name=lid  value="<!--%UM_LID%-->">
+				<tr>
+					<td colspan=2 class=headers><b><!--%prf_general_title%--></b></td>
+				</tr>
+				<tr>
+					<td class=default size="20%"><!--%prf_name%--></td>
+					<td class=default><input type=text name=f_real_name size=30 value="<!--%UM_REAL_NAME%-->" class="textbox"></td>
+				</tr>
+				<tr>
+					<td class=default><!--%prf_reply_to%--></td>
+					<td class=default><input type=text name=f_reply_to size=30 value="<!--%UM_REPLY_TO%-->" class="textbox"></td>
+				</tr>
+				<tr>
+					<td class=default><!--%prf_time_zone%--></td>
+					<td class=default><!--%UM_TZ_SELECT%--></td>
+				</tr>
+				<tr>
+					<td colspan=2 class=headers><b><!--%prf_trash_title%--></b></td>
+				</tr>
+				<tr>
+					<td class=default colspan=2><input type=checkbox name=f_save_trash onClick="dis()" value="1"<!--%UM_SAVE_TRASH%-->><acronym style="cursor: hand;" OnClick="f_save_trash.click()"><!--%prf_save_to_trash%--></acronym></td>
+				</tr>
+				<tr>
+					<td class=default colspan=2><input type=checkbox name=f_st_only_read onClick="return checkDis()" value="1"<!--%UM_ST_ONLY_READ%-->><acronym style="cursor: hand;" OnClick="f_st_only_read.click()"><!--%prf_save_only_read%--></acronym></td>
+				</tr>
+				<tr>
+					<td class=default colspan=2><input type=checkbox name=f_empty_on_exit value="1"<!--%UM_EMPTY_ON_EXIT%-->><acronym style="cursor: hand;" OnClick="f_empty_on_exit.click()"><!--%prf_empty_on_exit%--></acronym></td>
+				</tr>
+				<tr>
+					<td colspan=2  class=headers><b><!--%prf_sent_title%--></b></td>
+				</tr>
+				<tr>
+					<td class=default colspan=2><input type=checkbox name=f_save_sent value="1"<!--%UM_SAVE_SENT%-->><acronym style="cursor: hand;" OnClick="f_save_sent.click()"><!--%prf_save_sent%--></acronym></td>
+				</tr>
+				<tr>
+					<td colspan=2  class=headers><b><!--%prf_messages_title%--></b></td>
+				</tr>
+				<tr>
+					<td class=default><!--%prf_page_limit%--></td>
+					<td class=default><!--%UM_RECORDS_PP%--></td>
+				</tr>
+				<tr>
+					<td colspan=2  class=headers><b><!--%prf_signature_title%--></b></td>
+				</tr>
+				<tr>
+					<td class=default valign=top><!--%prf_signature%--></td>
+					<td class=default><!--%UM_SIGNATURE%--></td>
+				</tr>
+				<tr>
+					<td class=default colspan=2><input type=checkbox name=f_add_sig value="1"<!--%UM_ADD_SIGNATURE%-->><acronym style="cursor: hand;" OnClick="f_add_sig.click()"><!--%prf_auto_add_sign%--></acronym> </td>
+				</tr>
+				<tr>
+					<td bgcolor=white></td>
+					<td bgcolor=white><br><input type=submit value="<!--%prf_save_button%-->" class="button"></td>
+				</tr>
+				</form>
+			</table>
+		</td>
+	</tr>
+</table>
+
+<table cellspacing=0 cellpadding=2 border=0 align=center bgcolor=White width=700><tr><td align="center">
+	<img src="images/castillocentral/footer.gif" border="0">
+</td></tr></table>
+
+</body>
+</html>
+

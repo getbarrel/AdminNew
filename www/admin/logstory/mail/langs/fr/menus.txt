@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Menus                                     ;
+; ***************************************** ;
+
+messages_mnu			= Messages
+compose_mnu				= Ecrire un nouveau msg.
+refresh_mnu				= Actualiser
+folders_mnu				= Dossiers
+search_mnu				= Rechercher
+address_mnu				= Carnet d adresses
+empty_trash_mnu			= Vider la corbeille
+prefs_mnu				= Préférences
+logoff_mnu 				= Quitter

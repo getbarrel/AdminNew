@@ -1,0 +1,10 @@
+
+; ***************************************** ;
+; Quick address		                    ;
+; ***************************************** ;
+
+qad_title 			= Carnet d adresses
+qad_select_address	= Sélectionnez un contact
+qad_to			= A
+qad_cc			= Copies
+qad_bcc			= Copies cachées

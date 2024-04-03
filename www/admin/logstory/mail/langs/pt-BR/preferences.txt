@@ -1,0 +1,21 @@
+; ***************************************** ;
+; Preferences		                    ;
+; ***************************************** ;
+
+prf_title 			= Preferencias
+prf_general_title		= Informações Gerais
+prf_name			= Nome
+prf_reply_to			= Responder para
+prf_time_zone			= Fuso horário
+prf_trash_title			= Lixeira
+prf_save_to_trash		= Quando eu <b>apagar</b> uma mensagem, guarde uma cópia dela na pasta "<b><!--%UM_TRASH_EXTENDED%--></b>"
+prf_save_only_read		= Somente salve mensagens <b>que já foram lidas</b> na pasta "<b><!--%UM_TRASH_EXTENDED%--></b>"
+prf_empty_on_exit		= <b>Limpar</b> a lixeira ao sair
+prf_sent_title			= Ítens Enviados
+prf_save_sent			= Quando eu <b>enviar</b> uma mensagem, guarde uma cópia dela na pasta "<b><!--%UM_SENT_EXTENDED%--></b>"
+prf_messages_title		= Mensagens
+prf_page_limit			= Limite de mensagens por página
+prf_signature_title		= Assinatura
+prf_signature			= Digite ou cole sua assinatura aqui
+prf_auto_add_sign		= Adicionar assinatura automaticamente aos novos emails
+prf_save_button			= Salvar

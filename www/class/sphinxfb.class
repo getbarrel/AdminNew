@@ -1,0 +1,203 @@
+<?php
+
+class sphinxfb {
+	private $host;
+	private $port;
+	private $sphinx_link;
+	private $mysql_link;
+
+	public function __construct(
+		$host = "127.0.0.1"
+	  , $port = "9306"
+	  , $mysql_host = "127.0.0.1"
+	  , $mysql_user = "root"
+	  , $mysql_password = "vhqlwm2011"
+	  , $mysql_port = "3306"
+	  , $mysql_database = "omnichannelnew_db"
+	){
+		$this->host = $host;
+		$this->port = $port;
+		
+		$this->sphinx_link = mysql_connect(sprintf("%s:%s", $host, $port), '', '');
+		mysql_select_db('', $this->sphinx_link);
+
+		$this->mysql_link  = mysql_connect(sprintf("%s:%s", $mysql_host, $mysql_port), $mysql_user, $mysql_password);
+		mysql_set_charset('utf8', $this->mysql_link);
+		mysql_select_db($mysql_database, $this->mysql_link);
+	}
+	
+	public function rebuild_index($where){
+
+		if($where == ""){
+			trigger_error("조건절을 반드시 입력해야 합니다.", E_USER_ERROR);
+		}
+
+		$sql_mysql = "select 
+				p.id, pr.pid, pcode, stock_use_yn, is_sell_date, reg_category, global_pinfo,
+				p.pname,
+				p.brand_name,
+				p.shotinfo,
+				p.search_keyword,
+				p.product_type,
+				p.brand,
+				p.disp,
+				p.state,
+				csd.shop_name,
+				csd.company_id,
+				order_cnt, view_cnt, view_cnt, p.recommend_cnt,
+				after_cnt, stock,
+				coprice, 
+				wholesale_price AS wholesale_listprice,
+				wholesale_sellprice,
+				listprice,
+				sellprice,
+				premiumprice,
+				reserve,
+				reserve_rate,
+				c.cid_ix, 
+				c.cid,
+				substr(c.cid,1,3) AS cid_1d ,
+				substr(c.cid,4,3) AS cid_2d ,
+				substr(c.cid,7,3) AS cid_3d ,
+				substr(c.cid,10,3) AS cid_4d ,
+				substr(c.cid,10,3) AS cid_5d ,
+				ifnull(ceil(p.after_score/p.after_cnt),'0') as uf_valuation, 
+				unix_timestamp(p.regdate) AS regdate,
+				unix_timestamp(p.editdate) AS editdate, 
+				unix_timestamp(sell_priod_sdate) AS sell_priod_sdate,
+				unix_timestamp(sell_priod_edate) AS sell_priod_edate, 
+				p.vieworder, 
+				case when state = 0 then convert(p.vieworder, SIGNED)-1000000 else p.vieworder end  as vieworder_by_state
+				from  shop_product p, shop_product_relation pr, shop_category_info c, common_seller_detail csd 
+				Where p.id = pr.pid and pr.cid = c.cid and p.admin = csd.company_id 
+				  and "; 
+				  
+		$sql_mysql .= $where;
+		
+		$result_mysql = mysql_query($sql_mysql, $this->mysql_link);
+
+		while($obj = mysql_fetch_assoc($result_mysql)){
+			
+			$columns = "(id, pname, brand_name, shotinfo, search_keyword, shop_name, product_type, brand, disp, state, vieworder, vieworder_by_state, order_cnt, view_cnt, recommend_cnt, cid_ix, cid_1d, cid_2d, cid_3d, cid_4d, cid_5d, uf_valuation, after_cnt, stock, coprice, wholesale_listprice, wholesale_sellprice, listprice, sellprice, premiumprice, reserve, reserve_rate, regdate, editdate, sell_priod_sdate, sell_priod_edate, pid, pcode, company_id, stock_use_yn, cid, is_sell_date, reg_category, global_pinfo)";
+			
+			$values = "";
+			$values_arr = array(
+							$obj['id'],
+							$obj['pname'],
+							$obj['brand_name'],
+							$obj['shotinfo'],
+							$obj['search_keyword'],
+							$obj['shop_name'],
+							$obj['product_type'],
+							$obj['brand'],
+							$obj['disp'],
+							$obj['state'],
+							$obj['vieworder'],
+							$obj['vieworder_by_state'],
+							$obj['order_cnt'],
+							$obj['view_cnt'],
+							$obj['recommend_cnt'],
+							$obj['cid_ix'],
+							$obj['cid_1d'],
+							$obj['cid_2d'],
+							$obj['cid_3d'],
+							$obj['cid_4d'],
+							$obj['cid_5d'],
+							$obj['uf_valuation'],
+							$obj['after_cnt'],
+							$obj['stock'],
+							$obj['coprice'],
+							$obj['wholesale_listprice'],
+							$obj['wholesale_sellprice'],
+							$obj['listprice'],
+							$obj['sellprice'],
+							$obj['premiumprice'],
+							$obj['reserve'],
+							$obj['reserve_rate'],
+							$obj['regdate'],
+							$obj['editdate'],
+							$obj['sell_priod_sdate'],
+							$obj['sell_priod_edate'],
+							$obj['pid'],
+							$obj['pcode'],
+							$obj['company_id'],
+							$obj['stock_use_yn'],
+							$obj['cid'],
+							$obj['is_sell_date'],
+							$obj['reg_category'],
+							$obj['global_pinfo']
+							);
+			$values = "('" . implode("','", $values_arr) . "')";
+			
+			$sql_sphinx = sprintf("replace into goods_test_rt %s values %s", $columns, $values);
+			//printf($sql_sphinx);
+			//exit;
+			$result_sphinx = mysql_query($sql_sphinx, $this->sphinx_link);
+		}
+	}
+	
+	public function query($where){
+		if($where == ""){
+			trigger_error("조건절을 반드시 입력해야 합니다.", E_USER_ERROR);
+		}
+	
+		$sql_select = " select id , pname , brand_name , shotinfo , search_keyword , shop_name , product_type , brand , disp , state , vieworder , vieworder_by_state , order_cnt , view_cnt , recommend_cnt , cid_ix , cid_1d , cid_2d , cid_3d , cid_4d , cid_5d , uf_valuation , after_cnt , stock , coprice , wholesale_listprice, wholesale_sellprice, listprice , sellprice , premiumprice , reserve , reserve_rate , regdate , editdate , sell_priod_sdate , sell_priod_edate , pid , pname , pcode , brand_name , search_keyword , shop_name , company_id , stock_use_yn , cid , is_sell_date , reg_category , global_pinfo  from goods_rt where ";
+		
+		$sql_select = $sql_select . $where;
+
+		//echo($sql_select);
+		//exit;
+		
+		$result = mysql_query($sql_select, $this->sphinx_link);
+		
+		$rows = array();
+		
+		while($row = mysql_fetch_array($result)){
+			$rows[] = $row;
+		}
+		return $rows;
+	}
+	
+	/* 컬럼별 업데이트는 필요할때 다시 만들거임
+	public function update($column, $value, $where){
+		$sql = " update goods_rt set $column = $value where $where "; 
+		//printf($sql);
+		//exit;
+		$result = mysql_query($sql, $this->sphinx_link);
+		return $result;
+	}
+
+	public function updateex($id, $column, $value){
+		$sql_select = " select id , pname , brand_name , shotinfo , search_keyword , shop_name , product_type , brand , disp , state , vieworder , vieworder_by_state , order_cnt , view_cnt , recommend_cnt , cid_ix , cid_1d , cid_2d , cid_3d , cid_4d , cid_5d , uf_valuation , after_cnt , stock , coprice , wholesale_listprice, wholesale_sellprice, listprice , sellprice , premiumprice , reserve , reserve_rate , regdate , editdate , sell_priod_sdate , sell_priod_edate , pid , pname , pcode , brand_name , search_keyword , shop_name , company_id , stock_use_yn , cid , is_sell_date , reg_category , global_pinfo  from goods_rt where id = $id ";
+		
+		$result_select = $conn->query($sql_select);
+		
+		while($obj = $result->fetch_object()){
+			print_r($obj);
+		}
+	}
+	*/
+	
+	public function remove($where){
+		if($where == ""){
+			trigger_error("조건절을 반드시 입력해야 합니다.", E_USER_ERROR);
+		}
+	
+		$sql_select = " delete from goods_rt where ";
+		
+		$sql_select = $sql_select . $where;
+
+		//echo($sql_select);
+		//exit;
+		
+		$result = mysql_query($sql_select, $this->sphinx_link);
+		
+		return $result;
+	}
+	
+	public function __destruct(){
+		mysql_close($this->sphinx_link);
+		mysql_close($this->mysql_link);
+	}
+	
+}

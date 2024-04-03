@@ -1,0 +1,9 @@
+
+; ***************************************** ;
+; Error			                    ;
+; ***************************************** ;
+
+err_title			= Errore
+err_msg				= Si è verificato un errore nella tua sessione<br><br>Per favore riaccedi:
+err_system_msg			= Messaggio del sistema: 
+err_exit			= Ri-accedi

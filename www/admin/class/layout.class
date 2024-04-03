@@ -1,0 +1,37 @@
+<?
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/database.class");
+if($_SERVER[REMOTE_ADDR] =='221.151.188.11' || $_SERVER[REMOTE_ADDR] == '192.168.0.1' ){
+
+	if($_SESSION['admininfo']['company_id']){
+	//	echo "<script>location.href = '../admin.php';</script>";
+	}
+}
+if(substr_count($_SERVER["PHP_SELF"],"admin")){
+	/*
+	if(substr_count($_SERVER["PHP_SELF"],"admin/buyingservice")){
+		include($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.front.class");
+	}else{
+	*/
+	
+		if(substr_count($_SERVER["HTTP_HOST"],"m.") || $type == "mobile" || substr_count($_SERVER["HTTP_USER_AGENT"],"Mobile") ){
+			//include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.v3.class");
+            
+            
+			// include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/mobilelayout.class"); // 임시 백업
+            include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.v3.class"); // 임시 
+            
+		}else{
+			// 신버젼 관리자 레이아웃 파일
+			if(substr_count($_SERVER["PHP_SELF"],"/member/")){
+				include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.v3.class");
+			}else{
+				include_once($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.v3.class");
+			}
+		}
+	//}
+}else{
+	// 이전 관리자 레이아웃 파일
+	include($_SERVER["DOCUMENT_ROOT"]."/admin/class/layout.v2.class");
+}
+//print_r($_SESSION);
+?>

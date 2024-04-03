@@ -1,0 +1,358 @@
+@font-face {
+	/*font-family: TTche;
+	src:url(/manage/logstory/include/TTche.eot);*/
+}
+TABLE {
+	FONT-SIZE: 9pt; FONT-FAMILY: TTche
+}
+
+DIV {
+	FONT-SIZE: 9pt; FONT-FAMILY: TTche
+}
+
+INPUT {
+	FONT-SIZE: 9pt; FONT-FAMILY: TTche
+}
+
+SELECT {
+	FONT-SIZE: 9pt; FONT-FAMILY: TTche
+}
+
+//	TD {
+//			FONT-SIZE: 9pt; FONT-FAMILY: TTche
+//	}
+/*
+a:link {font-family:TTche; text-decoration:none; color:#0000DE}
+a:visited {font-family:TTche; text-decoration:none; color:#800080}
+a:hover {font-family:TTche; text-decoration:underline; color:#800080}
+a:active {font-family:TTche; text-decoration:none; color:#800080}
+*/
+
+a.calendar_year:link {font-family:TTche; text-decoration:none; color:#ffffff}
+a.calendar_year:visited {font-family:TTche; text-decoration:none; color:#ffffff}
+a.calendar_year:hover {font-family:TTche; text-decoration:none; color:orange}
+a.calendar_year:active {font-family:TTche; text-decoration:none; color:#ffffff}
+
+
+
+a.calendar_button:link {font-family:TTche; text-decoration:none; color:#ffffff}
+a.calendar_button:visited {font-family:TTche; text-decoration:none; color:#ffffff}
+a.calendar_button:hover {font-family:TTche; text-decoration:none; color:orange}
+a.calendar_button:active {font-family:TTche; text-decoration:none; color:#ffffff}
+
+
+a.calendar_a:link {font-family:TTche; text-decoration:none; color:gray}
+a.calendar_a:visited {font-family:TTche; text-decoration:none; color:gray}
+a.calendar_a:hover {font-family:TTche; text-decoration:none; color:red}
+a.calendar_a:active {font-family:TTche; text-decoration:none; color:gray}
+
+.td_gray {
+	BORDER-BOTTOM: gray 1px solid;  
+	BORDER-LEFT: #efefef 1px solid; 
+	BORDER-RIGHT: gray 1px solid; 
+	BORDER-TOP: #efefef 1px solid; 
+	FONT-FAMILY: TTche; 
+	FONT-SIZE: 8pt; 
+	PADDING-BOTTOM: 3px; 
+	PADDING-LEFT: 5px; 
+	PADDING-RIGHT: 5px; 
+	PADDING-TOP: 3px; 
+	background-color:#B0BACD
+}
+
+.td_white {
+	BORDER-BOTTOM: gray 1px solid;  
+	BORDER-LEFT: #efefef 1px solid; 
+	BORDER-RIGHT: gray 1px solid; 
+	BORDER-TOP: #efefef 1px solid; 
+	FONT-FAMILY: TTche; 
+	FONT-SIZE: 8pt; 
+	PADDING-BOTTOM: 3px; 
+	PADDING-LEFT: 5px; 
+	PADDING-RIGHT: 5px; 
+	PADDING-TOP: 3px; 
+	background-color:#ffffff
+}
+
+.ellipsis  {font:9pt "굴림"; width:100%; overflow:hidden; text-overflow:ellipsis; text-align:left; }
+.colresize {font:9pt "굴림"; cursor:""; }
+.input_box {width:expression(this.parentNode.clientWidth-8); }
+
+
+.s_td{
+
+BORDER-BOTTOM: gray 1px solid; BORDER-LEFT: #cccccc 1px solid; BORDER-TOP: #cccccc 1px solid;
+Background-color:#EFEFEF; color:gray
+}
+
+.m_td{
+BORDER-BOTTOM: gray 1px solid; BORDER-TOP: #cccccc 1px solid;
+Background-color:#EFEFEF; color:gray
+}
+
+.e_td{
+BORDER-BOTTOM: gray 1px solid; BORDER-RIGHT: gray 1px solid; BORDER-TOP: #cccccc 1px solid;Background-color:#EFEFEF; color:gray
+}
+
+BODY{
+FONT-SIZE: 8pt; 
+
+}
+
+TD{
+FONT-SIZE: 9pt; 
+
+}
+.controlpanel
+{
+    BACKGROUND-COLOR: #5FA4F3;
+    BORDER-BOTTOM: #000000 1px solid;
+    BORDER-LEFT: #99ccff 1px solid;
+    BORDER-RIGHT: #000000 1px solid;
+    BORDER-TOP: #99ccff 1px solid;
+    HEIGHT: 100%;
+    LEFT: 0px;
+    PADDING-BOTTOM: 15px;
+    PADDING-LEFT: 5px;
+    PADDING-RIGHT: 5px;
+    PADDING-TOP: 5px;
+    POSITION: relative;
+    TEXT-ALIGN: left;
+    TOP: 25px;    
+    WIDTH: 100%;
+    Z-INDEX: 1;
+
+}
+
+.tab
+{
+    BACKGROUND-IMAGE: url(../report/img/UI_graytab.gif);
+    BACKGROUND-REPEAT: no-repeat;
+    COLOR: white;
+    CURSOR: hand;
+    FONT-FAMILY: TTche;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold;
+    HEIGHT: 26px;
+    LEFT: 2px;
+    PADDING-TOP: 4px;
+    POSITION: absolute;
+    TEXT-ALIGN: center;
+    TOP: 2px;
+    WIDTH: 140px;
+    Z-INDEX: 1
+}
+
+.calendar{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	Border-right:1px solid #000000;
+	Border-bottom:1px solid #000000; 
+	padding:4px;
+	WIDTH: 156px; 
+	CURSOR: hand; 
+	/*COLOR: #2343a1; */
+	color:gray;
+	POSITION: relative; TOP: 0px; 
+	/*BACKGROUND-COLOR: #efefef; */
+	BACKGROUND-COLOR: #efefef;
+	TEXT-DECORATION: none; 
+	HEIGHT:23px
+}
+
+.calendarWeekHeadOff{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid;
+	Border-bottom:1px solid #000000;
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	HEIGHT:23px
+}
+
+.calendarWeekHeadOn{
+	BORDER-TOP: #000000 1px solid;
+	BORDER-left: #000000 1px solid; 
+	Border-bottom:1px solid #ffffff;
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+.calendarWeekMiddleOff{
+	BORDER-TOP: #ffffff 1px solid;	
+	BORDER-left: 0px solid #ffffff;
+	BORDER-right: 0px solid #ffffff;
+	Border-bottom:1px solid #000000;
+	padding:4px;
+	WIDTH: 156px; 
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+.calendarWeekMiddleOn{
+	BORDER-TOP: #000000 1px solid;
+	BORDER-left: 0px solid #ffffff;
+	BORDER-right: 0px solid #ffffff;
+	Border-bottom:1px solid #ffffff;
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+.calendarWeekTailOff{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #000000 1px solid;
+	Border-bottom:1px solid #000000;
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+
+.calendarWeekTailOn{
+	BORDER-TOP: #000000 1px solid;
+	BORDER-Right: #ffffff 1px solid; 
+	Border-bottom:1px solid #ffffff;
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: #efefef; 
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+
+.calendar_on{
+	BORDER-TOP: 1px solid #000000; 
+	BORDER-left: 1px solid #000000;
+	Border-right:#ffffff 1px solid; 
+	Border-bottom:#ffffff 1px solid;
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: silver; /*#efefef*/
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+
+.calendar_main{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	Border-right:1px solid #000000;
+	Border-bottom:1px solid #000000; 
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #ffffff; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: gray; 
+	TEXT-DECORATION: none; 
+	height:23px;
+
+}
+
+.calendar_outbox{
+	
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #ffffff; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: gray; 
+	TEXT-DECORATION: none; 
+	height:23px;
+
+}
+
+.calendarHeader{
+	/*BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; */
+	BORDER-TOP: #000000 1px solid;
+	Border-right:1px solid #000000;
+	Border-bottom:1px solid #000000; 
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #ffffff; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: gray; 
+	TEXT-DECORATION: none; 
+	FONT-WEIGHT:BOLD;
+	height:23px;
+
+
+}
+
+
+
+.calendarButton{
+	BORDER-TOP: #000000 1px solid;
+	BORDER-left: #000000 1px solid; 
+	Border-right:1px solid #000000;
+	Border-bottom:1px solid #000000; 
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #ffffff; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: gray; 
+	TEXT-DECORATION: none; 
+	/*FONT-WEIGHT:BOLD;*/
+	height:23px;
+	font-size:11px;
+
+
+}
+
+.calendarToday{
+	BORDER-TOP: #ffffff 1px solid;
+	BORDER-left: #ffffff 1px solid; 
+	Border-right:1px solid #000000;
+	Border-bottom:1px solid #000000; 
+	padding:4px;
+	CURSOR: hand; 
+	COLOR: #2343a1; 
+	POSITION: relative; TOP: 0px; 
+	BACKGROUND-COLOR: orange; 
+	TEXT-DECORATION: none; 
+	height:23px;
+}
+/*
+.SM_po11464 {
+	font-family: TTche;BORDER-TOP: #ffffff 1px solid;BORDER-left: #ffffff 1px solid; Border-right:1px solid #000000;Border-bottom:1px solid #000000; PADDING-LEFT: 8px; padding-top:8px;  WIDTH: 190px; CURSOR: hand; COLOR: #2343a1; POSITION: relative; TOP: 0px; BACKGROUND-COLOR: #efefef; TEXT-DECORATION: none; HEIGHT:26px
+}
+.SM_p11464 {
+	font-family: TTche;BORDER-TOP: #ffffff 1px solid;BORDER-left: #ffffff 1px solid;Border-right:1px solid #000000;Border-bottom:1px solid #000000; PADDING-LEFT: 8px; padding-top:8px;  WIDTH: 190px; COLOR: #ffffff; POSITION: relative; TOP: 0px; BACKGROUND-COLOR: #efefef; TEXT-DECORATION: none; HEIGHT:26px
+}
+.SM_co11464 {
+	font-family: TTche;BORDER-TOP: #ffffff 1px solid;BORDER-left: #ffffff 1px solid;Border-right:1px solid #000000;Border-bottom:1px solid #000000; FONT: normal 12px TTche; WIDTH: 190px; CURSOR: hand; COLOR: #2343a1; BACKGROUND-COLOR: #FCBC5E; TEXT-DECORATION: none;height:23px; padding-top:7px;
+}
+.SM_c11464 {
+	font-family: TTche;BORDER-TOP: #ffffff 1px solid;BORDER-left: #ffffff 1px solid;Border-right:1px solid #000000;Border-bottom:1px solid #000000; FONT: normal 12px TTche; WIDTH: 190px; COLOR: #2343a1; BACKGROUND-COLOR: #C3CCDA; TEXT-DECORATION: none; height:23px; padding-top:7px;
+}
+*/
+.SM_cb11464 {
+	font-family: TTche;BACKGROUND-COLOR: white
+}
+.SM_ps11464 {
+	font-family: TTche;BORDER-TOP: #ffffff 1px solid; PADDING-LEFT: 8px; FONT: bold 12px TTche; WIDTH: 190px;HEIGHT:30px; CURSOR: hand; COLOR: #2343a1; POSITION: relative; TOP: 0px; BACKGROUND-COLOR: #c4e2f2; TEXT-DECORATION: none; padding-top:7px;
+}
+.SM_cs11464 {
+	font-family: TTche;BORDER-TOP: #ffffff 1px solid; FONT: 11px TTche; WIDTH: 190px; COLOR: #2343a1; BACKGROUND-COLOR: #f0f8fc; TEXT-DECORATION: none; padding-top:7px;
+}
+.SMEmptyDiv11464 {
+	font-family: TTche;BORDER-TOP: medium none; OVERFLOW: hidden; WIDTH: 100%
+}

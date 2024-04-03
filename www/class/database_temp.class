@@ -1,0 +1,32 @@
+<?
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/mysql_temp.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/oracle.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/class/cubrid.class");
+include_once($_SERVER["DOCUMENT_ROOT"]."/include/ms_util.php");
+
+
+@extract($_GET);
+@extract($_POST);
+@extract($_SERVER);
+@extract($_ENV);
+@extract($_SESSION);
+
+
+if (!class_exists(Database))
+{ // 클래스선언이 없으면...
+
+	if($_SERVER["HTTP_HOST"] == "cubrid.forbiz.co.kr") {
+		class Database extends Cubrid{
+			
+		
+		}
+	}else{
+		class Database extends MySQL{
+		
+		
+		}
+	}
+
+} // 클래스를 선언하고 종료한다...
+
+?>

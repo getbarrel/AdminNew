@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Menus                                     ;
+; ***************************************** ;
+
+messages_mnu				= Mensagens
+compose_mnu				= Escrever
+refresh_mnu				= Atualizar
+folders_mnu				= Pastas
+search_mnu				= Busca
+address_mnu				= Endereços
+empty_trash_mnu				= Limpar lixeira
+prefs_mnu				= Preferências
+logoff_mnu 				= Sair

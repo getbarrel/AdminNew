@@ -1,0 +1,8 @@
+
+; ***************************************** ;
+; Upload		                    ;
+; ***************************************** ;
+
+up_title 			= Aggiungi un nuovo allegato
+up_information_text		= Seleziona il file
+up_button_text			= Allega

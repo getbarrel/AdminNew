@@ -1,0 +1,458 @@
+<link href="{template_dir}/bbs.css" type="text/css" rel="stylesheet" />
+<script  type="text/javascript" src="{template_dir}/bbs.js"></script>
+<script  type="text/javascript">
+
+
+function changePassCheckMode(frm,act){
+if(frm.act.value == act){
+frm.act.value = act;
+displaySub(pass_check);
+}
+else{
+frm.act.value = act;
+
+if(pass_check.style.display == 'none'){
+displaySub(pass_check);
+}
+else{
+displaySub(pass_check);
+displaySub(pass_check);
+}
+}
+
+if(act == 'pass_check')
+pass_check.style.paddingLeft = "50px";
+else
+pass_check.style.paddingLeft = "90px";
+}
+
+function CheckCommentFormValue(frm){
+for(i=0;i < frm.elements.length;i++){
+
+if(!CheckForm(frm.elements[i])){
+return false;
+}
+
+
+}
+
+return true;
+}
+
+function bbs_response_templet(selectbox,id){
+	$('#'+id).val(selectbox.val())
+}
+
+</script>
+{# bbs_title}<br>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center" style="table-layout:fixed;" class="input_table_box">
+<col width="18%" />
+<col width="32%" />
+<col width="18%" />
+<col width="32%" />
+	<tr align="center" >
+		<td height=27 class="input_box_title">제목</td>
+		<td class="input_box_item" colspan=3 style="padding:0px 0 0 25px">
+			<!--{? bbs_hidden=='1' }-->
+			<img src="{template_dir}/img/key.gif" border="0" align="absmiddle" />
+			<!--{/}-->
+			{bbs_subject}
+		</td>
+	</tr>
+	<!--{? board_category_use_yn=='Y'}-->
+	<tr align="center">
+		<td height=27 class="input_box_title">분류</td>
+		<td class="input_box_item" style="padding:0px 0 0 25px">
+			{div_name} {sub_div_name}
+		</td>
+		<td height=27 class="input_box_title">처리상태</td>
+		<td class="input_box_item" style="padding:0px 0 0 25px">
+			{? !is_null(status)}
+				{_status_info[status]}
+			{/}
+		</td>
+
+
+	</tr>
+	<!--{/}-->
+	<tr align="center" >
+		<td height=27  class="input_box_title">작성자</td>
+		<td class="input_box_item" style="padding:0px 0 0 25px"><!--<a href="javascript:PoPWindow('../member/member_view.php?code={mem_ix}',950,700,'member_view')">-->
+	<a href="javascript:PopSWindow2('../member/member_cti.php?mmode=pop&code={mem_ix}&mmode=pop',1280,800,'member_view')">
+		{? _GET["board"] == "qna"}
+			{? user_level(mem_ix) == 2}[P] {/}
+		{/}
+		{bbs_name} ( {=get_member_id(mem_ix)} )</a></td>
+		<td class="input_box_title">공개설정</td>
+		<td class="input_box_item" style="padding:0px 0 0 25px">
+			<!--{? (bbs_table_name=="bbs_after" || bbs_table_name=="bbs_premium_after") && bbs_after_admin_confirm }-->
+				{? status == 1}공개{:}비공개{/}
+			<!--{:}-->
+				<!--{? board_hidden_yn=='Y' }-->
+				{? bbs_hidden == 1}비밀글{:}공개글{/}
+				<!--{/}-->
+			<!--{/}-->
+		</td>
+	</tr>
+	{? bbs_templet_dir=="consult"}
+	<tr align="center" >
+		<td height=27 class="input_box_title">이메일</td>
+		<td class="input_box_item" colspan=3 style="padding:0px 0 0 25px">{bbs_email} {? bbs_etc1=="1"}수신{:}수신안함{/}</td>
+	</tr>
+	<tr align="center" >
+		<td height=27 class="input_box_title">휴대폰</td>
+		<td class="input_box_item" colspan=3 style="padding:0px 0 0 25px">{bbs_etc2} {? bbs_etc3=="1"}수신{:}수신안함{/}</td>
+	</tr>
+	{:  bbs_table_name=="bbs_after" || bbs_table_name=="bbs_premium_after" || bbs_table_name=="bbs_service_mdreview" }
+		<tr align="center" >
+		<td  height=27 class="input_box_title">상품정보</td>
+		<td class="input_box_item" colspan='3' style="padding:0px 0 0 25px">
+			[{bbs_etc1}] {bbs_etc2}
+		</td>
+	</tr>
+	{/}
+	<!--{? bbs_etc4 != "" && _SESSION['admininfo']['use_work'] != 1}-->
+	<tr align="center" >
+		<td height=27 class="input_box_title">주문번호 </td>
+		<td class="input_box_item" colspan=3 style="padding:0px 0 0 25px"><a href="../order/orders.edit.php?oid={bbs_etc4}" style='color:#007DB7;font-weight:bold;' class='small' target="_blank">{bbs_etc4}</td>
+	</tr>
+	<!--{/}-->
+	<tr align="center" >
+		<td height=27 class="input_box_title">등록일</td>
+		<td class="input_box_item" style="padding:0px 0 0 25px">{regdate}</td>
+		<td class="input_box_title">조회수</td>
+		<td class="input_box_item" style="padding:0px 0 0 25px">{bbs_hit}</td>
+	</tr>
+	<!--{? substr(strrchr(bbs_file_1,"."),1) == "gif" || substr(strrchr(bbs_file_1,"."),1) == "jpg" || substr(strrchr(bbs_file_1,"."),1) == "png" || substr(strrchr(bbs_file_1,"."),1) == "bmp"}-->
+	<tr>
+		<td bgcolor="#ffffff" colspan="4" style="padding:20px 0 0 0"  align="center">
+			{? bbs_file_1_image_info["0"] > 900}
+				{? bbs_file_1}<img src="{bbs_data_dir}/{bbs_file_1}" style="max-width:900px;" /><br /><br />{/}
+				{? bbs_file_2}<img src="{bbs_data_dir}/{bbs_file_2}" style="max-width:900px;" /><br /><br />{/}
+				{? bbs_file_3}<img src="{bbs_data_dir}/{bbs_file_3}" style="max-width:900px;" /><br /><br />{/}
+			{:}
+				{? bbs_file_1}<img src="{bbs_data_dir}/{bbs_file_1}" style="max-width:900px;" /><br /><br />{/}
+				{? bbs_file_2}<img src="{bbs_data_dir}/{bbs_file_2}" style="max-width:900px;" /><br /><br />{/}
+				{? bbs_file_3}<img src="{bbs_data_dir}/{bbs_file_3}" style="max-width:900px;" /><br /><br />{/}
+
+			{/}
+		</td>
+	</tr>
+	<!--{/}-->
+
+	<tr bgcolor="#ffffff">
+		<td colspan="4" class="top"  style="min-height:330px; !important; height:330px; padding:10px 0 30px 25px;line-height:130%;">
+			<!--{? is_html == 'Y'}-->
+				{bbs_contents}
+			<!--{:}-->
+				{=nl2br(bbs_contents)}
+			<!--{/}-->
+		</td>
+	<table>
+	<table width="100%" border="0" cellpadding="0" cellspacing="0" align=center style="table-layout:fixed;">
+	</tr>
+	<tr bgcolor="#ffffff">
+		<td  colspan="4" class="rgt" style="padding:0px;">
+
+			<!--{? bbs_file_1 != ''}-->
+			<a href='?mode=download&board={board_ename}&bbs_ix={bbs_ix}&file={bbs_file_1}'>{bbs_file_1}</a><br>
+			<!--{/}-->
+			<!--{? bbs_file_2 != ''}-->
+			<a href='?mode=download&board={board_ename}&bbs_ix={bbs_ix}&file={bbs_file_2}'>{bbs_file_2}</a><br>
+			<!--{/}-->
+			<!--{? bbs_file_3 != ''}-->
+			<a href='?mode=download&board={board_ename}&bbs_ix={bbs_ix}&file={bbs_file_2}'>{bbs_file_3}</a><br>
+			<!--{/}-->
+		</td>
+	</tr>
+
+	<tr height=30>
+		<td colspan="2">
+			<a href="?mode=list&page={page}&id={id}&board={board_ename}&mmode={_GET["mmode"]}&mem_ix={_GET["mem_ix"]}"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_list.gif" align="absmiddle"  border="0" /></a>
+			<!-- <a href="javascript:document.forms['modify_form'].act.value='pass_check';document.forms['modify_form'].submit();"><img src="{template_dir}/img/btn_modify.gif" align=""absmiddle"" border=0></a> -->
+			<!--{? board_user_write_auth_yn=='Y'  || bbs_admin_mode }-->
+
+				<!--{? _SESSION['user']['code'] == mem_ix || _SESSION['admininfo']['charger_ix'] == mem_ix || bbs_admin_mode // 글쓴이와 로그인 정보가 일치할때}-->
+					<!--a href="javascript:document.forms['modify_form'].act.value='pass_check';document.forms['modify_form'].submit();"><img src="{template_dir}/img/mypage_change_bt.gif" align=""absmiddle"" border=0></a-->
+					<a href="?mode=modify&bbs_ix={bbs_ix}&board={board_ename}&page={page}&mmode={_GET["mmode"]}&mem_ix={_GET["mem_ix"]}"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_modify.gif" align="absmiddle" border="0" /></a>
+				<!--{: _SESSION['user']['code'] != mem_ix && mem_ix != "" //자신이 로그인 안하고 글 입력했을경우 패스워드로 접근}-->
+					<a href="javascript:alert('자신의 글이 아닙니다.');"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_modify.gif" align="absmiddle" border="0" /></a>
+				<!--{: }-->
+					<a href="javascript:changePassCheckMode(document.forms['modify_form'],'pass_check')"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_modify.gif" align="absmiddle" border="0" /></a>
+				<!--{/}-->
+			<!--{/}-->
+			<!-- <a href="javascript:document.forms['modify_form'].act.value='delete';document.forms['modify_form'].submit();"><img src="{template_dir}/img/btn_del.gif" align=""absmiddle"" border=0></a> -->
+			<!--{? board_user_write_auth_yn == 'Y' || bbs_admin_mode }-->
+				<!--{? _GET["mmode"] != "personalization"}-->
+					<!--{? _SESSION['user']['code'] == mem_ix || _SESSION['admininfo']['charger_ix'] == mem_ix || bbs_admin_mode // 글쓴이와 로그인 정보가 일치할때}-->
+				
+				<a href="javascript:if(confirm('해당글을 정말로 삭제 하시겠습니까?')){document.forms['modify_form'].act.value='delete';document.forms['modify_form'].submit();}"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_del.gif" align="absmiddle" border="0" /></a>
+				
+					<!--{:  _SESSION['user']['code'] != mem_ix && mem_ix != "" //자신이 로그인 안하고 글 입력했을경우 패스워드로 접근}-->
+					<a href="javascript:alert('자신의 글이 아닙니다.');"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_del.gif" align="absmiddle" border="0" /></a>
+					<!--{:}-->
+					<a href="javascript:changePassCheckMode(document.forms['modify_form'],'delete')"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_del.gif" align="absmiddle" border="0" /></a>
+					<!--{/}-->
+				<!--{/}-->
+			<!--{/}-->
+		</td>
+		<td colspan="2" align="right">
+			<!--a href="javascript:displaySub(reply)"><img src="{template_dir}/img/btn_read_reply.gif" align=""absmiddle""  border=0></a-->
+			<!--{? board_response_yn == "Y"}--><a href="?mode=response&board={board_ename}&bbs_ix={bbs_ix}&bbs_div={bbs_div}&mmode={_GET["mmode"]}&mem_ix={_GET["mem_ix"]}"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_reply.gif" align="absmiddle"  border="0" /></a><!--{/}-->
+			<!--{? _GET["mmode"] != "personalization"}-->
+				<!--{? board_user_write_auth_yn=='Y'  || (bbs_admin_mode && board_admin_write_auth_yn == 'Y')}-->
+				<a href="?mode=write&page={page}&board={board_ename}&mmode={_GET["mmode"]}&mem_ix={_GET["mem_ix"]}"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_write.gif" align="absmiddle"  border="0" /></a>
+				<!--{/}-->
+			<!--{/}-->
+		</td>
+	</tr>
+	<tr>
+		<td colspan=4>
+			<!-- 수정, 삭제시 비밀번호 입력하는 부분-->
+			<span id="pass_check" style="display: none; width: 100%; filter: blendTrans(Duration=1.5)">
+			<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<tr>
+					<form name='modify_form' action='' onsubmit='return CheckFormValue_bbs(this)' method='post'>
+					<input type=hidden name='mmode' value='{_GET["mmode"]}'> 
+					<input type=hidden name='mem_ix' value='{_GET["mem_ix"]}'>
+					<input type='hidden' name='bbs_table_name' value='{bbs_table_name}'>
+					<input type='hidden' name='bbs_ix' value='{bbs_ix}'>
+					<input type='hidden' name='article_no' value='{article_no}'>
+					<input type='hidden' name='page' value='{page}'>
+					<input type='hidden' name=act value='pass_check'>
+					<td height="20" valign="top" nowrap>
+						<img src="{template_dir}/img/icon_dot1.gif" align="absmiddle" />
+						<img src="{template_dir}/img/t_password.gif" align="absmiddle" />
+						<img src="{template_dir}/img/bar.gif" align="absmiddl" />
+						<img src="{template_dir}/img/text_box_img_input_pass_text.gif" align="absmiddle" />
+					</td>
+				</tr>
+				<tr>
+					<td height="21" nowrap>
+						<input type="password" id="finput_pass_check" name="bbs_pass" class="blend pass" maxlength="8" style="height: 19px; width: 93px; " onFocus="FIn(finput_pass_check,'#FFD323',0); this.className='blend'" onFocusOut="FOut(finput_pass_check,'',0)" align="middle" />
+						<input type="image" src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_verify.gif" border="0" class="non_border" align="absmiddle" onFocus="this.blur();" />
+						<a href="javascript:displaySub(pass_check)"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_cancel.gif" border="0" align="absmiddle" /></a>
+					</td>
+				</tr>
+				</form>
+			</table>
+			</span>
+		</td>
+	</tr>
+	<!--{? board_comment_yn=='Y'}--> <!-- && _SESSION["admininfo"]["admin_level"] == 9-->
+	<tr >
+		<td colspan=4 height="auto">
+			<span id="reply" style="display: block; width: 100%; filter: blendTrans(Duration=1.5)">
+			<form name='comment_form' action='' onsubmit='return CheckFormValue_bbs(this)' method='post'>
+			<input type=hidden name='mallstory_table_name' value='{bbs_table_name}'>
+			<input type=hidden name="bbs_ix" value='{bbs_ix}'>
+			<input type=hidden name="mem_ix" value="{_SESSION['user']['mem_ix']}">
+			<input type=hidden name="act" value='comment_insert'>
+			<input type='hidden' name="article_no" value='{article_no}'>
+			<input type="hidden" name="focus_info">
+			<input type="hidden" name="token" value="{token}">
+
+			<table width="100%" border="0" cellpadding="0" cellspacing="0">
+				<col width='10%'>
+				<col width='38%'>
+				<col width='10%'>
+				<col width='*'>
+				<tr><td height="15" colspan=2></td></tr>
+				<!--{? board_qna_yn=='Y'}-->
+				{? _SESSION["admininfo"]["com_type"] == 'A'}
+				<tr height=30>
+					<td align="left" >
+					<b>윗글의 처리상태</b>
+					</td>
+					<td  align="left">
+						<select name='status'>
+						{@ bbs_status}
+							<option value='{.status_ix}' {? .status_ix == status} selected{/}>{.status_name}</option>
+						{/}
+						</select>
+					</td>
+					<td align="left" >
+					<b>답변 탬플릿 선택</b>
+					</td>
+					<td  align="left">
+						{=bbs_response_templet_selectbox('CommentTextAreaLay',board_ename)}
+					</td>
+				</tr>
+				<tr><td height="1" colspan=4 bgcolor="#D3CAC0"></td></tr>
+				{/}
+				<!--{/}-->
+				<tr>
+					<td align="left">
+					<b>이름</b>
+					</td>
+					<td height="35" nowrap colspan=3>
+						<input type="text" name="cmt_name" value="{? basic_comment_name!=''}{basic_comment_name}{:}{_SESSION['admininfo']['charger']}{/}" title="작성자" validation="true" class="textbox blend xs"  maxlength="10" />
+					</td>
+				</tr>
+				<tr>
+					<td height="1" colspan="4" bgcolor="#D3CAC0"></td>
+				</tr>
+				<tr  >
+					<td valign="top" colspan="4" style='padding:10px 0px 5px 0px;'><textarea name="cmt_contents" class='textbox' id="CommentTextAreaLay"' validation="true" title="내용" style="height: 100px; width: 98%" onfocus="comment_form.focus_info.value='Y'"></textarea></td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<table width="100%" border="0" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+						<col width="50%" />
+						<col width="50%" />
+							<tr>
+								<td height="35" valign="middle">
+									<a href="#bt" onClick="javascript:TextareaResize('+',document.getElementById('CommentTextAreaLay'))"><img src="{template_dir}/img/btk_s_long.gif" border="0"></a>
+									<a href="#bt" onClick="javascript:TextareaResize('-',document.getElementById('CommentTextAreaLay'))"><img src="{template_dir}/img/btk_s_short.gif" border="0"></a>
+								</td>
+								<td height="35" align="right" valign="middle">
+									<input type="image" src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_confirm.gif" class="non_border" border="0" style="vertical-align:bottom; padding:0px; margin:0px;" />
+									<a href="?mode=list&page={page}"><img src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_cancel.gif" border="0" style="vertical-align:bottom;" /></a>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+			</form>
+			</span>
+		</td>
+	</tr>
+	<!--{/}-->
+	<!--{? board_qna_yn == "Y" && _SESSION["admininfo"]["admin_level"] == 8}-->
+	<tr >
+		<td colspan="4" class="top ptb10">
+			<table cellpadding=5 width="100%">
+				<tr ><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{@ cmt_loop}-->
+				<tr height="25" bgcolor="#ffffff">
+					<td  style="line-height:150%" >
+						<form name='reply_{.index_}' action=''  method='post'>
+						<input type='hidden' name='bbs_table_name' value='{bbs_table_name}'>
+						<input type='hidden' name='bbs_ix' value='{bbs_ix}'>
+						<input type='hidden' name='page' value='{page}'>
+						<input type='hidden' name="act" value='comment_delete'>
+						<input type='hidden' name='cmt_ix' value='{.cmt_ix}'>
+						<table>
+							<tr>
+								<td>
+									<b ><a href="javascript:PoPWindow('../member/member_view.php?code={.mem_ix}',950,550,'reserve_pop')" class="blu">{.cmt_name}</a></b>( {.regdate} ) <!--input type="password" class="blend pass" id="finput_pass_reply_1_del" name="cmt_pass"  maxlength="8" style="height: 19px; width: 93px;  " onFocus="FIn(finput_pass_reply_1_del,'#FFD323',0);this.className='blend'" onFocusOut="FOut(finput_pass_reply_1_del,'',0)" align="middle"-->
+									{? _SESSION['user']['code'] == .mem_ix || _SESSION['admininfo']['charger_ix'] == .mem_ix || .cmt_pass != ""}
+									<input type="image" src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_del.gif" class="no" border="0" align="absmiddle" onFocus="this.blur();" />
+									{/}
+
+								</td>
+							</tr>
+							<tr>
+								<td>{= nl2br(.cmt_contents)}</td>
+							</tr>
+						</table>
+
+					</td>
+				</tr>
+				</form>
+				<tr ><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{/}-->
+			</table>
+		</td>
+	</tr>
+	<!--{: board_comment_yn=='Y' && _SESSION["admininfo"]["admin_level"] == 9}-->
+	<tr >
+		<td colspan="4" class="top ptb10">
+			<table cellpadding="5" width="100%">
+				<tr ><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{@ cmt_loop}-->
+				<tr height="35" bgcolor="#ffffff">
+					<td  style="line-height:150%" >
+						<form name='reply_{.index_}' action=''  method='post'>
+						<input type='hidden' name='bbs_table_name' value='{bbs_table_name}'>
+						<input type='hidden' name='bbs_ix' value='{bbs_ix}'>
+						<input type='hidden' name='page' value='{page}'>
+						<input type='hidden' name="act" value='comment_delete'>
+						<input type='hidden' name='cmt_ix' value='{.cmt_ix}'>
+						<table>
+							<tr>
+								<td>
+									<b ><a href="javascript:PoPWindow('../member/member_view.php?code={.mem_ix}',950,550,'member_view')" class="blu">{.cmt_name}</a></b>( {.regdate} ) <!--input type="password" class="blend pass" id="finput_pass_reply_1_del" name="cmt_pass"  maxlength="8" style="height: 19px; width: 93px;  " onFocus="FIn(finput_pass_reply_1_del,'#FFD323',0);this.className='blend'" onFocusOut="FOut(finput_pass_reply_1_del,'',0)" align="middle"-->
+									<!--{? _SESSION["admininfo"]["charger_ix"] == .mem_ix}-->
+									<!--input type=image src="{template_dir}/img/btn_del.gif" class=no border="0" align=""absmiddle""-->
+									<!--{/}-->
+									{? _SESSION['user']['code'] == .mem_ix || _SESSION['admininfo']['charger_ix'] == .mem_ix || .cmt_pass != "" || _SESSION["admininfo"]["admin_level"] == 9}
+										<input type="image" src="{template_dir}/img/{_SESSION["admininfo"]["language"]}/btn_del.gif" class="no" border="0" align="absmiddle">
+									{/}
+
+								</td>
+							</tr>
+							<tr>
+								<td>{= nl2br(.cmt_contents)}</td>
+							</tr>
+						</table>
+
+					</td>
+				</tr>
+				</form>
+				<tr ><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{/}-->
+			</table>
+		</td>
+	</tr>
+	<!--{/}-->
+	<tr >
+		<td colspan="4" class="top ptb20" style="">
+			<table cellpadding="0" width="100%" style="table-layout:fixed;">
+			<col width="50" />
+			<col width="*" />
+			<col width="50" />
+				<tr height="1"><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{@ next_loop}-->
+				<tr height="27" bgcolor="#ffffff">
+					<td style="padding:0 2px 0 0;" nowrap align="right">
+						<img src="{template_dir}/img/t_next.gif" border="0" align="absmiddle" /> <img src="{template_dir}/img/icon_dot3.gif" border="0" align="absmiddle" />
+					</td>
+					<td>
+						<!--{? next_loop.bbs_hidden=='1' }-->
+						<img src="{template_dir}/img/key.gif" border="0" align="absmiddle" /> <a href='{next_loop.link}'>{next_loop.bbs_subject}( {next_loop.regdate} )</a>
+						<!--{:}-->
+						<a href='{next_loop.link}'>{next_loop.bbs_subject} ( {next_loop.regdate} )</a>
+						<!--{/}-->
+
+						<!--{? next_loop.new=='1' }-->
+						<img src="{template_dir}/img/icon_new.gif" border="0" align="absmiddle" /><!--긁 내용이 최신글일때 아이콘 표시-->
+						<!--{/}-->
+					</td>
+					<td>{next_loop.bbs_hit}</td>
+				</tr>
+				<tr height="1"><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{/}-->
+				<tr height="27">
+					<td style="padding:0 2px 0 0;" nowrap align="right"><img src="{template_dir}/img/icon_dot1.gif" border="0" align="absmiddle" /> </td>
+					<td><b class="blu">{bbs_subject}</b> ( {regdate} )</td>
+					<td>{bbs_hit}</td>
+				</tr>
+				<tr height="1"><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{@ before_loop}-->
+				<tr height="27" bgcolor="#ffffff">
+					<td style="padding:0 2px 0 0;" nowrap align="right">
+						<img src="{template_dir}/img/t_prev.gif" border="0" align="absmiddle" /> <img src="{template_dir}/img/icon_dot3.gif" border="0" align="absmiddle" />
+					</td>
+					<td>
+						<!--{? before_loop.bbs_hidden=='1' }-->
+						<img src="{template_dir}/img/key.gif" border="0" align="absmiddle" /> <a href='{before_loop.link}'>{before_loop.bbs_subject}( {before_loop.regdate} )</a>
+						<!--{:}-->
+						<a href='{before_loop.link}'>{before_loop.bbs_subject} ( {before_loop.regdate} )</a>
+						<!--{/}-->
+
+						<!--{? before_loop.new=='1' }-->
+						<img src="{template_dir}/img/icon_new.gif" border="0" align="absmiddle" /><!--긁 내용이 최신글일때 아이콘 표시-->
+						<!--{/}-->
+					</td>
+					<td>{before_loop.bbs_hit}</td>
+				</tr>
+				<tr ><td colspan="3" bgcolor="#ffffff" class="dot"></td></tr>
+				<!--{/}-->
+			</table>
+		</td>
+	</tr>
+</table>
+

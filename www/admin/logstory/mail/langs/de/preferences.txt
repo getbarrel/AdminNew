@@ -1,0 +1,21 @@
+; ***************************************** ;
+; Preferences		                    ;
+; ***************************************** ;
+
+prf_title 			= Einstellungen
+prf_general_title		= Persönliche Einstellungen
+prf_name			= Angezeigter Name
+prf_reply_to			= Antwortadresse
+prf_time_zone			= Lokale Zeitzone
+prf_trash_title			= Papierkorb
+prf_save_to_trash		= <b>Gelöschte</b> Nachrichten in den Ordner "<b><!--%UM_TRASH_EXTENDED%--></b>" verschieben
+prf_save_only_read		= Nur <b>gelesene</b> Nachrichten im Ordner "<b><!--%UM_TRASH_EXTENDED%--></b>" speichern
+prf_empty_on_exit		= Papierkorb beim Beenden <b>leeren</b>
+prf_sent_title			= Gesendete Nachrichten
+prf_save_sent			= <b>Gesendete</b> Nachrichten in den Ordner "<b><!--%UM_SENT_EXTENDED%--></b>" verschieben
+prf_messages_title		= Nachrichten
+prf_page_limit			= Angezeigte Nachrichten pro Seite
+prf_signature_title		= Signatur
+prf_signature			= Persönliche Signatur
+prf_auto_add_sign		= Signatur automatisch anhängen
+prf_save_button			= Speichern

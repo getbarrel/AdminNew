@@ -1,0 +1,874 @@
+<?
+@include($_SERVER["DOCUMENT_ROOT"]."/forbiz.config.php");
+include("../class/reportpage.class");
+include("../include/ReportReferTree.php");
+include("../include/commerce.lib.php");
+
+
+function ReportTable($vdate,$SelectReport=1){
+	global $depth,$referer_id, $non_sale_status, $order_status, $cancel_status, $return_status, $all_sale_status;
+	global $search_sdate, $search_edate;
+	$nview_cnt = 0;
+	$cid = $referer_id;
+	if($SelectReport == ""){
+		$SelectReport = 1;
+	}
+	$fordb = new forbizDatabase();
+	if($depth == ""){
+		$depth = 0;
+	}else{
+		$depth = $depth+1;
+	}
+
+
+
+	if($vdate == ""){
+		$vdate = date("Ymd", time());
+		$vyesterday = date("Ymd", time()-84600);
+		$voneweekago = date("Ymd", time()-84600*7);
+	}else{
+		if($SelectReport ==3){
+			$vdate = $vdate."01";
+		}
+		$vweekenddate = date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))+60*60*24*6);
+		$vyesterday = date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))-60*60*24);
+		$voneweekago = date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))-60*60*24*7);
+	}
+
+
+
+	//$sql = "Select r.cid, r.cname, b.visit_cnt from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." r, ".TBL_LOGSTORY_BYREFERER." b where date_format(od.regdate,'%Y%m%d')  = '$vdate' and substr(r.cid,0,6) = substr(b.vreferer_id,0,6) and r.depth = $depth group by r.cid, r.cname order by visit_cnt desc";
+	if ($SelectReport == 1){
+		if($depth == "" || $depth < 0){
+			/*
+			$sql = "Select r.cid, r.cname, sum(b.nview_cnt) as nview_cnt from ".TBL_SHOP_CATEGORY_INFO." r, ".TBL_COMMERCE_VIEWINGVIEW." b  ";
+			$sql .= "where date_format(od.regdate,'%Y%m%d')  = '$vdate' and substr(r.cid,1,3) = substr(b.cid,1,3) and r.depth = 0  ";
+			*/
+			$sql = "Select c.cid, c.cname, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.coprice*od.pcnt else 0 end) as order_coprice_sum, 
+							
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.pcnt else 0 end) as sale_all_cnt, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as sale_all_sum, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.coprice*od.pcnt else 0 end) as coprice_all_sum, 
+
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.coprice*od.pcnt else 0 end) as cancel_coprice_sum, 
+
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.coprice*od.pcnt else 0 end) as return_coprice_sum, 
+
+							sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  shop_order_detail od 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on od.rfid = c.cid 
+							where date_format(od.regdate,'%Y%m%d')  = '".$vdate."' AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							";
+		}else if($depth >= 0){
+			$sql = "Select c.cid, c.cname,
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.coprice*od.pcnt else 0 end) as order_coprice_sum, 
+							
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.pcnt else 0 end) as sale_all_cnt, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as sale_all_sum, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.coprice*od.pcnt else 0 end) as coprice_all_sum, 
+
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.coprice*od.pcnt else 0 end) as cancel_coprice_sum, 
+
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.coprice*od.pcnt else 0 end) as return_coprice_sum, 
+
+							sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  shop_order_detail od 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on od.rfid = c.cid 
+							where date_format(od.regdate,'%Y%m%d')  = '".$vdate."'  
+							and substr(c.cid,1,".(($depth+1)*3).") = '".substr($cid,0,(($depth+1)*3))."'
+							group by c.cid, c.cname 
+							";
+ 
+		}
+		$dateString = "일간 : ". getNameOfWeekday(0,$vdate,"dayname");
+	}else if($SelectReport == 2  || $SelectReport == 4){
+		if($SelectReport == "4"){
+			$vdate = $search_sdate;
+			$vweekenddate = $search_edate;
+		}
+		if($depth == '' || $depth < 0){
+			$sql = "Select c.cid, c.cname, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.coprice*od.pcnt else 0 end) as order_coprice_sum, 
+							
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.pcnt else 0 end) as sale_all_cnt, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as sale_all_sum, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.coprice*od.pcnt else 0 end) as coprice_all_sum, 
+
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.coprice*od.pcnt else 0 end) as cancel_coprice_sum, 
+
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.coprice*od.pcnt else 0 end) as return_coprice_sum, 
+
+							sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  shop_order_detail od 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on od.rfid = c.cid 
+							where date_format(od.regdate,'%Y%m%d')  between '".$vdate."' and '".$vweekenddate."' 
+							AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							"; 
+		}else if($depth >= 0){
+				$sql = "Select c.cid, c.cname, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.coprice*od.pcnt else 0 end) as order_coprice_sum, 
+							
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.pcnt else 0 end) as sale_all_cnt, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as sale_all_sum, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.coprice*od.pcnt else 0 end) as coprice_all_sum, 
+
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.coprice*od.pcnt else 0 end) as cancel_coprice_sum, 
+
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.coprice*od.pcnt else 0 end) as return_coprice_sum, 
+
+							sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  shop_order_detail od 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on od.rfid = c.cid 
+							where date_format(od.regdate,'%Y%m%d')  between '".$vdate."' and '".$vweekenddate."' 
+							AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							and substr(c.cid,1,".(($depth+1)*3).") = '".substr($cid,0,(($depth+1)*3))."'
+							group by c.cid, c.cname 
+							"; 
+		}
+
+		if($SelectReport == 2){
+			$dateString = "주간 : ".getNameOfWeekday(0,$vdate)."~".getNameOfWeekday(6,$vdate);
+		}else if($SelectReport == 4){
+			$s_week_num = date("w",mktime(0,0,0,substr($search_sdate,4,2),substr($search_sdate,6,2),substr($search_sdate,0,4)));
+			$e_week_num = date("w",mktime(0,0,0,substr($search_edate,4,2),substr($search_edate,6,2),substr($search_edate,0,4)));
+			$dateString = "기간별 : ".getNameOfWeekday($s_week_num,$search_sdate,"priodname")."~".getNameOfWeekday($e_week_num,$search_edate,"priodname");
+		}
+	}else if($SelectReport == 3){
+		if($depth == '' || $depth < 0 ){ 
+
+			$sql = "Select c.cid, c.cname, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.coprice*od.pcnt else 0 end) as order_coprice_sum, 
+							
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.pcnt else 0 end) as sale_all_cnt, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as sale_all_sum, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.coprice*od.pcnt else 0 end) as coprice_all_sum, 
+
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.coprice*od.pcnt else 0 end) as cancel_coprice_sum, 
+
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.coprice*od.pcnt else 0 end) as return_coprice_sum, 
+
+							sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  shop_order_detail od 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on od.rfid = c.cid 
+							where date_format(od.regdate,'%Y%m%d') LIKE '".substr($vdate,0,6)."%'  AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							";
+							//							left join ".TBL_COMMERCE_VIEWINGVIEW." b on od.pid = b.pid 
+							//AND od.status NOT IN ('".implode("','",$non_sale_status)."') 							
+							//and substr(c.cid,1,".(($depth+1)*3).") = substr(b.cid,1,3)
+
+
+		}else if($depth >= 0){
+			$depth = $depth -1;
+			$sql = "Select c.cid, c.cname, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.coprice*od.pcnt else 0 end) as order_coprice_sum, 
+							
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.pcnt else 0 end) as sale_all_cnt, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as sale_all_sum, 
+							sum(case when od.status not in ('".implode("','",$all_sale_status)."')  then od.coprice*od.pcnt else 0 end) as coprice_all_sum, 
+
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.coprice*od.pcnt else 0 end) as cancel_coprice_sum, 
+
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.coprice*od.pcnt else 0 end) as return_coprice_sum, 
+
+							sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  shop_order_detail od 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on od.rfid = c.cid 
+							where date_format(od.regdate,'%Y%m%d') LIKE '".substr($vdate,0,6)."%'  AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							
+							and substr(c.cid,1,".(($depth+1)*3).") = '".substr($cid,0,(($depth+1)*3))."'
+							group by c.cid, c.cname 
+							 "; 
+							 
+		}
+
+		$dateString = "월간 : ".getNameOfWeekday(0,$vdate,"monthname");
+	}
+	//echo "cid:".$cid."<br>";
+	//echo "depth:".$depth."<br>";
+	//echo time()."<br>";
+	
+	if($_SERVER["REMOTE_ADDR"] == "175.209.244.68"){
+		//echo nl2br($sql);
+	}
+	$fordb->query($sql);
+
+
+if($_GET["mode"] == "excel"){
+	include '../../include/phpexcel/Classes/PHPExcel.php';
+	PHPExcel_Settings::setZipClass(PHPExcel_Settings::ZIPARCHIVE);
+
+	//date_default_timezone_set('Asia/Seoul');
+
+	$sheet = new PHPExcel();
+
+	// 속성 정의
+	$sheet->getProperties()->setCreator("포비즈 코리아")
+								 ->setLastModifiedBy("Mallstory.com")
+								 ->setTitle("accounts plan price List")
+								 ->setSubject("accounts plan price List")
+								 ->setDescription("generated by forbiz korea")
+								 ->setKeywords("mallstory")
+								 ->setCategory("accounts plan price List");
+	$col = 'A';
+
+	
+	$start=3;
+	$i = $start;
+
+	$sheet->getActiveSheet(0)->mergeCells('A2:O2');
+	$sheet->getActiveSheet(0)->setCellValue('A2', "상품군별기여분석");
+	$sheet->getActiveSheet(0)->mergeCells('A3:O3');
+	$sheet->getActiveSheet(0)->setCellValue('A3', $dateString);
+	
+	$sheet->getActiveSheet(0)->mergeCells('A'.($i+1).':A'.($i+3));
+	$sheet->getActiveSheet(0)->mergeCells('B'.($i+1).':B'.($i+3));
+	$sheet->getActiveSheet(0)->mergeCells('C'.($i+1).':D'.($i+1));
+	
+	$sheet->getActiveSheet(0)->mergeCells('E'.($i+1).':L'.($i+1));
+	$sheet->getActiveSheet(0)->mergeCells('M'.($i+1).':M'.($i+3));
+	$sheet->getActiveSheet(0)->mergeCells('N'.($i+1).':O'.($i+2));
+
+	$sheet->getActiveSheet(0)->mergeCells('C'.($i+2).':D'.($i+2));
+	$sheet->getActiveSheet(0)->mergeCells('E'.($i+2).':F'.($i+2));
+	$sheet->getActiveSheet(0)->mergeCells('G'.($i+2).':H'.($i+2));
+	$sheet->getActiveSheet(0)->mergeCells('I'.($i+2).':J'.($i+2));
+	$sheet->getActiveSheet(0)->mergeCells('K'.($i+2).':L'.($i+2));
+
+	$sheet->getActiveSheet(0)->setCellValue('A' . ($i+1), "순");
+	$sheet->getActiveSheet(0)->setCellValue('B' . ($i+1), "기여사이트");
+	$sheet->getActiveSheet(0)->setCellValue('C' . ($i+1), "주문매출"); 
+	$sheet->getActiveSheet(0)->setCellValue('E' . ($i+1), "매출");
+	$sheet->getActiveSheet(0)->setCellValue('M' . ($i+1), "실매출액원가");
+	$sheet->getActiveSheet(0)->setCellValue('N' . ($i+1), "수익");
+
+	$sheet->getActiveSheet(0)->setCellValue('C' . ($i+2), "전체주문\r(입금예정포함)");
+	$sheet->getActiveSheet(0)->setCellValue('E' . ($i+2), "전체매출액(전체)");
+	$sheet->getActiveSheet(0)->setCellValue('G' . ($i+2), "취소매출액(-)");
+	$sheet->getActiveSheet(0)->setCellValue('I' . ($i+2), "반품매출액(-)");
+	$sheet->getActiveSheet(0)->setCellValue('K' . ($i+2), "실매출액(+)");
+
+
+	$sheet->getActiveSheet(0)->setCellValue('C' . ($i+3), "수량(개)");
+	$sheet->getActiveSheet(0)->setCellValue('D' . ($i+3), "주문액(원)");
+	$sheet->getActiveSheet(0)->setCellValue('E' . ($i+3), "수량(개)");
+	$sheet->getActiveSheet(0)->setCellValue('F' . ($i+3), "주문액(원)");
+	$sheet->getActiveSheet(0)->setCellValue('G' . ($i+3), "수량(개)");
+	$sheet->getActiveSheet(0)->setCellValue('H' . ($i+3), "주문액(원)");
+	$sheet->getActiveSheet(0)->setCellValue('I' . ($i+3), "수량(개)");
+	$sheet->getActiveSheet(0)->setCellValue('J' . ($i+3), "주문액(원)");
+	$sheet->getActiveSheet(0)->setCellValue('K' . ($i+3), "수량(개)");
+	$sheet->getActiveSheet(0)->setCellValue('L' . ($i+3), "주문액(원)");
+	$sheet->getActiveSheet(0)->setCellValue('N' . ($i+3), "마진(원)");
+	$sheet->getActiveSheet(0)->setCellValue('O' . ($i+3), "마진율(%)");
+
+	
+	$sheet->setActiveSheetIndex(0);
+	//$i = $i + 2;
+
+	for($i=0;$i<$fordb->total;$i++){
+		$fordb->fetch($i);
+
+		$sheet->getActiveSheet()->setCellValue('A' . ($i + $start + 4), ($i + 1));
+		$sheet->getActiveSheet()->setCellValue('B' . ($i + $start + 4), strip_tags(getRefererCategoryPath($fordb->dt[cid], 4)));
+		$sheet->getActiveSheet()->setCellValue('C' . ($i + $start + 4), $fordb->dt[order_sale_cnt]);
+		$sheet->getActiveSheet()->setCellValue('D' . ($i + $start + 4), $fordb->dt[order_sale_sum]);
+		$sheet->getActiveSheet()->setCellValue('E' . ($i + $start + 4), $fordb->dt[sale_all_cnt]);
+		$sheet->getActiveSheet()->setCellValue('F' . ($i + $start + 4), $fordb->dt[sale_all_sum]);
+		$sheet->getActiveSheet()->setCellValue('G' . ($i + $start + 4), $fordb->dt[cancel_sale_cnt]);
+		$sheet->getActiveSheet()->setCellValue('H' . ($i + $start + 4), $fordb->dt[cancel_sale_sum]);
+		$sheet->getActiveSheet()->setCellValue('I' . ($i + $start + 4), $fordb->dt[return_sale_cnt]);
+		$sheet->getActiveSheet()->setCellValue('J' . ($i + $start + 4), $fordb->dt[return_sale_sum]);
+		
+		$real_sale_cnt = $fordb->dt[sale_all_cnt]-$fordb->dt[cancel_sale_cnt]-$fordb->dt[return_sale_cnt];
+		$sheet->getActiveSheet()->setCellValue('K' . ($i + $start + 4), $real_sale_cnt);	
+
+		$real_sale_coprice = $fordb->dt[sale_all_sum]-$fordb->dt[cancel_sale_sum]-$fordb->dt[return_sale_sum];
+		$sheet->getActiveSheet()->setCellValue('L' . ($i + $start + 4), $real_sale_coprice);
+
+		$sale_coprice = $fordb->dt[coprice_all_sum]-$fordb->dt[cancel_coprice_sum]-$fordb->dt[return_coprice_sum];
+		$sheet->getActiveSheet()->setCellValue('M' . ($i + $start + 4), $sale_coprice);
+
+		$margin = $real_sale_coprice - $sale_coprice;
+		$sheet->getActiveSheet()->setCellValue('N' . ($i + $start + 4), $margin);
+	//	$mstring .= "<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($margin,0)."&nbsp;</td>";
+		if($real_sale_coprice > 0){
+			$margin_rate = $margin/$real_sale_coprice*100;
+		}else{
+			$margin_rate = 0;
+		}
+		$sheet->getActiveSheet()->setCellValue('O' . ($i + $start + 4), $margin_rate);
+
+
+		$order_sale_cnt = $order_sale_cnt + returnZeroValue($fordb->dt[order_sale_cnt]);
+		$order_sale_sum = $order_sale_sum + returnZeroValue($fordb->dt[order_sale_sum]);
+
+		$sale_all_cnt = $sale_all_cnt + returnZeroValue($fordb->dt[sale_all_cnt]);
+		$sale_all_sum = $sale_all_sum + returnZeroValue($fordb->dt[sale_all_sum]);
+
+		$cancel_sale_cnt = $cancel_sale_cnt + returnZeroValue($fordb->dt[cancel_sale_cnt]);
+		$cancel_sale_sum = $cancel_sale_sum + returnZeroValue($fordb->dt[cancel_sale_sum]);
+
+		$return_sale_cnt = $return_sale_cnt + returnZeroValue($fordb->dt[return_sale_cnt]);
+		$return_sale_sum = $return_sale_sum + returnZeroValue($fordb->dt[return_sale_sum]);
+
+		$real_sale_cnt_sum = $real_sale_cnt_sum + returnZeroValue($real_sale_cnt);
+		$real_sale_coprice_sum = $real_sale_coprice_sum + returnZeroValue($real_sale_coprice);
+		$sale_coprice_sum = $sale_coprice_sum + returnZeroValue($sale_coprice);
+		$margin_sum = $margin_sum + returnZeroValue($margin);
+
+
+	}
+	//$i++;
+	$sheet->getActiveSheet(0)->mergeCells('A'.($i + $start+4).':C'.($i+ $start+4));
+	$sheet->getActiveSheet()->setCellValue('A' . ($i + $start + 4), '합계');
+	//$sheet->getActiveSheet()->setCellValue('B' . ($i + $start + 4), getIventoryCategoryPathByAdmin($goods_infos[$i][cid], 4));
+	$sheet->getActiveSheet()->setCellValue('C' . ($i + $start + 4), $order_sale_cnt);
+	$sheet->getActiveSheet()->setCellValue('D' . ($i + $start + 4), $order_sale_sum);
+	$sheet->getActiveSheet()->setCellValue('E' . ($i + $start + 4), $sale_all_cnt);
+	$sheet->getActiveSheet()->setCellValue('F' . ($i + $start + 4), $sale_all_sum);
+	$sheet->getActiveSheet()->setCellValue('G' . ($i + $start + 4), $cancel_sale_cnt);
+	$sheet->getActiveSheet()->setCellValue('H' . ($i + $start + 4), $cancel_sale_sum);
+	$sheet->getActiveSheet()->setCellValue('I' . ($i + $start + 4), $return_sale_cnt);
+	$sheet->getActiveSheet()->setCellValue('J' . ($i + $start + 4), $return_sale_sum);
+	
+
+	$sheet->getActiveSheet()->setCellValue('K' . ($i + $start + 4), $real_sale_cnt_sum);	
+	$sheet->getActiveSheet()->setCellValue('L' . ($i + $start + 4), $real_sale_coprice_sum);
+
+	$sheet->getActiveSheet()->setCellValue('M' . ($i + $start + 4), $sale_coprice_sum);
+
+	$sheet->getActiveSheet()->setCellValue('N' . ($i + $start + 4), $margin_sum);
+
+	$sheet->getActiveSheet()->setCellValue('O' . ($i + $start + 4), '-');
+
+
+	$sheet->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+	//$sheet->getActiveSheet()->getColumnDimension('B')->setWidth(35);
+	$sheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
+	$sheet->getActiveSheet()->getColumnDimension('C')->setWidth(9);
+	$sheet->getActiveSheet()->getColumnDimension('D')->setWidth(10);
+	$sheet->getActiveSheet()->getColumnDimension('E')->setWidth(9);
+	$sheet->getActiveSheet()->getColumnDimension('F')->setWidth(10);
+	$sheet->getActiveSheet()->getColumnDimension('G')->setWidth(9);
+	$sheet->getActiveSheet()->getColumnDimension('H')->setWidth(10);
+	$sheet->getActiveSheet()->getColumnDimension('I')->setWidth(9);
+	$sheet->getActiveSheet()->getColumnDimension('J')->setWidth(10);
+	$sheet->getActiveSheet()->getColumnDimension('K')->setWidth(9);
+	$sheet->getActiveSheet()->getColumnDimension('L')->setWidth(10);
+	$sheet->getActiveSheet()->getColumnDimension('M')->setWidth(15);
+	$sheet->getActiveSheet()->getColumnDimension('N')->setWidth(10);
+	$sheet->getActiveSheet()->getColumnDimension('O')->setWidth(10);
+
+	$sheet->getActiveSheet()->getRowDimension($start+2)->setRowHeight(30);
+
+	header('Content-Type: application/vnd.ms-excel');
+	header('Content-Disposition: attachment;filename="productviewbyreferer.xls"');
+	header('Cache-Control: max-age=0');
+
+	
+
+	// $objWriter->setUseInlineCSS(true);
+      $styleArray = array(
+          'borders' => array(
+              'allborders' => array(
+                  'style' => PHPExcel_Style_Border::BORDER_THIN
+              )
+          )
+      );
+	$sheet->getActiveSheet()->getStyle('A'.($start+1).':O'.($i+$start+4))->applyFromArray($styleArray);
+	$sheet->getActiveSheet()->getStyle('A'.$start.':O'.($i+$start+4))->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+	
+	$sheet->getActiveSheet()->getStyle('A'.$start.':O'.($i+$start+4))->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+	$sheet->getActiveSheet()->getStyle('A'.($start).':O'.($start+3))->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+	$sheet->getActiveSheet()->getStyle('B'.($start+4).':B'.($i+$start+4))->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+	//$sheet->getActiveSheet()->getStyle('A'.$start.':O'.($i+$start+4))->getAlignment()->setIndent(1);
+	//$sheet->getActiveSheet()->getStyle('A10')->getAlignment()->setIndent(10); 왼쪽 들여쓰기
+	$sheet->getActiveSheet()->getStyle('A'.$start.':O'.($i+$start+4))->getFont()->setSize(10)->setName('돋움');
+
+	$sheet->getActiveSheet()->getStyle('A2')->getFont()->setSize(15)->setBold(true)->setName('돋움');
+	$sheet->getActiveSheet()->getStyle('A2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+	$sheet->getActiveSheet()->getStyle('A3')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+      unset($styleArray);
+	$objWriter = PHPExcel_IOFactory::createWriter($sheet, 'Excel5');
+	$objWriter->save('php://output');
+
+	exit; 
+}
+
+	$exce_down_str = "<a href='?mode=excel&".str_replace("&mode=iframe", "",$_SERVER["QUERY_STRING"])."'><img src='../../images/".$_SESSION["admininfo"]["language"]."/btn_excel_save.gif' border=0></a>";
+
+	$mstring = "<table width='100%' border=0>
+						<tr><td>".TitleBar("상품군별 분석 : ".($cid ? getCategoryPath($cid,4):""),$dateString,true, $exce_down_str)."</td></tr>
+					</table>";
+	$mstring .= "<table cellpadding=3 cellspacing=0 width=100%  ID='MaxViewProductTable' class='list_table_box'>
+						<col width='3%'>
+						<col width='*'>
+						<col width='5%'>
+						<col width='6%'>
+						<col width='5%'>
+						<col width='6%'>
+						<col width='5%'>
+						<col width='6%'>
+						<col width='5%'>
+						<col width='6%'>
+						<col width='5%'>
+						<col width='6%'>
+						<col width='6%'>
+						<col width='5%'>
+						<col width='6%'>";
+	$mstring .= "
+		<tr height=30>
+			<td class=s_td rowspan=3>순</td>
+			<td class=m_td rowspan=3>기여사이트</td>
+			<td class=m_td colspan=2>주문매출</td>
+			<td class=m_td colspan=8>매출</td>
+			<td class=m_td rowspan=3>실매출액<br>원가</td>
+			<td class=m_td colspan=2 rowspan=2>수익</td>
+		</tr>
+		<tr height=30>
+			<td class='m_td small' colspan=2 style='line-height:140%;'><b>전체주문</b><br>(입금예정포함)</td>
+			<td class=m_td colspan=2>전체매출액(전체)</td>
+			<td class=m_td colspan=2>취소매출액(-)</td>
+			<td class=m_td colspan=2>반품매출액(-)</td>
+			<td class=m_td colspan=2>실매출액(+)</td>
+		</tr>
+		<tr height=30 align=center>			
+			<td class=m_td nowrap>수량(개)</td>
+			<td class=m_td >주문액(원)</td>
+			<td class=m_td nowrap>수량(개)</td>
+			<td class=m_td >주문액(원)</td>
+			<td class=m_td nowrap>수량(개)</td>
+			<td class=m_td >주문액(원)</td>
+			<td class=m_td nowrap>수량(개)</td>
+			<td class=m_td >주문액(원)</td>
+			<td class=m_td nowrap>수량(개)</td>
+			<td class=m_td >주문액(원)</td>
+			<td class=m_td >마진(원)</td>
+			<td class=m_td >마진율(%)</td>
+			</tr>\n";
+			/*
+
+			sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.pcnt else 0 end) as order_sale_cnt, 
+							sum(case when od.status NOT IN ('".implode("','",$non_sale_status)."')  then od.ptprice-od.use_coupon else 0 end) as order_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.pcnt else 0 end) as cancel_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$cancel_status)."')  then od.ptprice-od.use_coupon else 0 end) as cancel_sale_sum, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.pcnt else 0 end) as return_sale_cnt, 
+							sum(case when od.status IN ('".implode("','",$return_status)."')  then od.ptprice-od.use_coupon else 0 end) as return_sale_sum, 
+
+							*/
+
+	for($i=0;$i<$fordb->total;$i++){
+		$fordb->fetch($i);
+		$mstring .= "<tr height=30 bgcolor=#ffffff  id='Report$i'>
+		<td class='list_box_td list_bg_gray' onmouseover=\"mouseOnTD('".$i."',true)\" onmouseout=\"mouseOnTD('$i',false)\">".($i+1)."</td>
+		<td class='list_box_td point' style='text-align:left;' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".strip_tags(getRefererCategoryPath($fordb->dt[cid],4))."</td>
+		
+
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[order_sale_cnt],0)."&nbsp;</td>
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[order_sale_sum],0)."&nbsp;</td>
+
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[sale_all_cnt],0)."&nbsp;</td>
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[sale_all_sum],0)."&nbsp;</td>
+
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[cancel_sale_cnt],0)."&nbsp;</td>
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[cancel_sale_sum],0)."&nbsp;</td>
+
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[return_sale_cnt],0)."&nbsp;</td>
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($fordb->dt[return_sale_sum],0)."&nbsp;</td>";
+
+		$real_sale_cnt = $fordb->dt[sale_all_cnt]-$fordb->dt[cancel_sale_cnt]-$fordb->dt[return_sale_cnt];
+
+		$mstring .= "<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($real_sale_cnt,0)."&nbsp;</td>";
+
+		$real_sale_coprice = $fordb->dt[sale_all_sum]-$fordb->dt[cancel_sale_sum]-$fordb->dt[return_sale_sum];
+		$mstring .= "<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($real_sale_coprice,0)."&nbsp;</td>";
+
+		$sale_coprice = $fordb->dt[coprice_all_sum]-$fordb->dt[cancel_coprice_sum]-$fordb->dt[return_coprice_sum];
+		//echo $fordb->dt[coprice_all_sum]."-".$fordb->dt[cancel_coprice_sum]."-".$fordb->dt[return_coprice_sum]."<br>";
+		$mstring .= "<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($sale_coprice,0)."&nbsp;</td>";
+
+		$margin = $real_sale_coprice - $sale_coprice;
+		$mstring .= "<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($margin,0)."&nbsp;</td>";
+		if($real_sale_coprice > 0){
+			$margin_rate = $margin/$real_sale_coprice*100;
+		}else{
+			$margin_rate = 0;
+		}
+		$mstring .= "<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format($margin_rate,0)."&nbsp;</td>";
+
+
+
+		
+		$mstring .= "<!--td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format(returnZeroValue($fordb->dt[amount_cnt]),0)."&nbsp;</td>
+		<td class='list_box_td list_bg_gray number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format(returnZeroValue($fordb->dt[sale_sum]),0)."&nbsp;</td>
+		<td class='list_box_td number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\">".number_format(returnZeroValue($fordb->dt[nview_cnt]),0)."&nbsp;</td-->
+		</tr>\n";
+
+		$order_sale_cnt = $order_sale_cnt + returnZeroValue($fordb->dt[order_sale_cnt]);
+		$order_sale_sum = $order_sale_sum + returnZeroValue($fordb->dt[order_sale_sum]);
+
+		$sale_all_cnt = $sale_all_cnt + returnZeroValue($fordb->dt[sale_all_cnt]);
+		$sale_all_sum = $sale_all_sum + returnZeroValue($fordb->dt[sale_all_sum]);
+
+		$cancel_sale_cnt = $cancel_sale_cnt + returnZeroValue($fordb->dt[cancel_sale_cnt]);
+		$cancel_sale_sum = $cancel_sale_sum + returnZeroValue($fordb->dt[cancel_sale_sum]);
+
+		$return_sale_cnt = $return_sale_cnt + returnZeroValue($fordb->dt[return_sale_cnt]);
+		$return_sale_sum = $return_sale_sum + returnZeroValue($fordb->dt[return_sale_sum]);
+
+		$real_sale_cnt_sum = $real_sale_cnt_sum + returnZeroValue($real_sale_cnt);
+		$real_sale_coprice_sum = $real_sale_coprice_sum + returnZeroValue($real_sale_coprice);
+		$sale_coprice_sum = $sale_coprice_sum + returnZeroValue($sale_coprice);
+		$margin_sum = $margin_sum + returnZeroValue($margin);
+
+
+	}
+
+	if ($order_sale_cnt == 0){
+		$mstring .= "<tr  align=center height=200><td colspan=15 class='list_box_td'  >결과값이 없습니다.</td></tr>\n";
+	}
+	 
+	$mstring .= "<tr height=25 align=right>
+	<td class=s_td align=center colspan=2>합계</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($order_sale_cnt,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($order_sale_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($sale_all_cnt,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($sale_all_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($cancel_sale_cnt,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($cancel_sale_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($return_sale_cnt,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($return_sale_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($real_sale_cnt_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($real_sale_coprice_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($sale_coprice_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>".number_format($margin_sum,0)."</td>
+	<td class='e_td number' style='padding-right:10px;'>-</td>
+	</tr>\n";
+	$mstring .= "</table>\n";
+	$mstring .= "<table width='100%'><tr><td> </td><td align=right style='padding-top:10px;'>VAT 포함 (단위:원)</td></tr></table>";
+
+	/*
+	$help_text = "
+	<table>
+		<tr>
+			<td style='line-height:150%'>
+			- 카테고리별 상품조회 회수를 바탕으로 귀사 사이트의 인기카테고리와 비인기 카테고리를 정확히 파악하여 그에 맞는 운영및 마케팅 정책을 수립 수행할수 있습니다<br>
+			- 좌측 카테고리를 클릭하면 하부 카테고리에 대한 상세 정보가 표시 됩니다<br><br>
+			</td>
+		</tr>
+	</table>
+	";*/
+	$help_text = getTransDiscription(md5($_SERVER["PHP_SELF"]),'B' );
+
+
+	$mstring .= HelpBox("상품군별분석", $help_text);
+	return $mstring;
+}
+
+
+
+function ReportTable2($vdate,$SelectReport=1){
+	global $depth,$referer_id, $non_sale_status;
+	$view_cnt = 0;
+	$cid = $referer_id;
+	if($SelectReport == ""){
+		$SelectReport = 1;
+	}
+	$fordb = new forbizDatabase();
+	if($depth == ""){
+		$depth = 0;
+	}else{
+		$depth = $depth+1;
+	}
+
+
+
+	if($vdate == ""){
+		$vdate = date("Ymd", time());
+		$vyesterday = date("Ymd", time()-84600);
+		$voneweekago = date("Ymd", time()-84600*7);
+	}else{
+		if($SelectReport ==3){
+			$vdate = $vdate."01";
+		}
+		$vweekenddate = date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))+60*60*24*6);
+		$vyesterday = date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))-60*60*24);
+		$voneweekago = date("Ymd",mktime(0,0,0,substr($vdate,4,2),substr($vdate,6,2),substr($vdate,0,4))-60*60*24*7);
+	}
+
+
+
+	//$sql = "Select r.cid, r.cname, b.visit_cnt from ".TBL_LOGSTORY_REFERER_CATEGORYINFO." r, ".TBL_LOGSTORY_BYREFERER." b where b.vdate = '$vdate' and substring(r.cid,0,6) = substring(b.vreferer_id,0,6) and r.depth = $depth group by r.cid, r.cname order by visit_cnt desc";
+	if ($SelectReport == 1){
+		if($depth == 0){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt, sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  ".TBL_COMMERCE_VIEWINGVIEW." b 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on c.cid = b.vreferer_id
+							left join shop_order_detail od on b.pid = od.pid and b.vreferer_id = od.rfid
+							where b.vdate = '".$vdate."'  AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							order by nview_cnt desc ";//".TBL_SHOP_CATEGORY_INFO." r,and substring(r.cid,1,3) = substring(b.cid,1,3) and r.depth = 0
+
+
+		}else if($depth > 0){
+			/*
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate = '$vdate'  and b.cid LIKE '".substr($cid,0,3)."%'  and c.cid = b.vreferer_id ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+			*/
+
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt, sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  ".TBL_COMMERCE_VIEWINGVIEW." b 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on c.cid = b.vreferer_id
+							left join shop_order_detail od on b.pid = od.pid and b.vreferer_id = od.rfid
+							where b.vdate = '".$vdate."'  and od.cid LIKE '".substr($cid,0,$depth*3)."%' AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							order by nview_cnt desc ";
+		/*
+		}else if($depth == 2){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate = '$vdate' and b.cid LIKE '".substr($cid,0,6)."%' and c.cid = b.vreferer_id  ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+		}else if($depth == 3){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate = '$vdate'  and b.cid LIKE '".substr($cid,0,9)."%' and c.cid = b.vreferer_id  ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+		*/
+		}
+		$dateString = "일간 : ". getNameOfWeekday(0,$vdate,"dayname");
+	}else if($SelectReport == 2){
+		if($depth == 0){
+			/*
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b , ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate between '$vdate' and '$vweekenddate' and c.cid = b.vreferer_id  ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+			*/
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt, sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  ".TBL_COMMERCE_VIEWINGVIEW." b 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on c.cid = b.vreferer_id
+							left join shop_order_detail od on b.pid = od.pid  and b.vreferer_id = od.rfid
+							where b.vdate between '".$vdate."' and '".$vweekenddate."'  AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							order by nview_cnt desc ";
+
+		}else if($depth > 0){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt, sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  ".TBL_COMMERCE_VIEWINGVIEW." b 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on c.cid = b.vreferer_id
+							left join shop_order_detail od on b.pid = od.pid  and b.vreferer_id = od.rfid
+							where b.vdate between '".$vdate."' and '".$vweekenddate."' and od.cid LIKE '".substr($cid,0,$depth*3)."%'
+							AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							order by nview_cnt desc ";
+
+			/*
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from ".TBL_COMMERCE_VIEWINGVIEW." b , ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate between '$vdate' and '$vweekenddate' and b.cid LIKE '".substr($cid,0,3)."%' and c.cid = b.vreferer_id  ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+		}else if($depth == 2){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b , ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate between '$vdate' and '$vweekenddate' and b.cid LIKE '".substr($cid,0,6)."%' and  c.cid = b.vreferer_id   ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+		}else if($depth == 3){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b , ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c ";
+			$sql .= "where b.vdate between '$vdate' and '$vweekenddate' and b.cid LIKE '".substr($cid,0,9)."%' and c.cid = b.vreferer_id  ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+			*/
+		}
+
+		$dateString = "주간 : ".getNameOfWeekday(0,$vdate)."~".getNameOfWeekday(6,$vdate);
+	}else if($SelectReport == 3){
+		if($depth == 0){
+			/*
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c  ";
+			$sql .= "where b.vdate LIKE '".substr($vdate,0,6)."%'  and c.cid = b.vreferer_id and c.depth = 1 ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+			*/
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt, sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  ".TBL_COMMERCE_VIEWINGVIEW." b 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on c.cid = b.vreferer_id
+							left join shop_order_detail od on b.pid = od.pid and b.vreferer_id = od.rfid
+							where b.vdate LIKE '".substr($vdate,0,6)."%' and c.depth = 1 AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							order by nview_cnt desc ";
+
+		}else if($depth > 0){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt, sum(od.pcnt) as amount_cnt, sum(od.ptprice-od.use_coupon) as sale_sum
+							from  ".TBL_COMMERCE_VIEWINGVIEW." b 
+							right join ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c on c.cid = b.vreferer_id
+							left join shop_order_detail od on b.pid = od.pid and b.vreferer_id = od.rfid
+							where b.vdate LIKE '".substr($vdate,0,$depth*3)."%' and c.depth = 2 AND od.status NOT IN ('".implode("','",$non_sale_status)."') 
+							group by c.cid, c.cname 
+							order by nview_cnt desc ";
+			/*
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c  ";
+			$sql .= "where b.vdate LIKE '".substr($vdate,0,6)."%' and b.cid LIKE '".substr($cid,0,3)."%'  and c.cid = b.vreferer_id and c.depth = 2 ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+		}else if($depth == 2){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c  ";
+			$sql .= "where b.vdate LIKE '".substr($vdate,0,6)."%'  and b.cid LIKE '".substr($cid,0,6)."%' and c.cid = b.vreferer_id and c.depth = 2 ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+		}else if($depth == 3){
+			$sql = "Select c.cid, c.cname, sum(b.nview_cnt) as nview_cnt from  ".TBL_COMMERCE_VIEWINGVIEW." b, ".TBL_LOGSTORY_REFERER_CATEGORYINFO." c  ";
+			$sql .= "where b.vdate LIKE '".substr($vdate,0,6)."%'  and b.cid LIKE '".substr($cid,0,9)."%' and c.cid = b.vreferer_id and c.depth = 2 ";
+			$sql .= "group by c.cid, c.cname order by nview_cnt desc ";
+			*/
+		}
+
+
+		$dateString = "월간 : ".getNameOfWeekday(0,$vdate,"monthname");
+	}
+
+	//echo nl2br($sql);
+	$fordb->query($sql);
+
+	$mstring = $mstring.TitleBar("상품군별 기여분석 ",$dateString);
+
+	$mstring .= "<table cellpadding=3 cellspacing=0 width=100% >\n";
+	$mstring .= "<tr height=2 bgcolor=#ffffff >
+						<td colspan=3 align=left>";
+						if($cid){
+	$mstring .= "<b>".($cid ? getCategoryPath($cid,4):"")."</b> <!--c-->".getTransDiscription(md5($_SERVER["PHP_SELF"]),'A' )."";
+						}else{
+	$mstring .= " ";
+						}
+	$mstring .= "
+						</td>
+					  </tr>
+					  </table>";
+	$mstring .= "<table cellpadding=3 cellspacing=0 width=100%  ID='MaxViewProductTable' class='list_table_box'>
+						<col width='10%'>
+						<col width='*'>
+						<col width='20%'>
+						<col width='20%'>
+						<col width='20%'>";
+	$mstring .= "<tr height=30 align=center><td class=s_td >순서</td><td class=m_td >기여사이트</td><td class=m_td >주문상품수량</td><td class=m_td >매출</td><td class=e_td >상품조회횟수</td></tr>\n";
+	for($i=0;$i<$fordb->total;$i++){
+		$fordb->fetch($i);
+		$mstring .= "<tr height=25 bgcolor=#ffffff  id='Report$i'>
+		<td class='list_box_td list_bg_gray' onmouseover=\"mouseOnTD('".$i."',true)\" onmouseout=\"mouseOnTD('$i',false)\">".($i+1)."</td>
+		<td class='list_box_td' align=left onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\" style='padding-right:20px;'>".$fordb->dt[cname]."</td>
+		<td class='list_box_td number' >".number_format(returnZeroValue($fordb->dt[amount_cnt]),0)."</td>
+		<td class='list_box_td number' >".number_format(returnZeroValue($fordb->dt[sale_sum]),0)."</td>
+		<td class='list_box_td list_bg_gray number' onmouseover=\"mouseOnTD('$i',true)\" onmouseout=\"mouseOnTD('$i',false)\" style='padding-right:20px;'>".number_format(returnZeroValue($fordb->dt[nview_cnt]),0)."&nbsp;</td>
+		</tr>\n";
+
+		$view_cnt = $view_cnt + returnZeroValue($fordb->dt[nview_cnt]);
+		$amount_sum = $amount_sum + returnZeroValue($fordb->dt[amount_cnt]);
+		$sale_sum = $sale_sum + returnZeroValue($fordb->dt[sale_sum]);
+
+
+	} 
+	
+	
+	if ($view_cnt == 0){
+		$mstring .= "<tr height=200 ><td colspan=5 align=center class='list_box_td'>결과값이 없습니다.</td></tr>\n";
+	}
+	$mstring .= "</table>\n";
+	$mstring .= "<table cellpadding=3 cellspacing=0 width=100%  class='list_table_box' style='margin-top:5px;'>\n";
+	$mstring .= "<col width='10%'>
+						<col width='*'>
+						<col width='20%'>
+						<col width='20%'>
+						<col width='20%'>
+						<tr height=25 align=right>
+							<td class=s_td colspan=2 align=center>합계</td>
+							<td class=e_td style='padding-right:20px;'>".number_format($amount_sum,0)."</td>
+							<td class=e_td style='padding-right:20px;'>".number_format($sale_sum,0)."</td>
+							<td class=e_td style='padding-right:20px;'>".number_format($view_cnt,0)."</td>
+							</tr>\n";
+	$mstring .= "</table>\n";
+	
+	/*
+	$help_text = "
+	<table>
+		<tr>
+			<td style='line-height:150%'>
+			- 선택된 카테고리들을 방문한 경로에 따라 분석한 리포트 입니다<br>
+			- 특정사이트 마다 광고에 대한 효과분석을 카테고리별로 분석해 볼수 있는 리포트 입니다<br><br>
+			</td>
+		</tr>
+	</table>
+	";*/
+	$help_text = getTransDiscription(md5($_SERVER["PHP_SELF"]),'B' );
+
+	$mstring .= HelpBox("상품군별기여분석", $help_text);
+
+	return $mstring;
+}
+
+if ($mode == "iframe"){
+//	echo "<form name=tablefrm><textarea name=reportvalue>".ReportTable($vdate,$SelectReport)."</textarea></form>";
+//	echo "<Script>parent.document.getElementById('contents_frame').innerHTML = document.tablefrm.reportvalue.value</Script>";
+
+
+	$ca = new Calendar();
+	$ca->LinkPage = 'productviewbyreferer.php';
+
+	echo "<html>";
+	echo "<meta http-equiv='content-type' content='text/html; charset=euc-kr'>";
+	echo "<body>";
+	echo "<div id='report_view'>".ReportTable($vdate,$SelectReport)."</div>";
+	echo "<div id='calendar_view'>".$ca->getMonthView(substr($vdate,4,2), substr($vdate,0,4))."</div>";
+	echo "</body>";
+	echo "<Script>parent.document.getElementById('contents_frame').innerHTML = document.getElementById('report_view').innerHTML;</Script>";
+	echo "<Script>parent.document.getElementById('calendararea').innerHTML = document.getElementById('calendar_view').innerHTML;parent.vdate;parent.ChangeCalenderView($SelectReport);</Script>";
+	echo "</html>";
+
+//	echo "<form name=calendarfrm><textarea name=calendarvalue>".$ca->getMonthView(substr($vdate,4,2), substr($vdate,0,4))."</textarea></form>";
+//	echo "<Script>parent.document.getElementById('calendararea').innerHTML = document.calendarfrm.calendarvalue.value;parent.ChangeCalenderView($SelectReport);</Script>";
+
+
+}else{
+	$p = new forbizReportPage();
+	$p->TopNaviSelect = "step2";
+	$p->forbizLeftMenu = commerce_munu('productviewbyreferer.php', "<div id=TREE_BAR style=\"margin:5;\">".GetTreeNode('productviewbyreferer.php',date("Ymd", time()),'product')."</div>");
+	$p->forbizContents = ReportTable($vdate,$SelectReport);
+	$p->addScript = "<script language='JavaScript' src='../include/manager.js'></script>\n<script language='JavaScript' src='../include/Tree.js'></script>";
+	//$p->treemenu = "<div id=TREE_BAR style=\"margin:5;\">".GetTreeNode()."</div>";
+	$p->Navigation = "이커머스분석 > 상품분석 > 상품군별기여분석";
+	$p->title = "상품군별기여분석";
+	$p->PrintReportPage();
+}
+?>

@@ -1,0 +1,807 @@
+<?
+@ob_start('ob_gzhandler');
+include("$DOCUMENT_ROOT/class/database.class");
+include("$DOCUMENT_ROOT/admin/logstory/class/businessLogic.class");
+include("$DOCUMENT_ROOT/class/Template_.class.php");
+include("$DOCUMENT_ROOT/class/xml2Array.class");
+include("$DOCUMENT_ROOT/include/design.tmp.php");
+include("$DOCUMENT_ROOT/include/menu.tmp.php");
+include("$DOCUMENT_ROOT/include/category.tmp.php");
+include("$DOCUMENT_ROOT/include/global_util.php");
+include_once("$DOCUMENT_ROOT/include/ms_util.php");
+include("$DOCUMENT_ROOT/include/lib.function.php");
+include("$DOCUMENT_ROOT/bbs/bbs.php");
+include("$DOCUMENT_ROOT/bbs/cafe.php");
+include("$DOCUMENT_ROOT/bbs/blog.php");
+include_once("$DOCUMENT_ROOT/class/logstory_tag.class");
+$bl = new BusinessLogic();
+
+$this_host = array( 'unimind.kr', 'www.unimind.kr', 'demo.unimind.kr');
+if(in_array($HTTP_HOST,$this_host)){
+	header("Location:http://".$HTTP_HOST."/unimind_intro.php");
+	exit;
+}
+
+if($_GET["viewtype"] == "analysis"){
+	$viewtype = "analysis";
+	session_register("viewtype");
+}
+
+//print_r($user);
+
+//echo $_SERVER["REMOTE_ADDR"];
+//exit;
+//$referer = parse_url($_SERVER['HTTP_REFERER']);
+//print_r($referer);
+//Array ( [scheme] => http [host] => b2bdev.mallstory.com [path] => /shop/goods_list.php [query] => cid=000000000000000&depth=0 )
+
+$db = new Database;
+
+foreach ($_GET as $key => $value){
+	//$$key = $db->sqlFilter($value);
+	//echo "$key = $value<br>";
+}
+
+foreach ($_POST as $key => $value){
+	//$$key = $db->sqlFilter($value);
+	//echo "$key = $value<br>";
+}
+
+//[S] 미니샵 company_id 정보 셀렉트
+
+if($PHP_SELF == "/minishop/index.php"){
+	if(empty($_GET["company_id"]) && empty($_SESSION["layout_config"]["minishop_company_id"])){
+		echo "
+			<script type='text/javascript'>
+				alert('미니샵 정보가 정확하지 않습니다.');
+				history.go(-1);
+			</script>
+		";
+		exit;
+	}else{
+		if(!empty($_GET["company_id"]) && $_SESSION["layout_config"]["minishop_company_id"] != $_GET["company_id"]){
+			$_SESSION["layout_config"]["minishop_company_id"] = $_GET["company_id"];
+
+			$sql = "SELECT c.*
+					FROM common_company_detail c
+					WHERE c.company_id = '".$_SESSION["layout_config"]["minishop_company_id"]."'
+					LIMIT 1
+			";
+			$db->query($sql);
+			$db->fetch();
+
+			$minishop_cfg_data = array("com_name", "com_ceo", "com_number", "com_addr1", "com_addr2", "com_email", "com_number", "corporate_number");
+
+			foreach($minishop_cfg_data as $key => $val){
+				$_SESSION["minishop_cfg"][$minishop_cfg_data[$key]] = $db->dt[$minishop_cfg_data[$key]];
+			}
+			session_register("minishop_cfg");
+		}
+	}
+}else{
+	if(empty($_SESSION["layout_config"]["minishop_company_id"])){
+		echo "
+			<script type='text/javascript'>
+				alert('미니샵 정보가 정확하지 않습니다.');
+				history.go(-1);
+			</script>
+		";
+		exit;
+	}
+}
+
+//[E] 미니샵 company_id 정보 셀렉트
+
+//[S] 랭귀지 PHP 인클루드
+$_SESSION["layout_config"]["front_language"] = "";
+if(empty($_SESSION["layout_config"]["front_language"])){
+	$domain = str_replace('www.','',$_SERVER['HTTP_HOST']);
+
+	if(substr($_SERVER['HTTP_HOST'],0,2) !='m.'){
+		$sql = "select * from ".TBL_SHOP_SHOPINFO." where mall_domain = '{$domain}'";
+	}else{
+		$sql = "select * from ".TBL_SHOP_SHOPINFO." where mall_mobile_domain = '{$domain}'";
+	}
+
+	//echo "sql : ".$sql;
+	$db->query($sql);
+	$db->fetch();
+
+	$sql = "SELECT language_code,currency_unit_front,currency_unit_back  FROM global_language where mall_ix = '".$db->dt['mall_ix']."'   ";
+	$db->query($sql);
+
+	if($db->total){
+		for($i=0; $i < $db->total;$i++){
+			$db->fetch($i);
+			$front_language = $db->dt['language_code'];
+			$layout_config["currency_unit_front"] = $db->dt['currency_unit_front'];
+			$layout_config["currency_unit_back"] = $db->dt['currency_unit_back'];
+		}
+	//echo $front_language;
+	}else{
+		$front_language = "korean";
+		$layout_config["currency_unit_front"] = "";
+		$layout_config["currency_unit_back"] = "원";
+	}
+
+	if($front_language == 'korea'){
+		$front_language = 'korean';
+	}
+
+	$_SESSION["layout_config"]["front_language"] = $front_language;
+	$_SESSION["layout_config"]["currency_unit_front"] = $layout_config["currency_unit_front"];
+	$_SESSION["layout_config"]["currency_unit_back"] = $layout_config["currency_unit_back"];
+}else{
+	$front_language = $_SESSION["layout_config"]["front_language"];
+}
+
+
+//$front_language='chinese';
+
+
+$language_path = $_SERVER ["DOCUMENT_ROOT"] . "/data/" . $mall_id . "_data/_language/".$front_language."/*.php";
+//echo $language_path;
+foreach (glob($language_path) as $filename)
+{
+	//echo $filename;
+	include $filename;
+}
+//[E] 랭귀지 PHP 인클루드
+
+Class msLayOut
+{
+	var $Contents;
+	var $mallstory_left;
+	var $ms_header_top;
+	var $ms_header_menu;
+	var $ms_center_history;
+	var $ms_cotents_add;
+	var $ms_footer_menu;
+	var $ms_footer_desc;
+	var $ms_template;
+	var $ms_template_path;
+	var $ms_template_wehtpah;
+	var $ms_template_webpath;
+	var $ms_image_path;
+	var $mall_use_templete;
+	var $mall_use_mobile_templete;
+	var $AddScript;
+	var $Config;
+
+	function msLayOut($pcode="", $login_bool=true){
+		global $DOCUMENT_ROOT, $HTTP_HOST, $user, $layout_config, $shopcfg ;
+
+		$this->LayoutConfig($pcode);
+		$mdb = new Database;
+
+		//echo $this->Config[mall_open_yn];
+		if($this->Config[mall_open_yn] == "Y" && $login_bool){
+			ms_auth();
+		}
+
+
+		$tpl = new Template_();
+		$tpl->template_dir = $this->Config[mall_templet_path];
+
+		$tpl->compile_dir  = $_SERVER["DOCUMENT_ROOT"].$this->Config[mall_data_root]."/compile_/";
+
+		if($this->Config[header1] != "" && file_exists( $_SERVER["DOCUMENT_ROOT"].$this->Config[mall_templet_webpath]."/layout/header/".$this->Config[header1])){//
+
+			//$tpl->define('header_top',"layout/header/".$this->Config[header1]);
+			$tpl->define(array('header_top'=>"layout/header/".$this->Config[header1],brand_menu=>"layout/header/brand_menu.htm"));
+			$tpl->assign('user',$user);
+			if($_GET[cf_ix]){
+				$mdb->query("SELECT cafename, cafe_address, cafe_skin_header_img FROM cafe_basicinfo WHERE cf_ix = '".$_GET[cf_ix]."' ");
+				$mdb->fetch();
+				$tpl->assign($mdb->dt);
+			}
+			if($_GET[bg_ix]){
+				$mdb->query("SELECT blogname, blog_address, blog_skin_header_img FROM blog_basicinfo WHERE bg_ix = '".$_GET[bg_ix]."' ");
+				$mdb->fetch();
+				$tpl->assign($mdb->dt);
+			}
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+			$tpl->assign('images_src',$this->Config[mall_image_path]);
+
+			$T = new Tag();
+			$T->file = "/mallstory_SalesAnalysisTag.js";
+			$T->userID =$user[id];  //--> 사용자 아이디(생략가능)
+			$T->email =$user[mail];  //--> 사용자 이메일(생략가능)
+			$T->mobile =$user[pcs];  //--> 사용자 이메일(생략가능)
+			$T->data_root =$this->Config[mall_data_root];
+			$this->ms_header_top =  $T->ToTagString();
+			$this->ms_header_top .= $tpl->fetch('header_top');
+		}
+
+		if($this->Config[header2] != "" && file_exists($_SERVER["DOCUMENT_ROOT"].$this->Config[mall_templet_webpath]."/layout/header/".$this->Config[header2])){
+
+			//$tpl->define('header_menu',"layout/header/".$this->Config[header2]);
+			$tpl->define(array('header_menu'=>"layout/header/".$this->Config[header2],brand_menu=>"layout/header/brand_menu.htm"));
+			$tpl->assign('user',$user);
+			if($_GET[cf_ix]){
+				$mdb->query("SELECT cafename, cafe_address FROM cafe_basicinfo WHERE cf_ix = '".$_GET[cf_ix]."' ");
+				$mdb->fetch();
+				$tpl->assign($mdb->dt);
+			}
+			if($_GET[bg_ix]){
+				$mdb->query("SELECT blogname, blog_address FROM blog_basicinfo WHERE bg_ix = '".$_GET[bg_ix]."' ");
+				$mdb->fetch();
+				$tpl->assign($mdb->dt);
+			}
+			$tpl->assign('search_word',$search_word);
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+			$tpl->assign('images_src',$this->Config[mall_image_path]);
+			$this->ms_header_menu  = $tpl->fetch('header_menu');
+		}
+
+		if($this->Config[contents_add] != "" && file_exists($_SERVER["DOCUMENT_ROOT"].$this->Config[mall_templet_webpath]."/layout/contents_add/".$this->Config[contents_add])){
+			$tpl->define('contents_add',"layout/contents_add/".$this->Config[contents_add]);
+
+			include_once("$DOCUMENT_ROOT/admin/logstory/class/sharedmemory.class");
+			$shmop = new Shared("reserve_rule");
+			$reserve_data = $shmop->getObjectForKey("reserve_rule");
+			$reserve_data = unserialize(urldecode($reserve_data));
+			$tpl->assign("reserve_use_yn",$reserve_data[reserve_use_yn]);
+
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+			$tpl->assign('images_src',$this->Config[mall_image_path]);
+			$this->ms_contents_add  = $tpl->fetch('contents_add');
+		}
+
+		if($this->Config[footer1] != ""  && file_exists($_SERVER["DOCUMENT_ROOT"].$this->Config[mall_templet_webpath]."/layout/footer/".$this->Config[footer1])){
+			$tpl->define('footer_menu',"layout/footer/".$this->Config[footer1]);
+
+
+
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+			$tpl->assign('images_src',$this->Config[mall_image_path]);
+			$this->ms_footer_menu  = $tpl->fetch('footer_menu');
+		}
+
+		if($this->Config[footer2] != ""  && file_exists($_SERVER["DOCUMENT_ROOT"].$this->Config[mall_templet_webpath]."/layout/footer/".$this->Config[footer2])){
+
+
+
+			$tpl->define('footer_desc',"layout/footer/".$this->Config[footer2]);
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+
+			//print_r($_shopcfg);
+
+			$this->ms_footer_desc  = $tpl->fetch('footer_desc');
+
+		}
+
+		 $this->trasform_leftmenu($this->Config[leftmenu]);
+
+
+		$this->Contents = "";
+
+
+	}
+
+	function LayoutConfig($pcode=""){
+		global $layout_config, $shopcfg, $HTTP_HOST, $DOCUMENT_ROOT;
+		global $skin;
+
+		$cfg_db = new Database;
+
+		if(!$_SESSION["shopcfg"]["minishop_shop_name"]){
+		//exit;
+
+			$sql = "select ccd.company_id, csd.shop_name, ccd.com_name , ccd.com_number, ccd.online_business_number, ccd.com_ceo, ccd.com_addr1, ccd.com_addr2, ccd.com_phone, ccd.com_fax, ccd.com_email
+				,ccd.com_business_status, ccd.com_business_category, csd.minishop_templet
+				from common_seller_detail csd, common_company_detail ccd
+				where csd.company_id = ccd.company_id and  csd.company_id = '".$_GET["company_id"]."' "; //ccd.com_type = 'A'
+			//echo nl2br($sql);
+			$cfg_db->query($sql);
+			$cfg_db->fetch();
+			//print_r($cfg_db->dt);
+			//$_shopcfg = $cfg_db->dt[0];
+			$shopcfg[minishop_shop_name] = $cfg_db->dt[shop_name];
+			$shopcfg[minishop_company_name] = $cfg_db->dt[com_name];//$cfg_db->dt[company_name];
+			$shopcfg[minishop_biz_no] = $cfg_db->dt[com_number];
+			$shopcfg[minishop_online_biz_no] = $cfg_db->dt[online_business_number];
+			$shopcfg[minishop_ceo] = $cfg_db->dt[com_ceo];
+			$shopcfg[minishop_company_address] = $cfg_db->dt[com_addr1]." ". $cfg_db->dt[com_addr2];
+			$shopcfg[minishop_company_id] = $cfg_db->dt[company_id];
+			//$shopcfg[capital] = $cfg_db->dt[capital];
+			//$shopcfg[person] = $cfg_db->dt[person];
+			$shopcfg[minishop_phone] = $cfg_db->dt[com_phone];
+			$shopcfg[minishop_fax] = $cfg_db->dt[com_fax];
+			//$shopcfg[charger] = $cfg_db->dt[charger];
+			$shopcfg[minishop_email] = $cfg_db->dt[com_email];
+			$shopcfg[minishop_biz_kind] = $cfg_db->dt[com_business_category];
+			$shopcfg[minishop_biz_item] = $cfg_db->dt[com_business_status];
+			$shopcfg[minishop_templet] = $cfg_db->dt[minishop_templet];
+			//$shopcfg[company_intro_top] = $cfg_db->dt[company_intro_top];
+			//$shopcfg[company_location] = $cfg_db->dt[company_location];
+			session_register("shopcfg");
+
+		}
+		if(!$_SESSION["shopcfg"]['shop_name']){
+		//exit;
+
+			$sql = "select ccd.company_id, csd.shop_name, csd.shop_desc, ccd.com_name , ccd.com_number, ccd.online_business_number, ccd.com_ceo, ccd.com_addr1,
+				ccd.com_addr2, ccd.com_phone, ccd.com_fax, ccd.com_email ,ccd.com_business_status, ccd.com_business_category
+				,ccd.opening_time,ccd.cs_phone,ccd.officer_name,ccd.officer_email,ccd.return_zip,ccd.return_addr1,ccd.return_addr2,ccd.return_disp,ccd.return_use
+				from common_seller_detail csd, common_company_detail ccd
+				where csd.company_id = ccd.company_id and ccd.com_type = 'A' ";
+			//echo nl2br($sql);
+			$cfg_db->query($sql);
+			$cfg_db->fetch();
+			//print_r($cfg_db->dt);
+			//$_shopcfg = $cfg_db->dt[0];
+			$_SESSION["shopcfg"][shop_name] = $cfg_db->dt[shop_name];
+			$_SESSION["shopcfg"][shop_desc] = $cfg_db->dt[shop_desc];
+			$_SESSION["shopcfg"][company_id] = $cfg_db->dt[company_id];
+			$_SESSION["shopcfg"][com_name] = $cfg_db->dt[com_name];//$cfg_db->dt[company_name];
+			$_SESSION["shopcfg"][biz_no] = $cfg_db->dt[com_number];
+			$_SESSION["shopcfg"][online_biz_no] = $cfg_db->dt[online_business_number];
+			$_SESSION["shopcfg"][ceo] = $cfg_db->dt[com_ceo];
+			$_SESSION["shopcfg"][company_address] = $cfg_db->dt[com_addr1]." ". $cfg_db->dt[com_addr2];
+			//$_SESSION["shopcfg"][setup] = $cfg_db->dt[setup];
+			//$_SESSION["shopcfg"][capital] = $cfg_db->dt[capital];
+			//$_SESSION["shopcfg"][person] = $cfg_db->dt[person];
+			$_SESSION["shopcfg"][phone] = $cfg_db->dt[com_phone];
+			$_SESSION["shopcfg"][fax] = $cfg_db->dt[com_fax];
+			//$_SESSION["shopcfg"][charger] = $cfg_db->dt[charger];
+			$_SESSION["shopcfg"][email] = $cfg_db->dt[com_email];
+			$_SESSION["shopcfg"][biz_kind] = $cfg_db->dt[com_business_category];
+			$_SESSION["shopcfg"][biz_item] = $cfg_db->dt[com_business_status];
+			//$_SESSION["shopcfg"][company_intro_top] = $cfg_db->dt[company_intro_top];
+			//$_SESSION["shopcfg"][company_location] = $cfg_db->dt[company_location];
+			$_SESSION["shopcfg"]["opening_time"] = $cfg_db->dt[opening_time];
+			list($l_cs_phone1,$l_cs_phone2,$l_cs_phone3)=explode("-",$cfg_db->dt[cs_phone]);
+			if($l_cs_phone1!="") $l_cs_phone1_="-".$l_cs_phone1;
+			if($l_cs_phone2!="") $l_cs_phone2_="-".$l_cs_phone2;
+			if($l_cs_phone3!="") $l_cs_phone3_="-".$l_cs_phone3;
+			$l_cs_phone=substr($l_cs_phone1_.$l_cs_phone2_.$l_cs_phone3_,1);
+			$_SESSION["shopcfg"]["cs_phone"] = $l_cs_phone;//수정함 kbk 13/07/19
+			//$_SESSION["shopcfg"]["cs_phone"] = $cfg_db->dt[cs_phone];
+
+
+			$_SESSION["shopcfg"]["officer_name"] = $cfg_db->dt[officer_name];
+			$_SESSION["shopcfg"]["officer_email"] = $cfg_db->dt[officer_email];
+			$_SESSION["shopcfg"]["return_zip"] = $cfg_db->dt[return_zip];
+			$_SESSION["shopcfg"]["return_addr1"] = $cfg_db->dt[return_addr1];
+			$_SESSION["shopcfg"]["return_addr2"] = $cfg_db->dt[return_addr2];
+			$_SESSION["shopcfg"]["return_disp"] = $cfg_db->dt[return_disp];
+			$_SESSION["shopcfg"]["return_use"] = $cfg_db->dt[return_use];
+
+//			session_register("shopcfg");
+
+//print_r($shopcfg);
+		}
+		//print_r($shopcfg);
+		//session_unregister("shopcfg");
+
+
+		if(!($layout_config && $_SESSION["layout_config"][mall_ix]) || true){// || true
+
+
+				$thisHost = str_replace('www.','',$_SERVER['HTTP_HOST']);
+
+				//$cfg_db->query('SELECT mall_ix, mall_div, mall_ename, mall_type, mall_data_root, mall_domain_id, mall_domain_key, mall_title, mall_keyword, mall_use_templete, mall_use_mobile_templete, photoskin_type, mall_price_open, mall_cart_open, mall_open_yn,mall_use_inventory, mall_use_category_templet,basic_send_cost_quick,basic_send_cost_tekbae, free_cost_price, sattle_module, inipay_mid,inipay_nointerest_use,inipay_nointerest_str,inipay_interest_str,allthegate_id, allthegate_interest_str, allthegate_nointerest_str, allthegate_nointerest_use,allthegate_nointerest_price,lgdacom_id,lgdacom_key,lgdacom_type, lgdacom_interest_str, lgdacom_nointerest_str, lgdacom_nointerest_price,lgdacom_skin, escrow_use,escrow_mid,escrow_apply,escrow_method_bank,escrow_method_vbank,escrow_method_card, mall_use_identification,mall_cc_interval,mall_dc_interval FROM '.TBL_SHOP_SHOPINFO.' WHERE mall_domain = "'.$thisHost.'" AND mall_div = "B"');
+				$domain = str_replace('www.','',$_SERVER['HTTP_HOST']);
+				if(substr_count($_SERVER["HTTP_USER_AGENT"],"Mobile") || substr_count($_SERVER["HTTP_HOST"],"m.") ){ //
+					$sql = "select mall_ix,mall_div, mall_ename, mall_type, mall_data_root, mall_domain_id, mall_domain_key, mall_title, mall_keyword, mall_use_templete, mall_use_mobile_templete, photoskin_type, 'M' as mall_page_type, mall_price_open, mall_cart_open, mall_open_yn,mall_use_inventory, mall_use_category_templet,basic_send_cost_quick,basic_send_cost_tekbae, free_cost_price, sattle_module, inipay_mid,inipay_nointerest_use,inipay_nointerest_str,inipay_interest_str,allthegate_id, allthegate_interest_str, allthegate_nointerest_str, allthegate_nointerest_use,allthegate_nointerest_price,lgdacom_id,lgdacom_key,lgdacom_type, lgdacom_interest_str, lgdacom_nointerest_str, lgdacom_nointerest_price,lgdacom_skin, escrow_use,escrow_mid,escrow_apply,escrow_method_bank,escrow_method_vbank,escrow_method_card, mall_use_identification,mall_cc_interval,mall_dc_interval from ".TBL_SHOP_SHOPINFO." where mall_div = 'B'  "; //mall_mobile_domain = '{$domain}'
+					//echo $sql;
+					$cfg_db->query($sql);
+					$cfg_db->fetch();
+
+				}else{
+					$sql = "select mall_ix,mall_div, mall_ename, mall_type, mall_data_root, mall_domain_id, mall_domain_key, mall_title, mall_keyword, mall_use_templete, mall_use_mobile_templete, photoskin_type, 'P' as mall_page_type, mall_price_open, mall_cart_open, mall_open_yn,mall_use_inventory, mall_use_category_templet,basic_send_cost_quick,basic_send_cost_tekbae, free_cost_price, sattle_module, inipay_mid,inipay_nointerest_use,inipay_nointerest_str,inipay_interest_str,allthegate_id, allthegate_interest_str, allthegate_nointerest_str, allthegate_nointerest_use,allthegate_nointerest_price,lgdacom_id,lgdacom_key,lgdacom_type, lgdacom_interest_str, lgdacom_nointerest_str, lgdacom_nointerest_price,lgdacom_skin, escrow_use,escrow_mid,escrow_apply,escrow_method_bank,escrow_method_vbank,escrow_method_card, mall_use_identification,mall_cc_interval,mall_dc_interval from ".TBL_SHOP_SHOPINFO." where mall_domain = '{$domain}'  "; //mall_domain = '{$domain}' mall_div = 'B'
+					//echo "sql : ".$sql;
+					$cfg_db->query($sql);
+					$cfg_db->fetch();
+					//echo $cfg_db->db_name;
+					//print_r($cfg_db->dt);
+
+				}
+
+				if(!$cfg_db->dt[0])	{
+					echo "비정상적인 접속입니다.";
+					exit;
+				}
+
+
+
+
+
+				//print_r($cfg_db->dt);
+				//exit;
+				if($skin){
+					$_SESSION["layout_config"][mall_use_templete] = $skin;
+				}else{
+					$_SESSION["layout_config"][mall_use_templete] = $shopcfg[minishop_templet];//$cfg_db->dt[minishop_templet];
+				}
+
+				$this->mall_use_templete = "story3";//$_SESSION["layout_config"][mall_use_templete];
+				$this->mall_use_mobile_templete = $cfg_db->dt[mall_use_mobile_templete];
+
+				$_SESSION["layout_config"][mall_ix] = $cfg_db->dt[mall_ix];
+				$_SESSION["layout_config"][mall_div] = $cfg_db->dt[mall_div];
+				$_SESSION["layout_config"][mall_ename] = $cfg_db->dt[mall_ename];
+				$_SESSION["layout_config"][mall_type] = $cfg_db->dt[mall_type];
+				$_SESSION["layout_config"][mall_title] = $cfg_db->dt[mall_title];
+				$_SESSION["layout_config"][mall_keyword] = $cfg_db->dt[mall_keyword];
+
+				$_SESSION["layout_config"][mall_use_mobile_templete] = $cfg_db->dt[mall_use_mobile_templete];
+				$_SESSION["layout_config"][photoskin_type] = $cfg_db->dt[photoskin_type];
+
+
+				$_SESSION["layout_config"][mall_page_type] = $cfg_db->dt[mall_page_type]; // 페이지 형식 P=> 포토스킨, S=>SNS, M=> 모바일
+				$_SESSION["layout_config"][mall_use_category_templet] = $cfg_db->dt[mall_use_category_templet];
+				$_SESSION["layout_config"][mall_price_open] = $cfg_db->dt[mall_price_open];
+				$_SESSION["layout_config"][mall_cart_open] = $cfg_db->dt[mall_cart_open];
+				$_SESSION["layout_config"][mall_open_yn] = $cfg_db->dt[mall_open_yn];
+
+				if($_SESSION["layout_config"][mall_page_type] == "M"){
+					$_SESSION["layout_config"][mall_templet_path] = "$DOCUMENT_ROOT".$cfg_db->dt[mall_data_root]."/mobile_minishop_templet/".$_SESSION["layout_config"][mall_use_templete];
+					$_SESSION["layout_config"][mall_templet_webpath] = $cfg_db->dt[mall_data_root]."/mobile_minishop_templet/".$_SESSION["layout_config"][mall_use_templete];
+				}else{
+					$_SESSION["layout_config"][mall_templet_path] = "$DOCUMENT_ROOT".$cfg_db->dt[mall_data_root]."/minishop_templet/".$_SESSION["layout_config"][mall_use_templete];
+					$_SESSION["layout_config"][mall_templet_webpath] = $cfg_db->dt[mall_data_root]."/minishop_templet/".$_SESSION["layout_config"][mall_use_templete];
+
+				}
+				//echo $_SESSION["layout_config"][mall_templet_webpath];
+
+				$_SESSION["layout_config"][mall_product_imgpath] = $cfg_db->dt[mall_data_root]."/images/product";
+				$_SESSION["layout_config"][mall_image_path] = $cfg_db->dt[mall_data_root]."/images";
+				$_SESSION["layout_config"][mall_data_root] = $cfg_db->dt[mall_data_root];
+				/*
+				$_SESSION["layout_config"][sattle_module] = $cfg_db->dt[sattle_module];
+				$_SESSION["layout_config"][basic_send_cost_tekbae] = $cfg_db->dt[basic_send_cost_tekbae];
+				$_SESSION["layout_config"][basic_send_cost_quick] = $cfg_db->dt[basic_send_cost_quick];
+				$_SESSION["layout_config"][free_cost_price] = $cfg_db->dt[free_cost_price];
+
+				$_SESSION["layout_config"][mall_domain_key] = $cfg_db->dt[mall_domain_key];
+				$_SESSION["layout_config"][mall_use_inventory] = $cfg_db->dt[mall_use_inventory];
+				$_SESSION["layout_config"][mall_use_identification] = $cfg_db->dt[mall_use_identification];
+				$_SESSION["layout_config"][mall_cc_interval] = $cfg_db->dt[mall_cc_interval];
+				$_SESSION["layout_config"][mall_dc_interval] = $cfg_db->dt[mall_dc_interval];
+
+
+
+				if($cfg_db->dt[sattle_module] == "inicis"){
+					$_SESSION["layout_config"][pg_company] = "(주) 이니시스";
+				}else if($cfg_db->dt[sattle_module] == "allthegate"){
+					$_SESSION["layout_config"][pg_company] = " 이지스효성(주)";
+				}else if($cfg_db->dt[sattle_module] == "kcp"){
+					$_SESSION["layout_config"][pg_company] = " KCP";
+				}else if($cfg_db->dt[sattle_module] == "ksnet"){
+					$_SESSION["layout_config"][pg_company] = " KSNET";
+				}else{
+					$_SESSION["layout_config"][pg_company] = " LG DACOM";
+				}
+				*/
+
+
+
+
+		}
+
+
+		$doc = new DOMDocument();
+		//echo ($DOCUMENT_ROOT.$_SESSION["layout_config"][mall_data_root]."/minishop_templet/".$_SESSION["layout_config"][mall_use_templete]."/layout.xml");
+		$path = $_SESSION["layout_config"][mall_templet_path]."/layout2.xml";
+		if(is_file($path)){
+			$doc->load($path);
+		}else{
+			$doc->load($_SESSION["layout_config"][mall_templet_path]."/layout.xml");
+		}
+
+		$xpath = new DOMXpath($doc);
+		//echo $_SESSION["layout_config"][photoskin_type];
+		if($_SESSION["layout_config"][photoskin_type] == 1){
+			$skin_params = $xpath->query("//photoskin[@photoskin_type='0' and @photoskin_name='basic_skin']");
+		}else if($_SESSION["layout_config"][photoskin_type] == 2){
+			if(6 < date("H") && date("H") <= 10){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='1' and @photoskin_name='morning']");
+			}else if(10 < date("H") && date("H") <= 17){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='1' and @photoskin_name='afternoon']");
+			}else if((17 < date("H") && date("H") <= 24) || (0 < date("H") && date("H") <= 6)){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='1' and @photoskin_name='night']");
+			}else{
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='0' and @photoskin_name='basic_skin']");
+			}
+		}else if($_SESSION["layout_config"][photoskin_type] == 3){
+			if($_SESSION["layout_config"][weather] == "snow"){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='2' and @photoskin_name='snow']");
+			}else if($_SESSION["layout_config"][weather] == "cloudy"){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='2' and @photoskin_name='cloudy']");
+			}else if($_SESSION["layout_config"][weather] == "rain"){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='2' and @photoskin_name='rain']");
+			}else if($_SESSION["layout_config"][weather] == "clean"){
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='2' and @photoskin_name='clean']");
+			}else{
+				$skin_params = $xpath->query("//photoskin[@photoskin_type='0' and @photoskin_name='basic_skin']");
+			}
+
+
+		}
+		if($skin_params){
+			foreach ($skin_params as $skin_param) {
+				$_SESSION["layout_config"][photoskin_path] = $skin_param->getElementsByTagName("photoskin_path")->item(0)->nodeValue;
+				//echo "skin_path : ".$skin_param->getElementsByTagName("photoskin_path")->item(0)->nodeValue;
+				//$_SESSION["layout_config"][layout] = $param->getElementsByTagName("layout")->item(0)->nodeValue; //$cfg_db->dt[layout];
+				//$_SESSION["layout_config"][page_navi] = $param->getElementsByTagName("page_navi")->item(0)->nodeValue;//$cfg_db->dt[page_navi];
+			}
+		}
+
+		$params = $xpath->query("*[@pcode='$pcode']");
+
+		if($params){
+
+					foreach ($params as $param) {
+
+
+						$_SESSION["layout_config"][layout] = $param->getElementsByTagName("layout")->item(0)->nodeValue; //$cfg_db->dt[layout];
+						$_SESSION["layout_config"][page_navi] = $param->getElementsByTagName("page_navi")->item(0)->nodeValue;//$cfg_db->dt[page_navi];
+						$_SESSION["layout_config"][header1] = $param->getElementsByTagName("header1")->item(0)->nodeValue;//$cfg_db->dt[header1];
+						$_SESSION["layout_config"][header2] = $param->getElementsByTagName("header2")->item(0)->nodeValue;//$cfg_db->dt[header2];
+						$_SESSION["layout_config"][leftmenu] = $param->getElementsByTagName("leftmenu")->item(0)->nodeValue;//$cfg_db->dt[leftmenu];
+						$_SESSION["layout_config"][contents] = $param->getElementsByTagName("contents")->item(0)->nodeValue;//$cfg_db->dt[contents];
+						$_SESSION["layout_config"][contents_add] = $param->getElementsByTagName("contents_add")->item(0)->nodeValue;//$cfg_db->dt[contents_add];
+						$_SESSION["layout_config"][rightmenu] = $param->getElementsByTagName("rightmenu")->item(0)->nodeValue;//$cfg_db->dt[rightmenu];
+						$_SESSION["layout_config"][footer1] = $param->getElementsByTagName("footer1")->item(0)->nodeValue;//$cfg_db->dt[footer1];
+						$_SESSION["layout_config"][footer2] = $param->getElementsByTagName("footer2")->item(0)->nodeValue;//$cfg_db->dt[footer2];
+						$_SESSION["layout_config"][page_path] = $param->getElementsByTagName("page_path")->item(0)->nodeValue;//$cfg_db->dt[footer2];
+						$_SESSION["layout_config"][caching] = $param->getElementsByTagName("caching")->item(0)->nodeValue;//$cfg_db->dt[caching];
+						$_SESSION["layout_config"][caching_time] = $param->getElementsByTagName("caching_time")->item(0)->nodeValue;//$cfg_db->dt[caching_time];
+//print_r($layout_config);
+					}
+
+
+		}else{
+			if($pcode){
+				$cfg_db->query("select * from ".TBL_SHOP_DESIGN." where mall_ix ='".$_SESSION["layout_config"][mall_ix]."' and pcode='$pcode'");
+			}else{
+				$cfg_db->query("select cid from ".TBL_SHOP_LAYOUT_INFO." where  basic_link='".$_SERVER["REDIRECT_URL"]."'");
+				$cfg_db->fetch();
+				$pcode = $cfg_db->dt[cid];
+
+				$cfg_db->query("select * from ".TBL_SHOP_DESIGN." where mall_ix ='".$_SESSION["layout_config"][mall_ix]."' and pcode='".$pcode."'");
+			}
+
+			$cfg_db->fetch();
+
+			$_SESSION["layout_config"][layout] = $cfg_db->dt[layout];
+			$_SESSION["layout_config"][page_navi] = $cfg_db->dt[page_navi];
+			$_SESSION["layout_config"][header1] = $cfg_db->dt[header1];
+			$_SESSION["layout_config"][header2] = $cfg_db->dt[header2];
+			$_SESSION["layout_config"][leftmenu] = $cfg_db->dt[leftmenu];
+			$_SESSION["layout_config"][contents] = $cfg_db->dt[contents];
+			$_SESSION["layout_config"][contents_add] = $cfg_db->dt[contents_add];
+			$_SESSION["layout_config"][rightmenu] = $cfg_db->dt[rightmenu];
+			$_SESSION["layout_config"][footer1] = $cfg_db->dt[footer1];
+			$_SESSION["layout_config"][footer2] = $cfg_db->dt[footer2];
+			$_SESSION["layout_config"][page_path] = $cfg_db->dt[page_path];
+			$_SESSION["layout_config"][caching] = $cfg_db->dt[caching];
+			$_SESSION["layout_config"][caching_time] = $cfg_db->dt[caching_time];
+
+
+		}
+
+		$_SESSION["layout_config"][this_templet_path] = $_SESSION["layout_config"][page_path]."/".trim($_SESSION["layout_config"][contents]);
+		$_SESSION["layout_config"][contents_path] = $_SESSION["layout_config"][mall_templet_path]."/_".$pcode."/".trim($_SESSION["layout_config"][contents]);
+
+//		print_r($_SESSION["layout_config"]);
+//		exit;
+		$this->Config = $_SESSION["layout_config"];
+//		session_register("layout_config");
+	}
+
+
+	function trasform_leftmenu($leftmenu=""){
+		global $DOCUMENT_ROOT;
+
+		if($leftmenu != "" && file_exists($_SERVER["DOCUMENT_ROOT"].$this->Config[mall_templet_webpath]."/layout/leftmenu/".$this->Config[leftmenu])){
+
+			$tpl = new Template_();
+			$tpl->template_dir = $this->Config[mall_templet_path];
+
+			$tpl->compile_dir  = $DOCUMENT_ROOT.$this->Config[mall_data_root]."/compile_/";
+
+
+			//$tpl->define('leftmenu',"layout/leftmenu/".$this->Config[leftmenu]);
+			$tpl->define(array('leftmenu'=>"layout/leftmenu/".$this->Config[leftmenu],loginbox=>"layout/leftmenu/loginbox.htm"));
+
+			$mdb = new Database;
+			$mdb->query("SELECT * FROM ".TBL_SHOP_CATEGORY_INFO." where category_use = 1 and depth = 0 order by vlevel1, vlevel2, vlevel3, vlevel4, vlevel5");
+
+			$categorys = $mdb->fetchall();
+			$tpl->assign('categorys',$categorys);
+
+			$mdb->query("SELECT board_name, board_ename FROM ".TBL_BBS_MANAGE_CONFIG." order by regdate");
+			$bbsmenu = $mdb->fetchall();
+			$tpl->assign('bbsmenu',$bbsmenu);
+
+			$mdb->query("SELECT board_name, board_ename FROM ".TBL_BBS_MANAGE_CONFIG."  where board_group = 'H' order by regdate");
+			$help_menus = $mdb->fetchall();
+			if(is_array($help_menus)) $tpl->assign('help_menus',$help_menus);
+
+			$mdb->query("SELECT board_name, board_ename FROM ".TBL_BBS_MANAGE_CONFIG."  where board_group = 'C' order by regdate");
+			$community_menus = $mdb->fetchall();
+			if(is_array($community_menus)) $tpl->assign('community_menus',$community_menus);
+
+			if($_GET[cf_ix]){
+				$sql = "SELECT cfb.cafe_reg_mem_cnt, date_format(cfb.regdate,'%Y.%m.%d') as open_date,mem_ix as cafe_owner,  cmd.name, cu.id,cmd.nick_name
+					FROM cafe_basicinfo cfb, common_user cu, common_member_detail cmd
+					WHERE cf_ix = '".$_GET[cf_ix]."' and cfb.mem_ix = cu.code and cu.code = cmd.code ";
+				//	echo $sql;
+				$mdb->query($sql);
+				$mdb->fetch();
+				if($mdb->total){
+					$tpl->assign($mdb->dt);
+				}
+
+				$mdb->query("SELECT * FROM cafe_bbs_group WHERE cf_ix = '".$_GET[cf_ix]."' and disp = '1' order by vieworder asc, bbs_group_name asc ");
+				$bbs_groups = $mdb->fetchall();
+				if(is_array($bbs_groups)){
+					$tpl->assign('bbs_groups',$bbs_groups);
+				}
+			}
+
+			if($_GET[bg_ix]){
+				$sql = "SELECT bgb.blog_reg_mem_cnt, date_format(bgb.regdate,'%Y.%m.%d') as open_date,mem_ix as blog_owner,  cmd.name, cu.id
+					FROM blog_basicinfo bgb, common_user cu, common_member_detail cmd
+					WHERE bg_ix = '".$_GET[bg_ix]."' and bgb.mem_ix = cu.code and cu.code = cmd.code ";
+				$mdb->query($sql);
+				$mdb->fetch();
+				if($mdb->total){
+					$tpl->assign($mdb->dt);
+				}
+
+				$mdb->query("SELECT * FROM blog_bbs_group WHERE bg_ix = '".$_GET[bg_ix]."' and disp = '1' order by vieworder asc, bbs_group_name asc ");
+				$bbs_groups = $mdb->fetchall();
+				if(is_array($bbs_groups)){
+					$tpl->assign('bbs_groups',$bbs_groups);
+				}
+			}
+
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+
+
+			$this->mallstory_left  = $tpl->fetch('leftmenu');
+		}
+	}
+
+	function transform_top_menu($header_top=""){
+		global $user, $DOCUMENT_ROOT;
+
+
+		if($header_top != ""){
+			$tpl = new Template_();
+			$tpl->template_dir = $this->Config[mall_templet_path];
+			$tpl->compile_dir  = $DOCUMENT_ROOT.$this->Config[mall_data_root]."/compile_/";
+			$tpl->define('header_top',"header/".$header_top);
+
+			$tpl->assign('user',$user);
+
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+			$tpl->assign('images_src',$this->Config[mall_image_path]);
+
+			$this->ms_header_top  = $tpl->fetch('header_top');
+		}
+
+	}
+
+
+	function CheckText($text,$vurl,$this_page){
+		if($vurl == $this_page){
+			return MenuCirCleBoxStart('#646464','50%').$text.MenuCirCleBoxEnd('#646464');
+		}else{
+			return $text;
+		}
+
+
+	}
+
+
+
+	function LoadLayOut(){
+	global $user, $HTTP_HOST, $REQUEST_UR, $DOCUMENT_ROOT, $shopcfg;
+	$db = new Database;
+
+	$tpl = new Template_();
+	$tpl->template_dir = $this->Config[mall_templet_path];
+	$tpl->compile_dir  = $DOCUMENT_ROOT.$this->Config[mall_data_root]."/compile_/";
+
+	$tpl->define('layout',"layout/".$this->Config[layout]);
+	$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+	$tpl->assign('images_src',$this->Config[mall_image_path]);
+	$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+	$tpl->assign('mall_data_root',$this->Config[mall_data_root]);
+	$tpl->assign('photoskin_path',$this->Config[photoskin_path]);
+	//echo $this->Config[photoskin_path];
+
+	$tpl->assign('center_contents',$this->Contents);
+	$tpl->assign('center_leftmenu',$this->mallstory_left);
+	$tpl->assign('title_desc',$this->Config[mall_title]);
+
+
+	$tpl->assign('keyword_desc',$this->Config[mall_keyword]);
+	$tpl->assign('center_history',$this->ReturnHistory());
+	$tpl->assign('contents_add',$this->ms_contents_add);
+
+	$tpl->assign('script',$this->AddScript);
+	$tpl->assign('header_top',$this->ms_header_top);
+	$tpl->assign('header_menu',$this->ms_header_menu);
+	$tpl->assign('footer_menu',$this->ms_footer_menu);
+	$tpl->assign('footer_desc',$this->ms_footer_desc);
+
+	$tpl->assign('page_navi',str_replace("{templet_src}",$this->Config[mall_templet_webpath],$this->Config[page_navi]));
+
+	/*
+	$tpl->assign('navi',$this->navi);
+	$tpl->assign('title_img',$this->title_img);
+	$tpl->assign('cate_main_img',$this->cate_main_img);
+	*/
+	return $tpl->fetch('layout');
+
+	ob_end_flush();
+
+
+	}
+
+	function ReturnHistory(){
+	global $HISTORY, $DOCUMENT_ROOT;
+
+
+		if($this->Config[rightmenu] != ""){
+			$tpl = new Template_();
+			$tpl->template_dir = $this->Config[mall_templet_path];
+			$tpl->compile_dir  = $DOCUMENT_ROOT.$this->Config[mall_data_root]."/compile_/";
+			$tpl->assign('templet_src',$this->Config[mall_templet_webpath]);
+			$tpl->assign('product_src',$this->Config[mall_product_imgpath]);
+
+			$tpl->define('today_history',"/layout/rightmenu/".$this->Config[rightmenu]);
+			$tpl->assign('history',$HISTORY);
+
+			//print_r($HISTORY);
+
+			return  $tpl->fetch('today_history');
+		}
+
+	}
+
+
+}
+
+
+
+function GetThisCategory($this_cid,$this_depth)// 해당 카테고리 이름을 반환하는 함수
+{
+	$mdb = new Database;
+
+	$sql = "select c.cid,c.cname from mallstory_category_info c where cid LIKE '".substr($this_cid,0,($this_depth+1)*3)."%' and depth = '".$this_depth."'  ";
+
+	$mdb->query($sql);
+
+	$mdb->fetch(0);
+
+	return $mdb->dt[cname];
+}
+
+
+function getMinishopFavoriteInfo($code){
+
+	$mdb = new Database;
+
+	$sql = 	"SELECT mf.*, sd.shop_name FROM shop_minishop_favorite mf, common_seller_detail sd
+			where sd.company_id = mf.company_id AND mf.ucode = '".$code."'
+			order by mf.regdate desc ";
+	//echo nl2br($sql);
+	$mdb->query($sql);
+	return $mdb->fetchall();
+
+}
+?>

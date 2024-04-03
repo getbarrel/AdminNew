@@ -1,0 +1,13 @@
+; ***************************************** ;
+; Folders headers              ;
+; ***************************************** ;
+
+fld_name_hea					= Ordner
+fld_messages_hea				= Nachrichten
+fld_size_hea					= Größe
+fld_empty_hea					= Leeren
+fld_delete_hea					= Löschen
+fld_total					= Gesamt:
+fld_make_new					= Neuen Ordner erstellen
+folders_to					= Ordner für <!--%UM_USER_EMAIL%-->
+quota_usage				= Speicherlimit: <!--%UM_USAGE_GRAPHIC%--> <b><!--%UM_TOTAL_USED%--></b> von <b><!--%UM_AVAL_SIZE%--></b> belegt. 

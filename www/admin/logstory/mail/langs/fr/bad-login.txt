@@ -1,0 +1,7 @@
+; ***************************************** ;
+; Bad Login		                    ;
+; ***************************************** ;
+
+bdl_title			= Authentification erronée
+bdl_msg			= Les informations entrées sont incorrectes<br><br>Veuillez vérifier les données et réessayer à nouveau
+bdl_back			= Retour

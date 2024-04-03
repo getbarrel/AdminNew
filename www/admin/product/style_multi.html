@@ -1,0 +1,151 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=euc-kr">
+<title>InnoPU - 사진전용 업로드 컴포넌트</title>
+<link rel="stylesheet" type="text/css" href="/js/image/style.css" />
+</head>
+
+<body>
+
+<center>
+<font size="5"><strong>3. 멀티 업로드 HTML 스타일</strong></font> - <a href="index.html"><font size="2">다른 스타일 보기</font></a>
+</center>
+
+
+<!-- ##### InnoPU 로드 시작 ##### -->
+<!-- 실제 화면에 표시되지 않으며 컴포넌트 초기화만 담당, 적용할 페이지의 body 태그안에 아무곳에나 삽입 -->
+<script type="text/javascript" language="JavaScript" src="/js/InnoPU_AP.js"></script>
+<script type="text/javascript" language="JavaScript" src="/js/InnoPU.js"></script>
+<script type="text/javascript" language="JavaScript">
+<!--
+ip_ActionFilePath = "action.php";
+ip_SendForm = "goods_input";
+ip_InputName = "image_file";
+ip_InputType = "array";
+
+LoadInnoPU();
+
+isSubmit = false; // 업로드 때 OnAddFile 이벤트 ignore 를 위해...
+addPoint = ''; // 멀티 영역 드래그&드롭 처리등에 필요
+//-->
+</script>
+
+<script type="text/javascript" language="JavaScript" src="/js/InnoPU_embed.js"></script>
+<script language="JavaScript">
+<!--
+InnoAPInit(ip_TotalUploadSize, ip_UnitUploadSize, ip_MaxFileCount, 0, '1', '1');
+
+try {
+    document.InnoAP.AppendFilter("사진 파일", "*.jpg; *.jpeg; *.gif; *.png; *.bmp;"); // 찾아보기 확장자 필터
+    document.InnoAP.AppendDragDrop("pu_drop1", "1"); // 드롭영역 태그의 ID 값
+    document.InnoAP.AppendDragDrop("pu_drop2", "2");
+} catch (e) { }
+
+function StartUpload()
+{
+    // 폼의 유효성 검사등을 여기서 수행
+
+    // 사진설명1/2를 goods_input 폼에 입력
+    document.getElementsByName('pu_desc1')[0].value = document.getElementsByName('pu_desc1')[1].value;
+    document.getElementsByName('pu_desc2')[0].value = document.getElementsByName('pu_desc2')[1].value;
+
+    // ip_SendForm 변수에 명시된 goods_input 폼의 값들을 전송시에 포함
+    InnoPUStartUpload_Behind('2');
+}
+//-->
+</script>
+<!-- ##### InnoPU 로드 끝 ##### -->
+
+
+<!-- 함께 전송될 폼 -->
+<form name="goods_input">
+<input type="hidden" name="key1" value="val1">
+<input type="hidden" name="sessionid" value="0236672757">
+<input type="hidden" name="userid" value="innorix">
+<input type="hidden" name="pu_desc1"> <!-- 사진설명1 전달용 -->
+<input type="hidden" name="pu_desc2"> <!-- 사진설명2 전달용 -->
+</form>
+
+
+<!-- ##### InnoPU 사용 시작 ##### -->
+<!-- 실제 화면 표시부분, 적용할 곳에 본 블록의 "끝" 까지 삽입 -->
+<center>
+<div id="innopu_style_wrapper">
+
+<span>1번 사진 : </span>
+  <input type="text" size="35" id="pu_file1" readonly class="input_file_multi">
+  <input type="button" onClick="addPoint='1'; document.InnoAP.OpenFile()" value="찾아보기..." class="input_button">
+  <input type="button" onClick="RemoveImageLoader('1')" value="삭제" class="input_button"><br />
+<div id="pu_exif1" class="exif_multi">&nbsp;</div>
+<table cellspacing="0" cellpadding="0" border="0" width="100%" class="multi_box">
+<tr>
+  <td>
+<div id="pu_drop1" class="drop_multi">
+<script language="JavaScript">
+LoadMultiImageLoader('pu_preview1', 160, 120, 'http://www.innorix.com/PU/images/innopu_drop.gif', 67, 85);
+</script>
+</div>
+  </td>
+  <td><span>사진설명 :</span><br />
+    <textarea name="pu_desc1" cols="38" rows="6" class="desc_multi"></textarea>
+  </td>
+</tr>
+</table>
+
+<br>
+
+<span>2번 사진 : </span>
+  <input type="text" size="35" id="pu_file2" readonly class="input_file_multi">
+  <input type="button" onClick="addPoint='2'; document.InnoAP.OpenFile()" value="찾아보기..." class="input_button">
+  <input type="button" onClick="RemoveImageLoader('2')" value="삭제" class="input_button"><br />
+<div id="pu_exif2" class="exif_multi">&nbsp;</div>
+<table cellspacing="0" cellpadding="0" border="0" width="100%" class="multi_box">
+<tr>
+  <td>
+<div id="pu_drop2" class="drop_multi">
+<script language="JavaScript">
+LoadMultiImageLoader('pu_preview2', 160, 120, 'http://www.innorix.com/PU/images/innopu_drop.gif', 67, 85);
+</script>
+</div>
+  </td>
+  <td><span>사진설명 :</span><br />
+    <textarea name="pu_desc2" cols="38" rows="6" class="desc_multi"></textarea>
+  </td>
+</tr>
+</table>
+
+<br />
+<center>
+<input type="button" onClick="StartUpload()" value="업로드" class="input_button">
+</center>
+
+<script for="InnoAP" event="OnAddFile(strFilePath, intFileSize);">
+<!--
+if (!isSubmit)
+{
+    document.getElementById("pu_file" + addPoint).value = strFilePath;
+    document.getElementById("pu_exif" + addPoint).innerHTML = '&nbsp;' + GetExifArray(strFilePath).join('&nbsp;|&nbsp;');
+    document.getElementById("pu_preview" + addPoint).ShowImage(strFilePath, 180, 135);
+}
+//-->
+</script>
+
+<script for="InnoAP" event="OnUploadComplete(ResponseData);">
+<!--
+document.writeln(ResponseData);
+//-->
+</script>
+
+<script for="InnoAP" event="OnBeforeDrop(strFilePath, strInputName);">
+<!--
+addPoint = strInputName;
+//-->
+</script>
+
+</div>
+</center>
+<!-- ##### InnoPU 사용 끝 ##### -->
+
+
+</body>
+</html>

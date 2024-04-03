@@ -1,0 +1,259 @@
+<?
+session_start();
+//include("d://스트리밍파일/mytesoro/manage/web.config");
+//include("$DOCUMENT_ROOT/manage/forbiz/class/businessLogic.class");
+include("$DOCUMENT_ROOT/manage/logstory/class/businessLogic.class");
+include("$DOCUMENT_ROOT/include/global_util.php");
+include("$DOCUMENT_ROOT/shop/common/search_common.php");
+ 
+
+$bl = new BusinessLogic();
+
+$db = new Database;
+
+Class ShopPage
+{
+	
+	var $strLeftMenu;
+	var $strContents;
+	var $addScript;
+	var $knownMenu;
+	var $SubContents;
+	var $SubContents2;
+	var $SettingLeftMenu;
+	var $loginstring;
+	var $strLogin;
+	var $OnLoadFunction;
+	var $titlestring;
+	var $doumi;
+	var $metastring;
+	var $main_background;
+	var $history;
+	var $TopCategoryMenu;
+	var $topCartegoryBool;
+	var $LeftMenuBool;
+	var $layout_off;
+	
+	function ShopPage(){
+		//$strLeftMenu = "";
+		//$strContents = "";
+		$this->TopCategoryMenu = TopCategoryMenu();
+		$this->OnLoadFunction = "";
+		$this->addScript = "";
+	//	$this->loginstring = LoginMenu("쇼핑몰", "shop", "#B3075C");
+	//	$this->knownMenu = KnownMenu();
+		$this->SubContents = "";
+		$this->SubContents2 = "";
+		$this->SettingLeftMenu = true;
+		$this->strLogin = LoginBool();
+		$this->titlestring = "mytesoro.com";
+		$this->metastring = "";
+		$this->history = $this->ReturnHistory();
+	//	$this->$doumi = displaydoumi();
+		$this->topCartegoryBool = false;
+		$this->LeftMenuBool = true;
+		$this->layout_off = false;
+		
+		
+		
+	}	
+	
+	function CheckText($text,$vurl,$this_page){
+		if($vurl == $this_page){
+			return MenuCirCleBoxStart('#646464','50%').$text.MenuCirCleBoxEnd('#646464');
+		}else{
+			return $text;
+		}
+	
+	
+	}
+	
+	function ReturnHistory(){
+	return "<DIV id=scrollmenu2 style='Z-INDEX: 100; LEFT: 925px; WIDTH: 66px; POSITION: absolute; TOP: 0px; HEIGHT: 100px; visibility: visible;'></div>";
+	return "
+				<DIV id=scrollmenu2 style='Z-INDEX: 100; LEFT: 925px; WIDTH: 66px; POSITION: absolute; TOP: 0px; HEIGHT: 100px; visibility: visible;'> 
+                    <table width='88' border='0' cellspacing='0' cellpadding='0'>
+                      <tr> 
+                        <td><img src='img/right_tit_todaysee.gif' width='88' height='31'></td>
+                      </tr>
+                      <tr> 
+                        <td height='425' background='img/right_bg_todaysee.gif'>&nbsp; ".RightHistoryDisplay()."</td>
+                      </tr>
+                    </table>
+                  </DIV>";
+	}
+	
+	function ShopFrame()
+	{
+		global $PHP_SELF;
+		global $T;
+	$T->file = "/redsun_SalesAnalysisTag.js";
+	$T->userID =$user[id];  //--> 사용자 아이디(생략가능) 
+	$T->email =$user[mail];  //--> 사용자 이메일(생략가능) 
+	
+	
+	$frameString = "<html>
+<head>
+<title>".$this->titlestring." ".$this->metastring."</title>
+<meta http-equiv='Content-Type' content='text/html; charset=euc-kr'>
+<meta name='Keywords' content='mytesoro.com ".$this->metastring."'>
+<meta name='Description' content='mytesoro.com ".$this->metastring."'>
+<link href='/css/mytesoro.css' rel='stylesheet' type='text/css'>
+<Script Language='JavaScript' src='/js/rightscroll.js'></Script>
+<Script Language='JavaScript' src='/js/basic.js'></Script>
+</head>
+<SCRIPT language=JavaScript>
+<!--
+MM_reloadPage(true);
+// -->
+</SCRIPT>	
+".$this->addScript."
+<body  leftmargin='0' onload='OnLoad();".$this->OnLoadFunction."' topmargin='20' oncontextmenu='return true' onselectstart='return false' ondragstart='return false'  bottommargin=10 marginwidth='0' marginheight='0' style='background-repeat:repeat-x'>";
+$body_html = "
+<table border=0 cellpadding=0 height='100%' cellspacing=0 width='900' align=center>
+	<tr height=19>
+		<td align=left width=19 height=19 > <img src='/img/frame_topleft.gif'></td>
+		<td width='96%' bgcolor='#F7F6F6' style='border-top:1px solid #CBCBCB;font-size:8px;'>&nbsp;</td>
+		<td align=right width=19 height=19> <img src='/img/frame_topright.gif'></td>
+	</tr>
+	<tr  valign=top>
+		<td colspan=3 bgcolor='#F7F6F6' style='border-left:1px solid #CBCBCB;border-right:1px solid #CBCBCB;padding-left:10px;padding-right;5px'> 
+		<table width='850' border='0' cellspacing='0' cellpadding='0'>
+        <tr height=100%> 
+          <td width='195'  height='70' valign='top' style='padding-top:5px;padding-left:50px'><a href='/'><img src='/img/top_logo2.gif' border='0'></a></td>
+          <td width='655' valign='top' style='padding-top:0px'>
+<!------------------------------------------------- 상단 메뉴 시작-------------------------------------------------------->		  
+		 ".topemenu()."
+<!------------------------------------------------- 상단 메뉴 끝-------------------------------------------------------->		  			
+			</td>
+        </tr>
+      </table>
+		</td>
+	</tr>
+		<tr height=100% valign=top>
+		<td colspan=3 style='border-left:1px solid #CBCBCB;border-right:1px solid #CBCBCB;padding-left:10px;padding-right;5px'> 
+<table width='850' border='0' cellspacing='0' cellpadding='0' align=center>  
+  <tr> 
+    <td align=center ".$this->main_background.">
+    <table width='850' border='0' cellspacing='0' cellpadding='0'>
+        <tr valign='top'> ";
+if($this->LeftMenuBool){
+$body_html .= "      
+          <td width='195'> 
+          <DIV id=scrollmenu style='Z-INDEX: 100; LEFT: 0px; WIDTH: 66px; POSITION: relative; TOP: 0px; HEIGHT: 100px; visibility: visible;'>
+            <!----------------------------------------------- left 시작--------------------------------------------------->
+            <table width='195' border='0' cellspacing='0' cellpadding='0'>              
+              <tr> 
+                <td style='padding-left:25px'> 
+                  <!---------------------------------------상품 카테고리 시작------------------------------------------------------>
+                  <table width='125' border='0' cellspacing='0' cellpadding='0'>
+                    <!--tr> 
+                      <td><img src='img/left_m_accessory.gif' width='125' height='45'></td>
+                    </tr-->
+                    <tr> 
+                      <td height='15'>&nbsp;</td>
+                    </tr>                    
+                  </table>
+                  
+                  ".$this->strLeftMenu."
+                  
+                  <!---------------------------------------상품 카테고리 끝------------------------------------------------------>
+                </td>
+              </tr>
+              <tr> 
+                <td>&nbsp;</td>
+              </tr>
+              <tr> 
+                <td align='center' style='padding-top:50px;'><a href='/shopping_history.php''><img src='/img/bn_delivery.gif'  width='181' border=0></a></td>
+              </tr>
+              <tr> 
+                <td align='center' style='padding-top:10px;'><img src='/img/left_notice.gif' width='181' ></td>
+              </tr>
+              <tr> 
+                <td height='8'></td>
+              </tr>
+              <!--tr> 
+                <td align='center'><img src='/img/left_bn_bank.gif' width='176' height='104'></td>
+              </tr-->
+            </table>
+            <!----------------------------------------------- left 끝-------------------------------------------------->
+            </DIV>
+          </td>";
+}else{
+	$body_html .= "    <DIV id=scrollmenu style='Z-INDEX: 100; LEFT: 0px; WIDTH: 0px; POSITION: absolute; TOP: 0px; HEIGHT: 0px; visibility: visible;'></div>";
+}
+$body_html .= "
+          <td width='850' height='500' style='padding-bottom:60px;padding-left:10px;padding-top:30px;'> 
+            <!------------------------------------------ 내용 시작-------------------------------------------------------->";
+if($this->topCartegoryBool){            
+$body_html .= $this->TopCategoryMenu."<br>";
+}            
+$body_html .= $this->strContents."
+            <!------------------------------------------ 내용 끝-------------------------------------------------------->
+          </td>
+          <!--td>
+        
+                       
+                  ".$this->history."
+               
+          </td-->
+        </tr>
+        
+      </table></td>
+  </tr>
+  <!--tr valign='top' >         
+	  <td colspan=2 align=center style='padding-bottom:20px;'>
+	  <table cellpadding=0 cellspacing=0 align=center>
+		  <tr>
+			  <td align=left>
+			  <font color=#0053A5>COPYRIGTH (C) MYTESORO ALL RIGHT RESERVED</font><br>
+			  사업자등록번호 : 128-28-96190 / 통신판매업신고번호 : 경기고양 제 3968호  /  개인정보 보유기간 : 회원탈퇴까지 <br>
+			  my Tesoro / 대표 : 류명진 / 주소 : 경기도 고양시 일산서구 주엽동 강선마을 1702-201 my Tesoro / TEL : 031-912-8428 <br>
+			  개인정보관리책임자 : 류정현 031-912-8428   <br>
+			  
+			  </td>
+		  </tr>
+	  </table>
+	  <!--img src='/img/bottom.gif'-->
+	  </td>
+	</tr-->
+</table>
+</td>
+	</tr>
+<tr height=19>
+		<td align=left width=19> <img src='/img/frame_bottomleft.gif'></td><td  style='border-bottom:1px solid #CBCBCB'>&nbsp;</td><td align=right width=19><img src='/img/frame_bottomright.gif'></td>
+	</tr>
+	</tr>
+	<tr>
+		<td align=right colspan=4 style='padding-top:10px'>
+	<table cellpadding=0 cellspacing=0 align=right>
+		  <tr>
+			  <td align=right>
+			  <font color=#0053A5>COPYRIGTH (C) MYTESORO ALL RIGHT RESERVED</font><br>
+			  사업자등록번호 : 128-28-96190 / 통신판매업신고번호 : 경기고양 제 3968호  /  개인정보 보유기간 : 회원탈퇴까지 <br>
+			  my Tesoro / 대표 : 류명진 / 주소 : 경기도 고양시 일산서구 주엽동 강선마을 1702-201 my Tesoro / TEL : 031-912-8428 <br>
+			  개인정보관리책임자 : 류정현 031-912-8428   <br>
+			  
+			  </td>
+		  </tr>
+	  </table>
+		</td>
+	</tr>
+</table>";
+if($this->layout_off){
+$frameString .= $this->strContents;
+}else{
+$frameString .= $body_html;
+}
+$frameString .="
+</body>
+</head>
+</html>	";
+
+return $frameString;
+	
+	}
+}
+
+
+?>
