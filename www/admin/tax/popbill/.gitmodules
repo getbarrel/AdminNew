@@ -1,0 +1,3 @@
+[submodule "PopbillTaxinvoice"]
+	path = PopbillTaxinvoice
+	url = https://github.com/linkhub-sdk/popbill.taxinvoice.php.git
