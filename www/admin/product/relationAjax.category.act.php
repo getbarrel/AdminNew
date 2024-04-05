@@ -349,7 +349,8 @@ function PrintProductListXML($cid, $depth){
 
             //$xml->element('pname', $relation_good[3]);    //iconv('EUC-KR','UTF-8',strip_tags($relation_good[3]))
             //$xml->element('img_src', $admin_config[mall_data_root]."/images/product/c_".$relation_good[0].".gif");
-            $xml->element('img_src', PrintImage($admin_config['mall_data_root'].'/images/product', $products[$i][id], 'c', $products[$i] ));
+            //$xml->element('img_src', PrintImage($admin_config['mall_data_root'].'/images/product', $products[$i][id], 'c', $products[$i] ));
+            $xml->element('img_src', PrintImage($admin_config['mall_data_root'].'/images/addimgNew', $products[$i][id], 'slist', $products[$i] ));
 
             $xml->element('brand_name', strip_tags(htmlspecialchars($products[$i][brand_name])));
             $xml->pop();

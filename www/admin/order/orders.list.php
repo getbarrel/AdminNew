@@ -1517,7 +1517,8 @@ if(count($o_array)>0){
 								<TABLE>
 									<TR>
 										<TD align='center'>
-											<a  href='".$front_url."/shop/goodsView/".$order_list[$i][pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $order_list[$i][pid], 'm',$order_list[$i])."'  target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_list[$i][pid], 'm',$order_list[$i])."'  width=50 style='margin:5px;'></a><br/>";
+											<!-- a  href='".$front_url."/shop/goodsView/".$order_list[$i][pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $order_list[$i][pid], 'm',$order_list[$i])."'  target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_list[$i][pid], 'm',$order_list[$i])."'  width=50 style='margin:5px;'></a -->
+											<a  href='".$front_url."/shop/goodsView/".$order_list[$i][pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_list[$i][pid], 'list',$order_list[$i])."'  target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_list[$i][pid], 'slist',$order_list[$i])."'  width=50 style='margin:5px;'></a><br/>";
 
         if($order_list[$i][product_type]=='21'||$order_list[$i][product_type]=='31'){
             $Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($order_list[$i][product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$order_list[$i][product_type].".gif' align='absmiddle' ></label> ";

@@ -132,7 +132,8 @@ $list_item = "";
 $deleteBool = false;
 if(!empty($product_data)){
     foreach($product_data as $key=>$val){
-        $img_str = PrintImage($_SESSION['admin_config']['mall_data_root']."/images/product", $val['id'], "ms");
+        //$img_str = PrintImage($_SESSION['admin_config']['mall_data_root']."/images/product", $val['id'], "ms");
+        $img_str = PrintImage($_SESSION['admin_config']['mall_data_root']."/images/addimgNew", $val['id'], "slist");
 
         if($cid == $val['cid']){
             $deleteBool = true;

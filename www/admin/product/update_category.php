@@ -268,7 +268,8 @@ if(count($goods_datas) == 0){
 			$img_str = "../image/no_img.gif";
 		}*/
 
-		$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], "s", $goods_datas[$i]);
+        //$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], "s", $goods_datas[$i]);
+        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $goods_datas[$i][id], "slist", $goods_datas[$i]);
 
 	if(!empty($goods_datas[$i][md_code])){
 		$sql="select
@@ -324,7 +325,8 @@ if(count($goods_datas) == 0){
 					<td class='list_box_td point' style='text-align:left;line-height:140%;'>
 						<table style='width:200px;'>
 							<tr>
-								<td><a href='/shop/goods_view.php?id=".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], $LargeImageSize, $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a></td>
+								<!-- td><a href='/shop/goods_view.php?id=".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], $LargeImageSize, $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a></td -->
+								<td><a href='/shop/goods_view.php?id=".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $goods_datas[$i][id], 'list', $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a></td>
 								<td>
 									<!--".getCategoryPathByAdmin($goods_datas[$i][cid], 4)."<br>-->
 									<a href='../product/goods_input.php?id=".$goods_datas[$i][id]."'><b>".$goods_datas[$i][pname]."</b>(".$goods_datas[$i][pcode].")</a>

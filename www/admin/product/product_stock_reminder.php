@@ -545,7 +545,8 @@ if($total == 0){
     {
         $db->fetch($i);
 
-        $img_str = PrintImage($admin_config[mall_data_root]."/images/product", $db->dt[pid], "s", '');
+        //$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $db->dt[pid], "s", '');
+        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt[pid], "slist", '');
 
         $sql = "select * from shop_product where id = '".$db->dt[pid]."'";
         $mdb->query($sql);
@@ -599,7 +600,8 @@ if($total == 0){
 		<tr height='45' onMouseOver=\"this.style.backgroundColor='#E8ECF1'; \" onMouseOut=\"this.style.backgroundColor=''\">
 			<td class='list_box_td'><input type=checkbox name=sr_ix[] id='code' class='sr_ix' pid='".$db->dt[pid]."' option_id='".$db->dt['op_id']."' value='".$db->dt[sr_ix]."'></td>
 			<td class='list_box_td' >".$regdate."</td>
-			<td class='list_box_td' height='80px'><a href='/shop/goods_view.php?id=".$db->dt[pid]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $db->dt[pid], $LargeImageSize, '')."'><img src='".$img_str."' width=50 height=50></a></td>
+			<!-- td class='list_box_td' height='80px'><a href='/shop/goods_view.php?id=".$db->dt[pid]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $db->dt[pid], $LargeImageSize, '')."'><img src='".$img_str."' width=50 height=50></a></td -->
+			<td class='list_box_td' height='80px'><a href='/shop/goods_view.php?id=".$db->dt[pid]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt[pid], 'list', '')."'><img src='".$img_str."' width=50 height=50></a></td>
 			<td class='list_box_td' >".$pname."<p>(".$add_info.")</p></td>
 			<td class='list_box_td' >".$option_div."</td>
 			<td class='list_box_td' >".$_SELL_STATUS[$state].$soldout."</td>

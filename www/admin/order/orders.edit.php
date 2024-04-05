@@ -1376,7 +1376,8 @@ if($list_type == "bs_general" || $list_type == "general"){
 												<table width='100%'>
 													<tr>
 														<td align='center' width='70'>
-														<a href='../product/goods_input.php?id=".$oddb->dt[pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $oddb->dt[pid], 'm', $oddb->dt)."'  title='".$LargeImageSize."'><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $oddb->dt[pid], "m" , $oddb->dt)."' width=50 style='margin:5px;'></a><br/>";
+														<!-- a href='../product/goods_input.php?id=".$oddb->dt[pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $oddb->dt[pid], 'm', $oddb->dt)."'  title='".$LargeImageSize."'><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $oddb->dt[pid], "m" , $oddb->dt)."' width=50 style='margin:5px;'></a -->
+														<a href='../product/goods_input.php?id=".$oddb->dt[pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $oddb->dt[pid], 'slist', $oddb->dt)."'  title='".$LargeImageSize."'><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $oddb->dt[pid], "list" , $oddb->dt)."' width=50 style='margin:5px;'></a><br/>";
 
 														if($oddb->dt[product_type]=='21'||$oddb->dt[product_type]=='31'){
 															$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($oddb->dt[product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$oddb->dt[product_type].".gif' align='absmiddle' ></label> ";

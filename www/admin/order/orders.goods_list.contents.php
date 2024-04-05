@@ -249,7 +249,8 @@ if($pre_type==ORDER_STATUS_EXCHANGE_READY){
 								<TABLE style='text-align:left;'>
 									<TR>
 										<TD align='center'>
-											<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], "m", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
+											<!-- a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], "m", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a -->
+											<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_detail_datas[$j][pid], "slist", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
 
 										if($order_detail_datas[$j][product_type]=='21'||$order_detail_datas[$j][product_type]=='31'){
 										$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($order_detail_datas[$j][product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$order_detail_datas[$j][product_type].".gif' align='absmiddle' ></label> ";
@@ -625,7 +626,8 @@ if($pre_type==ORDER_STATUS_EXCHANGE_READY){
 								<TABLE style='text-align:left;'>
 									<TR>
 										<TD align='center'>
-											<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], "m", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
+											<!-- a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], "m", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a -->
+											<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_detail_datas[$j][pid], "slist", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
 
 										if($order_detail_datas[$j][product_type]=='21'||$order_detail_datas[$j][product_type]=='31'){
 										$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($order_detail_datas[$j][product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$order_detail_datas[$j][product_type].".gif' align='absmiddle' ></label> ";
@@ -1148,7 +1150,8 @@ if($pre_type==ORDER_STATUS_EXCHANGE_READY){
 							}
 
 							$Contents .= "<TD align='center'>
-								<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], 'm',$order_detail_datas[$j])."'  target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], 'm',$order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
+								<!-- a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], 'm',$order_detail_datas[$j])."'  target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], 'm',$order_detail_datas[$j])."'  width=50 style='margin:5px;'></a -->
+								<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_detail_datas[$j][pid], 'list',$order_detail_datas[$j])."'  target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_detail_datas[$j][pid], 'slist',$order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
 
 								if($order_detail_datas[$j][product_type]=='21'||$order_detail_datas[$j][product_type]=='31'){
 								$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($order_detail_datas[$j][product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$order_detail_datas[$j][product_type].".gif' align='absmiddle' ></label> ";
@@ -1519,7 +1522,8 @@ if($pre_type==ORDER_STATUS_EXCHANGE_READY){
 								<TABLE style='text-align:left;'>
 									<TR>
 										<TD align='center'>
-										<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], "m", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
+										<!-- a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $order_detail_datas[$j][pid], "m", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a -->
+										<a  href='/shop/goods_view.php?id=".$order_detail_datas[$j][pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $order_detail_datas[$j][pid], "slist", $order_detail_datas[$j])."'  width=50 style='margin:5px;'></a><br/>";
 
 										if($order_detail_datas[$j][product_type]=='21'||$order_detail_datas[$j][product_type]=='31'){
 											$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($order_detail_datas[$j][product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$order_detail_datas[$j][product_type].".gif' align='absmiddle' ></label> ";

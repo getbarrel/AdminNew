@@ -860,7 +860,8 @@ function ProductQna(){
 
 			$no = $total - ($page - 1) * $max - $i;
 
-			$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $mdb->dt[pid], "s");
+			//$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $mdb->dt[pid], "s");
+			$img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $mdb->dt[pid], "slist");
 
 			$sql = "select 
 						ccd.com_name,
