@@ -63,6 +63,8 @@ $colums[] = array(value=>'ic_date',title=>'입금확인일(결제일)');
 $colums[] = array(value=>'di_date',title=>'배송중일자');
 $colums[] = array(value=>'dc_date',title=>'배송완료일자');
 $colums[] = array(value=>'bf_date',title=>'거래확정일자');
+$colums[] = array(value=>'ca_date',title=>'취소요청일자');
+$colums[] = array(value=>'fc_date',title=>'환불완료일자');
 $colums[] = array(value=>'user_ip',title=>'주문IP주소');
 
 

@@ -724,6 +724,8 @@ $sql = "SELECT
 		od.di_date as di_date,
 		od.dc_date as dc_date,
 		od.bf_date as bf_date,
+		od.ca_date as ca_date,
+		od.fc_date as fc_date,
 		o.user_ip,
 		od.order_from,
 		od.co_oid as co_oid,
