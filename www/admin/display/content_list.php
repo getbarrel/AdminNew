@@ -236,8 +236,27 @@ $Contents = "
                             </tr>
                         </table>
                         <table cellpadding=5 cellspacing=0 width=100% border=0 align=center style=''>
+                            <col width=20%>
+                            <col width=50%>
+                            <col width=30%>
                             <tr>
-                                <td align ='center'><input type=image src='../images/".$admininfo["language"]."/bt_search.gif' border=0 align=absmiddle></td>
+                                <td align ='center'></td>
+";
+	if($schCid == "") {
+$Contents .= " 
+								
+									<td align ='center'><input type=image src='../images/".$admininfo["language"]."/bt_search.gif' border=0 align=absmiddle></td>
+									<td align ='right'></td>
+";
+	}else{
+$Contents .= " 
+								
+									<td align ='center'><input type=image src='../images/".$admininfo["language"]."/bt_search.gif' border=0 align=absmiddle></td>
+									<td align ='right'><input type='button' value='컨텐츠변경' onclick=\"changeContentViewOrder('".$schDepth."', '".$schCid."')\" /></td>
+";
+	}
+$Contents .= " 
+                                
                             </tr>
                         </table>
                         </form>
@@ -317,10 +336,10 @@ $Contents .= "
                             <tr bgcolor=#ffffff height=70><td colspan=12 align=center>내역이 존재 하지 않습니다.</td></tr>
 ";
                         }else{
-                            $sql = "SELECT cc.cname, cc.content_type, c.con_ix, c.cid, c.mall_ix, c.depth, c.title, c.list_img, c.display_use, c.display_state, c.display_start, c.display_end, c.worker_ix, c.regdate   
+                            $sql = "SELECT cc.cname, cc.content_type, c.con_ix, c.cid, c.mall_ix, c.depth, c.title, c.list_img, c.display_use, c.display_state, c.display_start, c.display_end, c.worker_ix, c.regdate, c.sort   
                                     FROM shop_content_class cc LEFT JOIN shop_content c ON cc.cid = c.cid 
                                     $where 
-                                    ORDER BY c.regdate DESC 
+                                    ORDER BY c.sort asc, c.regdate DESC 
                                     LIMIT $start, $max
                             ";
 
@@ -355,7 +374,7 @@ $Contents .= "
                                 }
 $Contents .= "           
                                 <tr height=30 bgcolor=#ffffff align=center>
-                                    <td class='list_box_td '>".$no."</td>
+                                    <td class='list_box_td '>".$no." </td>
                                     <td class='list_box_td list_bg_gray'>".GetDisplayDivision($content_infos[$i][mall_ix], "text")."</td>
                                     <td class='list_box_td '>".$content_infos[$i][cname]."</td>
                                     <td class='list_box_td point' style='text-align:left;padding:5px 5px 5px 10px;font-weight:normal;line-height:150%;'>".nl2br($content_infos[$i][title])."</td>
@@ -400,6 +419,10 @@ $Contents .= "
 <script>
 if($schCid > 0){
     setContentList('','$schCid',$schDepth,$schContentType);
+}
+function changeContentViewOrder(depth, display_cid){
+    PoPWindow3('contentViewOrderChange.php?mmode=pop&depth='+depth+'&display_cid='+display_cid+'',1100,800,'contentViewOrderChange');
+    
 }
 </script>		
 ";
