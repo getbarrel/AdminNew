@@ -705,7 +705,8 @@ if($slave_db->total == 0){
 		}
 		*/
 
-		$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $slave_db->dt[id], "s", $slave_db->dt);
+		//$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $slave_db->dt[id], "s", $slave_db->dt);
+        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $slave_db->dt[id], "slist", $slave_db->dt);
 
         $vieworder = $slave_db->dt[$sortDepth];
 
