@@ -7708,7 +7708,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<col width='*'>
 						<tr>
 							<td><input type=file name='allimg".$type."' class='textbox' size=25 style='font-size:8pt'></td>
-							<td ".$img_view_style." rowspan=2><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "b" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png'   style='cursor:pointer'></a>
+							<td ".$img_view_style." rowspan=2><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png'   style='cursor:pointer'></a>
 							</td>
 							<td rowspan=2>
 							
@@ -7751,7 +7751,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<col width='*'>
 						<tr>
 							<td><input type=file name='mimg".$type."' class='textbox' size=25 style='font-size:8pt'></td>
-							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "m" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png' ><!--onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "m",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></a></td>
+							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png' ><!--onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "m",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></a></td>
 						</tr>
 					</table>
 				</td>
@@ -7769,7 +7769,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<col width='*'>
 						<tr>
 							<td><input type=file name='msimg".$type."' class='textbox' size=25 style='font-size:8pt'></td>
-							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "ms" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png' ></a><!--onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "ms",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></td>
+							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png' ></a><!--onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "ms",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></td>
 						</tr>
 					</table>
 				</td>
@@ -7787,7 +7787,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<col width='*'>
 						<tr>
 							<td><input type=file name='simg".$type."' class='textbox' size=25 style='font-size:8pt'></td>
-							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "s" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png' ></a><!--onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "s",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></td>
+							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png' ></a><!--onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "s",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></td>
 						</tr>
 					</table>
 				</td>
@@ -7805,7 +7805,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<col width='*'>
 						<tr>
 							<td><input type=file name='cimg".$type."' class='textbox' size=25 style='font-size:8pt'></td>
-							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "c" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png'></a><!-- onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "c",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></td>
+							<td ".$img_view_style."><a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list" ,$product_info,"shop", $type)."'><img src='../v3/images/btn/bt_preview.png'></a><!-- onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "c",$product_info, $type)."','".$type."');\" style='cursor:pointer'--></td>
 						</tr>
 					</table>
 				</td>
@@ -7824,7 +7824,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<col width='*'>
 						<tr>
 							<td><input type=file name='appimg".$type."' class='textbox' size=25 style='font-size:8pt'></td>
-							<td ".$img_view_style."><img src='../v3/images/btn/bt_preview.png' onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "app",$product_info, $type)."','".$type."');\" style='cursor:pointer'></td>
+							<td ".$img_view_style."><img src='../v3/images/btn/bt_preview.png' onclick=\"ChnageImg('".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list",$product_info, $type)."','".$type."');\" style='cursor:pointer'></td>
 						</tr>
 					</table>
 				</td>
@@ -7843,7 +7843,7 @@ function getImageUploadHtml($id, $type="", $type_text="", $image_info="", $produ
 						<tr>
 							<td><input type=file name='filter".$type."' class='textbox' size=25 style='font-size:8pt'></td>
 							<td ".$img_view_style.">
-							<a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/product", $id, "filter" ,$product_info,"shop", $type)."'>
+							<a class='screenshot'  rel='".PrintImage($_SESSION["admin_config"][mall_data_root]."/images/addimgNew", $id, "list" ,$product_info,"shop", $type)."'>
 							<img src='../v3/images/btn/bt_preview.png' style='cursor:pointer'>
 							</a>
 							</td>
