@@ -23,7 +23,9 @@ if($_GET['display_cid']){
         $queryCid = $schCid;
     }
 }
-$sql = "select * from shop_content where cid like '$queryCid%' AND depth = '$schDepth' order by sort asc, cid desc, regdate DESC ";
+//$sql = "select * from shop_content where cid like '$queryCid%' AND depth = '$schDepth' order by sort asc, cid desc, regdate DESC ";
+$sql = "select * from shop_content where cid like '$queryCid%' order by sort asc, cid desc, regdate DESC ";
+echo $sql
 $db->query($sql);
 $contentInfos = $db->fetchall();
 
