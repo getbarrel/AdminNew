@@ -238,7 +238,7 @@ $innerview .= "	<tr bgcolor='#ffffff'>
 						
 					}
 
-	$innerview .= "<br><a href='".$front_url."/shop/goodsView/".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], $LargeImageSize, $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a><br><div style='padding-top:5px;'>".$goods_datas[$i][etc8]."</div>";
+	$innerview .= "<br><a href='".$front_url."/shop/goodsView/".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/productNew", $goods_datas[$i][id], 'basic', $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a><br><div style='padding-top:5px;'>".$goods_datas[$i][etc8]."</div>";
 	$innerview .= "<div style='padding:5px;'>";
 	$innerview .= "	<div style='padding-top:4px;'>조회수 : ".$goods_datas[$i][view_cnt]."</div>";
 	$innerview .= "	<div style='padding-top:4px;'>판매수 : ".$goods_datas[$i][order_cnt]." 개</div>";
