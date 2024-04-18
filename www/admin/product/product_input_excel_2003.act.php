@@ -439,7 +439,7 @@ if ($act == "new_excel_input") {    //대량상품등록 엑셀정보 저장
 
             $upload_excel_data[session_id()][$z + 1][p_no] = $z;
             $upload_excel_data[session_id()][$z + 1][company_id] = $company_id;
-            $upload_excel_data[session_id()][$z + 1][mall_ix] = $mall_ix;
+            $upload_excel_data[session_id()][$z + 1][mall_ix] = $company_id;
 
             $upload_excel_data[session_id()][$z + 1][goods_img_file] = $goods_img_file_name;
 

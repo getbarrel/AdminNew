@@ -676,6 +676,30 @@ $Contents .= "
 						  
 						  </td>
 						</tr> 
+						
+						<tr>
+						  <td class='search_box_title'><b>제외상품</b></td>
+						  <td class='search_box_item' style='padding:10px 10px;' colspan=3>
+						  <div style='padding-bottom:10px;'>
+							  <!--input type='radio' class='textbox' name='freegift_group[".($i+1)."][goods_display_type]' id='is_display_".($i+1)."_m' size=50 value='M' style='border:0px;' ".(($gdb->dt[goods_display_type] == "M" || $gdb->dt[goods_display_type] == "") ? "checked":"")." onclick=\"$('#goods_manual_area_".($i+1)."').show();$('#goods_auto_area_".($i+1)."').hide();$('#display_auto_sub_type_".($i+1)."').hide();\"><label for='is_display_".($i+1)."_m'>수동등록</label-->
+							  
+							   
+							  <br>
+						  </div>
+
+						  <div id='goods_manual_except_area_3' style='".(($gdb->dt[goods_display_type] == "M" || $gdb->dt[goods_display_type] == "") ? "display:block;":"display:none;")."'>
+							  
+							  <div style='width:100%;padding:5px;' id='group_product_except_area_3' >".relationFreeGiftExceptProductList($gdb->dt[fg_ix],'3', "clipart")."</div>
+							  <div style='width:100%;float:left;'><span class=small><!--* 이미지 드레그앤드롭으로 노출 순서를 조정하실수 있습니다.<br />* 더블클릭 시 상품이 개별 삭제 됩니다.--> ".getTransDiscription(md5($_SERVER["PHP_SELF"]),'B')." </span>
+							  </div>
+							  <div style='display:block;float:left;margin-top:10px;'>
+							  <a href=\"#goods_display_except_type_3\" id='btn_goods_search_add' onclick=\"ms_productSearch.show_productSearchBox(event,3,'productList_except_3','clipart','77');\"><img src='../images/".$admininfo["language"]."/btn_goods_search_add.gif' border=0 align=absmiddle></a>
+							  <input type='text' class='textbox' name='search_goods' id='search_goods' size='20' value='' onkeyup=\"SearchGoods($(this), '3')\"> <img type='image' src='../images/korean/btn_search.gif' style='cursor:pointer;' onclick=\"SearchGoods($(this), '3')\" align='absmiddle'> <img src='../images/".$admininfo["language"]."/btc_del.gif' onclick=\"SearchGoodsDelete($(this))\" border='0'  style='cursor:pointer;vertical-align:middle;'>
+							  </div>
+						  </div>
+						  
+						  </td>
+						</tr> 
 					  </table><br><br>
 					  </div>";
 
@@ -1032,12 +1056,69 @@ function relationFreeGiftProductList($fg_ix, $group_code, $disp_type=""){
                 }else{
 				    $disp = 0;
                 }
-                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/product", $db->dt['id'], "c").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
 			}
 			$mString .= '</script>'."\n";
 		}
 	}
 	return $mString;
+}
+
+function relationFreeGiftExceptProductList($fg_ix, $group_code, $disp_type=""){
+    global $start,$page, $orderby, $admin_config, $fprid;
+
+    $max = 105;
+
+    if ($page == ''){
+        $start = 0;
+        $page  = 1;
+    }else{
+        $start = ($page - 1) * $max;
+    }
+
+    $db = new Database;
+
+    $sql = "SELECT COUNT(*) FROM ".TBL_SHOP_PRODUCT." p, shop_freegift_select_product_relation fpr where p.id = fpr.pid and fg_ix = '$fg_ix' and group_code = '$group_code' and p.disp = 1";
+    $db->query($sql);
+    $db->fetch();
+    $total = $db->dt[0];
+
+    $sql = "SELECT 
+              p.product_type, p.id, p.pcode, p.shotinfo, p.pname, p.sellprice,  p.reserve, p.disp, p.state ,p.one_commission, p.product_type, i.gid ,
+              if(p.is_sell_date = '1',p.sell_priod_sdate <= NOW() and p.sell_priod_edate >= NOW(),'1=1') as sell_date
+            FROM 
+              ".TBL_SHOP_PRODUCT." p 
+            left join 
+                inventory_goods_unit i on p.pcode=i.gu_ix, shop_freegift_select_product_relation gp 
+            where 
+                p.id = gp.pid
+            and 
+                gp.fg_ix = '".$fg_ix."' and gp.group_code = '".$group_code."' order by gp.vieworder asc limit $start,$max";
+    $db->query($sql);
+
+    if ($db->total == 0){
+        if($disp_type == "clipart"){
+            $mString = '<ul id="productList_except_'.$group_code.'" name="productList" class="productList"></ul>';
+        }
+    }else{
+        $i=0;
+        if($disp_type == "clipart"){
+            $mString = '<ul id="productList_except_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
+            $mString .= '<script id="setproduct">'."\n";
+            $mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
+            for($i=0;$i<$db->total;$i++){
+                $db->fetch($i);
+                if($db->dt['sell_date'] == '1'){
+                    $disp = $db->dt[disp];
+                }else{
+                    $disp = 0;
+                }
+                $mString .= 'ms_productSearch._setProduct("productList_except_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+            }
+            $mString .= '</script>'."\n";
+        }
+    }
+    return $mString;
 }
 
 function relationFreeGiftSelectProductList($fg_ix, $group_code, $disp_type=""){
@@ -1075,7 +1156,7 @@ function relationFreeGiftSelectProductList($fg_ix, $group_code, $disp_type=""){
 			$mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
 			for($i=0;$i<$db->total;$i++){
 				$db->fetch($i);
-                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/product", $db->dt['id'], "c").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
 			}
 			$mString .= '</script>'."\n";
 		}

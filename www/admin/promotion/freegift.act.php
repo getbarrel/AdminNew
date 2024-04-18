@@ -104,7 +104,10 @@ if ($_POST["act"] == "update" || $_POST["act"] == "insert"){
 
 	$sql = "update shop_freegift_select_product_relation set insert_yn='N' where fg_ix = '".$fg_ix."'  ";
 	$db->query($sql);
- 
+/*
+	$sql = "update shop_freegift_select_product_except_relation set insert_yn='N' where fg_ix = '".$fg_ix."'  ";
+	$db->query($sql);
+ */
 	$sql = "update shop_freegift_product_group set insert_yn='N' where fg_ix = '".$fg_ix."'  ";
 	$db->query($sql);
 	
@@ -254,6 +257,24 @@ if ($_POST["act"] == "update" || $_POST["act"] == "insert"){
 		}
 
 		$db->query("delete from shop_freegift_select_product_relation where fg_ix = '".$fg_ix."' and group_code = '".($i+2)."' and insert_yn = 'N' ");
+
+
+		for($j=0;$j < count($rpid[$i+3]);$j++){
+			$db->query("select fpr_ix from shop_freegift_select_product_relation where fg_ix = '".$fg_ix."' and group_code = '".($i+3)."' and pid = '".$rpid[$i+3][$j]."' ");
+
+			if(!$db->total){
+				$sql = "insert into shop_freegift_select_product_relation (fpr_ix,pid,fg_ix, group_code, vieworder, insert_yn, regdate) values ('','".$rpid[$i+3][$j]."','".$fg_ix."','".($i+3)."','".($j+1)."','Y', NOW())";
+
+				$db->sequences = "SHOP_MAIN_GOODS_LINK_SEQ";
+				$db->query($sql);
+			}else{
+				$sql = "update shop_freegift_select_product_relation set insert_yn = 'Y',vieworder='".($j+1)."', group_code = '".($i+3)."' where fg_ix = '".$fg_ix."' and group_code = '".($i+3)."' and pid = '".$rpid[$i+3][$j]."' ";
+
+				$db->query($sql);
+			}
+		}
+
+		$db->query("delete from shop_freegift_select_product_relation where fg_ix = '".$fg_ix."' and group_code = '".($i+3)."' and insert_yn = 'N' ");
 
 
 		$db->query("update shop_freegift_category_relation set insert_yn = 'N'  where fg_ix = '".$fg_ix."' ");
