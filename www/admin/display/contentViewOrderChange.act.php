@@ -10,7 +10,11 @@ include $_SERVER['DOCUMENT_ROOT']."/admin/class/layout.class";
 if($act == 'update'){
 
     if($_POST['display_cid']){
-        $where = " and cid = '".$_POST['display_cid']."'";
+        if($_POST['depth'] == 1){
+            $where = " and cid like '".substr($_POST['display_cid'],0,6)."%' ";
+        }else{
+            $where = " and cid = '".$_POST['display_cid']."' ";
+        }
     }
 
     if(is_array($_POST['con_ix'])){
