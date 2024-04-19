@@ -985,7 +985,7 @@ function relationEventGroupProductList($dc_ix, $group_code, $disp_type=""){
 			$mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
 			for($i=0;$i<count($products);$i++){
 				//$slave_db->fetch($i);
-				$imgPath = PrintImage($admin_config['mall_data_root'].'/images/product', $products[$i]['id'], 'c');
+				$imgPath = PrintImage($admin_config['mall_data_root'].'/images/addimgNew', $products[$i]['id'], 'slist');
 				 
 				$mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$products[$i]['id'].'", "'.$imgPath.'", "'.addslashes(addslashes(trim($products[$i]['pname']))).'", "'.addslashes(addslashes(trim($products[$i]['brand_name']))).'", "'.$products[$i]['sellprice'].'", "'.$products[$i]['listprice'].'", "'.$products[$i]['reserve'].'", "'.$products[$i]['coprice'].'", "'.$products[$i]['wholesale_price'].'", "'.$products[$i]['wholesale_sellprice'].'", "'.$products[$i]['disp'].'", "'.$products[$i]['state'].'", "'.$products[$i]['dcprice'].'");'."\n";
 			}
