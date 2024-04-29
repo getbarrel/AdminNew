@@ -364,6 +364,23 @@ if($mode == "Ins"){
             $db->query($sql);
         }
 
+        if($_FILES['list_img_m']['name']){
+            $listUpDir	    = $_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$con_LAST_ID;
+
+            $listImgMName	= "listImg_m_".date('YmdHis', time())."_".$con_LAST_ID.".gif";
+            $listImgMTmpName	= $_FILES['list_img_m']['tmp_name'];
+
+            if(!is_dir($listUpDir)){
+                mkdir($listUpDir);
+                chmod($listUpDir,0777);
+            }
+
+            copy($listImgMTmpName, $listUpDir."/".$listImgMName);
+
+            $sql = "UPDATE shop_content SET list_img_m = '".$listImgMName."' WHERE con_ix = '".$con_LAST_ID."' ";
+            $db->query($sql);
+        }
+
         if($_POST['imgInsYN']){
             CopyImage($con_LAST_ID, "","style");
         }
@@ -1184,6 +1201,41 @@ if($mode == "Upd"){
             copy($listImgTmpName, $listUpDir."/".$listImgName);
 
             $sql = "UPDATE shop_content SET list_img = '".$listImgName."' WHERE con_ix = '".$con_ix."' ";
+            $db->query($sql);
+        }
+
+        if($list_img_m_del == 'on' || $_FILES['list_img_m']['name']){
+            $listUpDir	    = $_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$con_ix;
+
+            $db->query("select list_img from shop_content where con_ix = '".$con_ix."' ");
+            $db->fetch();
+
+            $listImgMName = $db->dt[list_img_m];
+
+            //$listImgName	= "listImg_".$con_ix.".gif";
+
+            if (file_exists($listUpDir . "/" .$listImgMName)) {
+                unlink($listUpDir . "/" .$listImgMName);
+            }
+
+            $sql = "UPDATE shop_content SET list_img_m = '' WHERE con_ix = '".$con_ix."' ";
+            $db->query($sql);
+        }
+
+        if($_FILES['list_img_m']['name']){
+            $listUpDir	    = $_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$con_ix;
+
+            $listImgMName	= "listImg_m_".date('YmdHis', time())."_".$con_ix.".gif";
+            $listImgMTmpName	= $_FILES['list_img_m']['tmp_name'];
+
+            if(!is_dir($listUpDir)){
+                mkdir($listUpDir);
+                chmod($listUpDir,0777);
+            }
+
+            copy($listImgMTmpName, $listUpDir."/".$listImgMName);
+
+            $sql = "UPDATE shop_content SET list_img_m = '".$listImgMName."' WHERE con_ix = '".$con_ix."' ";
             $db->query($sql);
         }
 

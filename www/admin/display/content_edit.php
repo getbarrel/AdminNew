@@ -54,6 +54,7 @@ if($slave_db->total) {
     $u_explanation  = $slave_db->dt[u_explanation];
     $c_explanation  = $slave_db->dt[c_explanation];
     $list_img       = $slave_db->dt[list_img];
+    $list_img_m     = $slave_db->dt[list_img_m];
     $recommend_img  = $slave_db->dt[recommend_img];
     $category_use   = $slave_db->dt[category_use];
     $b_category     = $slave_db->dt[b_category];
@@ -1201,7 +1202,7 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                             </td>
                         </tr>
                         <tr bgcolor=#ffffff>
-                            <td class='input_box_title' nowrap oncontextmenu='init2();return false;'> 	<b>스타일리스트 이미지 </b></td>
+                            <td class='input_box_title' nowrap oncontextmenu='init2();return false;'> 	<b>스타일리스트 이미지(PC) </b></td>
                             <td class='input_box_item' colspan='3'>
                                 <table border=0>
                                     <col width='505px'>
@@ -1209,11 +1210,37 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                                     <col width='*'>
                                     <tr>
                                         <td>
-                                            <input type=file name='list_img' id='list_img' class='textbox' size=25 style='font-size:8pt'>
-                                            <a href='javascript:' onclick=\"del('shop_logo','".$admin_config."');\"><img src='../images/korean/btn_del.gif' border='0' align='absmiddle' style='cursor:pointer; padding-left:20px;' title='삭제'></a></div>
+                                            <input type=file name='list_img' id='list_img' class='textbox' size=25 style='font-size:8pt'>";
+                                            if($list_img != ""){
+                                                $Contents .= "<input type='checkbox' name='list_img_del' id='list_img_del'>리스트이미지(PC) 삭제";
+                                            }
+                                            $Contents .= "
                                         </td>
                                         <td ".$img_view_style." rowspan=2>
                                             <a class='screenshot'  rel='".$_SESSION["admin_config"][mall_data_root]."/images/content/".$con_ix."/".$list_img."'><img src='../v3/images/btn/bt_preview.png'   style='cursor:pointer'></a>
+                                        </td>
+                                    </tr>
+                                    <tr height=10><td colspan= class='small' style='padding-top:5px;'>※ 메인 페이지 추천 컨텐츠 등 3:4 비율 이미지</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr bgcolor=#ffffff>
+                            <td class='input_box_title' nowrap oncontextmenu='init2();return false;'> 	<b>스타일리스트 이미지(Mobile) </b></td>
+                            <td class='input_box_item' colspan='3'>
+                                <table border=0>
+                                    <col width='505px'>
+                                    <col width='100px'>
+                                    <col width='*'>
+                                    <tr>
+                                        <td>
+                                            <input type=file name='list_img_m' id='list_img_m' class='textbox' size=25 style='font-size:8pt'>";
+                                            if($list_img_m != ""){
+                                                $Contents .= "<input type='checkbox' name='list_img_m_del' id='list_img_m_del'>리스트이미지(Mobile) 삭제";
+                                            }
+                                            $Contents .= "
+                                        </td>
+                                        <td ".$img_view_style." rowspan=2>
+                                            <a class='screenshot'  rel='".$_SESSION["admin_config"][mall_data_root]."/images/content/".$con_ix."/".$list_img_m."'><img src='../v3/images/btn/bt_preview.png'   style='cursor:pointer'></a>
                                         </td>
                                     </tr>
                                     <tr height=10><td colspan= class='small' style='padding-top:5px;'>※ 메인 페이지 추천 컨텐츠 등 3:4 비율 이미지</td></tr>
