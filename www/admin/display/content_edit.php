@@ -1243,7 +1243,7 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                                             <a class='screenshot'  rel='".$_SESSION["admin_config"][mall_data_root]."/images/content/".$con_ix."/".$list_img_m."'><img src='../v3/images/btn/bt_preview.png'   style='cursor:pointer'></a>
                                         </td>
                                     </tr>
-                                    <tr height=10><td colspan= class='small' style='padding-top:5px;'>※ 메인 페이지 추천 컨텐츠 등 3:4 비율 이미지</td></tr>
+                                    <tr height=10><td colspan= class='small' style='padding-top:5px;'>※ 메인 페이지 추천 컨텐츠 등 1:1 비율 이미지</td></tr>
                                 </table>
                             </td>
                         </tr>
