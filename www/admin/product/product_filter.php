@@ -27,6 +27,7 @@ $Contents01 = "
 			<label><input type='radio' name='filter_type' value='SHOES' ".CompareReturnValue("SHOES",$sch_filter_type,"checked")."> 슈즈 </label>
 			<label><input type='radio' name='filter_type' value='ACC' ".CompareReturnValue("ACC",$sch_filter_type,"checked")."> ACC </label>
 			<label><input type='radio' name='filter_type' value='COLOR' ".CompareReturnValue("COLOR",$sch_filter_type,"checked")."> 색상 </label>
+			<label><input type='radio' name='filter_type' value='GENDER' ".CompareReturnValue("GENDER",$sch_filter_type,"checked")."> 성별 </label>
 	     </td>
 		 <td class='input_box_title'> <b>사용유무 <img src='".$required3_path."'></b> </td>
          <td class='input_box_item'>
@@ -127,6 +128,9 @@ if($total){
                 break;
             case 'COLOR':
                 $filter_type_text = '색상';
+                break;
+            case 'GENDER':
+                $filter_type_text = '성별';
                 break;
         }
         $Contents02 .= "
