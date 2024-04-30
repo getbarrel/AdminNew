@@ -3287,6 +3287,12 @@ $Contents .= "
 					   ".getFilterItem('COLOR',$id)."
 					</td>
 				</tr>
+				<tr>
+					<td class='input_box_title'> 성별 </td>
+					<td class='input_box_item' style='line-height:150%' colspan=3>
+					   ".getFilterItem('GENDER',$id)."
+					</td>
+				</tr>
 			</table>
 			</div>
 			<div style='clear:both;height:70px;'></div>
