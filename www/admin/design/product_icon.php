@@ -15,22 +15,26 @@ $Contents01 = "
 	</table>
 	<table width='100%' cellpadding=0 cellspacing=0 align='left' class='input_table_box' style='margin-top:3px;'>
 	<tr>
-	    <td class='input_box_title' style='width:150px;'> <b>아이콘타입 <img src='".$required3_path."'></b> </td>
+	    <td class='input_box_title' style='width:200px;'> <b>아이콘타입 <img src='".$required3_path."'></b> </td>
 		<td class='input_box_item'>
 			<input type='radio' name='icon_type' id='icon_type_f' value='F' title='고정아이콘' checked> <label for='icon_type_f'>고정 아이콘 </label>
 			<input type='radio' name='icon_type' id='icon_type_p' value='P' title='상품아이콘'> <label for='icon_type_p'>상품 아이콘 </label>
 	     </td>
 	</tr>
 	<tr>
-	    <td class='input_box_title' style='width:150px;'> <b>아이콘명 <img src='".$required3_path."'></b> </td>
+	    <td class='input_box_title' style='width:200px;'> <b>아이콘명 <img src='".$required3_path."'></b> </td>
 		<td class='input_box_item'>
 			<input type='text' class=textbox name='icon_name' style='width:200px' id='icon_name' value='' validation='true' title='아이콘명'>
 	     </td>
 	</tr>
 	
 	  <tr >
-	    <td class='input_box_title'> <b>아이콘파일 <img src='".$required3_path."'></b> </td>
+	    <td class='input_box_title'> <b>아이콘파일(50X50)<img src='".$required3_path."'></b> </td>
 	    <td class='input_box_item'><input type=file class='textbox' name='icon_file' value='' style='width:230px;' validation=true title='아이콘파일'> </td>
+	  </tr>
+	  <tr >
+	    <td class='input_box_title'> <b>모바일아이콘파일(30X30)<img src='".$required3_path."'></b> </td>
+	    <td class='input_box_item'><input type=file class='textbox' name='mo_icon_file' value='' style='width:230px;' validation=true title='모바일아이콘파일'> </td>
 	  </tr>
 	  <tr  >
 	    <td class='input_box_title'> <b>사용유무 <img src='".$required3_path."'></b> </td>
@@ -53,6 +57,7 @@ $Contents02 = "
 		<td class='s_td' style='width:20%; padding:0; text-align:center;' class='s_td'> 아이콘타입</td>
 	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='s_td'> 아이콘명</td>
 	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='m_td'> 아이콘 이미지 파일</td>
+	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='m_td'> 모바일아이콘 이미지 파일</td>
 	    <td class='m_td' style='width:10%; padding:0; text-align:center;' class='m_td'> 사용유무</td>
 	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='m_td'> 등록일자</td>
 	    <td class='e_td' style='width:10%; padding:0; text-align:center;' class='e_td'> 관리</td>
@@ -88,11 +93,20 @@ if($total){
 			$icon_type = '상품아이콘';
 		break;
 	}
+
 	$Contents02 .= "
 		  <tr bgcolor=#ffffff height=30 align=center>
 			<td class='list_box_td list_bg_gray'>".$icon_type."</td>
 		    <td class='list_box_td list_bg_gray'>".$db->dt[icon_name]."</td>
 		    <td class='list_box_td'><img src='".$_SESSION["admin_config"][mall_data_root]."/images/icon/".$db->dt[idx].".gif' align='absmiddle' style='vertical-align:middle'></td>
+			";
+
+			if($db->dt[mo_idx] <> ""){
+				$Contents02 .= "<td class='list_box_td'><img src='".$_SESSION["admin_config"][mall_data_root]."/images/icon/".$db->dt[mo_idx].".gif' align='absmiddle' style='vertical-align:middle'></td> ";
+			}else{
+				$Contents02 .= "<td class='list_box_td'></td> ";
+			}
+	$Contents02 .= "
 		    <td class='list_box_td list_bg_gray'>".($db->dt[disp] == "1" ?  "사용":"사용하지않음")."</td>
 		    <td class='list_box_td'>".$db->dt[regdate]."</td>
 		    <td class='list_box_td list_bg_gray'>
