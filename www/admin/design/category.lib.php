@@ -33,7 +33,8 @@
 
         switch ($_SESSION["admin_config"]["mall_page_type"]){
             case "P":
-                $layoutXmlPath .= $admin_config["selected_templete"] . ".xml";
+				//$layoutXmlPath .= $admin_config["selected_templete"] . ".xml";
+				$layoutXmlPath .= $admin_config["mall_use_templete"] . ".xml";
                 break;
             case "MI":
                 $layoutXmlPath .= $admin_config["selected_templete_minishop"] . ".xml";
