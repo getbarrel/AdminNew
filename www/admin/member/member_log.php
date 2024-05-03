@@ -394,7 +394,7 @@ function PrintLogList(){
 		<td class=e_td width='15%'>접속 IP</td>
 	</tr>";
 	if ($total == 0){
-		$mString .= "<tr bgcolor=#ffffff height=70><td colspan=6 align=center>로그 내역이 존재 하지 않습니다.</td></tr>";
+		$mString .= "<tr bgcolor=#ffffff height=70><td colspan=7 align=center>로그 내역이 존재 하지 않습니다.</td></tr>";
 	}else{
 
 		$db->query("select * from member_log  $where order by  log_date desc limit $start, $max");
