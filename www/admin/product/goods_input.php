@@ -508,6 +508,9 @@ if(count($language_list) > 0) {
     }
 }
 
+$marker_left_dn = "0";//상품마커 좌측하단
+$marker_right_dn = "0";//상품마커 우측하단
+
 if ($id != ""){
     $db->query("SELECT * FROM  ".TBL_SHOP_PRODUCT_RELATION." where pid = '$id' and basic = '1' " );
     $db->fetch();
@@ -754,6 +757,9 @@ if ($id != ""){
         $returnable_yn = $db->dt[returnable_yn];
         $admin_memo = $db->dt[admin_memo];
         $wear_info = $db->dt[wear_info];
+
+		$marker_left_dn = $db->dt[marker_left_dn];//상품마커 좌측하단
+		$marker_right_dn = $db->dt[marker_right_dn];//상품마커 우측하단
 
         if($product_type == "2"){
             $sql = "select * from shop_product_auction where pid = '$id' ";
@@ -3010,6 +3016,20 @@ if($admininfo[admin_level] == '9'){
 
 }
 
+	//상품 좌우측 마커 지정
+    $sql = "SELECT * FROM shop_icon order by regdate desc";
+    $db->query($sql);
+	$setIcon_info = $db->fetchall();
+
+	$strMarkerLList = "<input type=radio  name=marker_left_dn value='0' id='marker_left_dn_0' ".($marker_left_dn == "0" || $marker_left_dn == "" ? " checked " : "")."><label for='marker_left_dn_0'>미등록</label>";
+	$strMarkerRList = "<input type=radio  name=marker_right_dn value='0' id='marker_right_dn_0' ".($marker_right_dn == "0" || $marker_right_dn == "" ? " checked " : "")."><label for='marker_right_dn_0'>미등록</label>";
+	for($c=0;($c<count($setIcon_info) || $c < 1);$c++){
+		$chkNUm	= $c+1;
+		$strMarkerLList = $strMarkerLList."<input type=radio  name=marker_left_dn value='".$setIcon_info[$c]['idx']."' id='marker_left_dn_".$setIcon_info[$c]['idx']."' ".($marker_left_dn == $setIcon_info[$c]['idx'] ? " checked " : "")."><label for='marker_left_dn_".$setIcon_info[$c]['idx']."'><img src='".$_SESSION["admin_config"][mall_data_root]."/images/icon/".$setIcon_info[$c]['idx'].".gif' align='absmiddle' style='vertical-align:middle'></label>";
+		$strMarkerRList = $strMarkerRList."<input type=radio  name=marker_right_dn value='".$setIcon_info[$c]['idx']."' id='marker_right_dn_".$setIcon_info[$c]['idx']."' ".($marker_right_dn == $setIcon_info[$c]['idx'] ? " checked " : "")."><label for='marker_right_dn_".$setIcon_info[$c]['idx']."'><img src='".$_SESSION["admin_config"][mall_data_root]."/images/icon/".$setIcon_info[$c]['idx'].".gif' align='absmiddle' style='vertical-align:middle'></label>";
+	}
+	//상품 좌우측 마커 지정
+
 $Contents .="
 				</tr>
 				<tr id=''>
@@ -3061,6 +3081,14 @@ $Contents .="
                         <input type='checkbox' name='exchangeable_yn' ".($exchangeable_yn == "N" ? "checked" : "")." id='exchangeable_yn' value='N' > 교환신청 불가능
                         <input type='checkbox' name='returnable_yn' ".($returnable_yn == "N"  ? "checked" : "")." id='returnable_yn' value='N' > 반품신청 불가능
                     </td>
+                </tr>
+                <tr>
+                    <td class='input_box_title'> 상품마커 좌측하단 </td>
+                    <td class='input_box_item' colspan='3' style='line-height:150%'>".$strMarkerLList."</td>
+                </tr>
+                <tr>
+                    <td class='input_box_title'> 상품마커 우측하단 </td>
+                    <td class='input_box_item' colspan='3' style='line-height:150%'>".$strMarkerRList."</td>
                 </tr>
                 <tr>
                     <td class='input_box_title'> 관리자 메모 </td>
