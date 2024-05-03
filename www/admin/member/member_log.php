@@ -364,14 +364,13 @@ function PrintLogList(){
 	}
 
 	$startDate = $FromYY.$FromMM.$FromDD;
-
-
-
 	$endDate = $ToYY.$ToMM.$ToDD;
 
-
 	if($startDate != "" && $endDate != ""){
-		$where[] = "log_date between  $startDate and $endDate";
+		$startDate = $FromYY."-".$FromMM."-".$FromDD." 00:00:00";
+
+		$endDate = $ToYY."-".$ToMM."-".$ToDD." 23:59:59";
+		$where[] = "log_date between  '$startDate' and '$endDate'";
 	}
 
 	$where = (count($where))	?	" WHERE ".implode(" AND ", $where):' ';
