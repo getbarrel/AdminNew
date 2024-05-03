@@ -412,7 +412,7 @@ if ($act == 'insert' || $act == "tmp_insert") {    //상품추가
 					co_pid, co_company_id, editdate, regdate,wholesale_yn,offline_yn,is_pos_link, add_status,trade_admin,md_code,barcode,delivery_type,delivery_coupon_yn,coupon_use_yn,account_type,wholesale_commission,reg_charger_ix,
 					reg_charger_name,is_adult,remain_stock,is_sell_date,wholesale_allow_max_cnt,allow_max_cnt,wholesale_allow_basic_cnt,allow_basic_cnt,md_one_commission,md_discount_name,md_sell_date_use,md_sell_priod_sdate,md_sell_priod_edate,
 					whole_head_company_sale_rate,whole_seller_company_sale_rate,head_company_sale_rate,seller_company_sale_rate,c_ix,relation_text2,product_weight,allow_byoneperson_cnt,wholesale_allow_byoneperson_cnt,is_mobile_use,
-					gift_sprice,gift_eprice,global_pinfo, category_add_infos, mandatory_use, mandatory_use_global, auto_sync_wms, gift_qty, gift_selectbox_cnt, gift_selectbox_nooption_yn, exchangeable_yn, returnable_yn, admin_memo, laundry_cid, wear_info, b_preface, i_preface, u_preface, c_preface, listNum, overNum, slistNum, nailNum, pattNum)
+					gift_sprice,gift_eprice,global_pinfo, category_add_infos, mandatory_use, mandatory_use_global, auto_sync_wms, gift_qty, gift_selectbox_cnt, gift_selectbox_nooption_yn, exchangeable_yn, returnable_yn, admin_memo, laundry_cid, wear_info, b_preface, i_preface, u_preface, c_preface, listNum, overNum, slistNum, nailNum, pattNum, marker_left_dn, marker_right_dn)
 
 					VALUES
 					
@@ -429,7 +429,7 @@ if ($act == 'insert' || $act == "tmp_insert") {    //상품추가
 					'$is_adult','$remain_stock','$is_sell_date','$wholesale_allow_max_cnt','$allow_max_cnt','$wholesale_allow_basic_cnt','$allow_basic_cnt','$md_one_commission','$md_discount_name','$md_sell_date_use','$md_sell_priod_sdate',
 					'$md_sell_priod_edate','$whole_head_company_sale_rate','$whole_seller_company_sale_rate','$head_company_sale_rate','$seller_company_sale_rate','$c_ix','$relation_text2','$product_weight','$allow_byoneperson_cnt',
 					'$wholesale_allow_byoneperson_cnt','$is_mobile_use','$gift_sprice','$gift_eprice','$global_pinfo_json','$category_add_infomations_json', '$mandatory_use', '$mandatory_use_global', '$auto_sync_wms', '$gift_qty', '$gift_selectbox_cnt', '$gift_selectbox_nooption_yn',
-					'$exchangeable_yn', '$returnable_yn', '$admin_memo', '$laundry_cid', '$wear_info', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$listNum', '$overNum', '$slistNum', '$nailNum', '$pattNum') ";
+					'$exchangeable_yn', '$returnable_yn', '$admin_memo', '$laundry_cid', '$wear_info', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$listNum', '$overNum', '$slistNum', '$nailNum', '$pattNum', '$marker_left_dn', '$marker_right_dn') ";
 
     //$db->debug = true;
 
@@ -2087,6 +2087,10 @@ if ($act == "update" || $act == "tmp_update") {    //상품 업데이트
 			slistNum='" . $slistNum . "',
 			nailNum='" . $nailNum . "',
 			pattNum='" . $pattNum . "',
+			
+			marker_left_dn='" . $marker_left_dn . "',
+			marker_right_dn='" . $marker_right_dn . "',
+
 			product_color_chip='" . $product_color_chip . "',
 			" . (!empty($global_pinfo_json) ? "global_pinfo='" . $global_pinfo_json . "'," : "") . "
 			brand = '$brand',
