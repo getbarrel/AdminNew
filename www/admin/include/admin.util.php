@@ -717,7 +717,7 @@ function getMySellerList($md_code, $return_type = ""){
 
 function getLanguage($language_type="" , $property=""){
 	global $admininfo;
-	if($_SESSION["admininfo"]["charger_id"] == "forbiz"){
+	if($_SESSION["admininfo"]["charger_id"] == "forbiz" || $_SESSION["admininfo"]["charger_id"] == "hmpartner1" || $_SESSION["admininfo"]["charger_id"] == "hmpartner2"){
 	$mstring = "<select name='language_type' id='language_type' $property validation='true' title='사용자 언어'>
 			<option value=''>랭귀지선택</option>
 			<option value='korean' ".($language_type == "korean" ? "selected":"").">한국어</option>
