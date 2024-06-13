@@ -776,7 +776,6 @@ if($act == "claim_apply"){		//클레임 요청시 처리 부분
 // 부분취소!
 if($act=="part_cancel"){
 	if(!empty($total_refund_price) || $direct_pg=="Y"){
-
 		//TODO: call PG cancel process
 		include("./cancelService/cancel.php");
 		$cancel = new cancel();
@@ -1205,6 +1204,61 @@ if($act=="part_cancel"){
                 }
 			}
 
+			// 반품완료 후 장바구니쿠폰(생일, 회원가입, 등급) 복원 로직 시작
+
+			// ---------- 주문 기본 정보 ----------
+			$sql = "select * from ".TBL_SHOP_ORDER." where oid = '".$oid."'";
+			$db->query($sql);
+			$db->fetch();
+			$user_code = $db->dt[user_code];
+
+			#주문상품 전체 상품 갯수 가져오기(사은품제외)
+			$sql = "select count(*) as orderDetailCnt from shop_order_detail where oid = '".$oid."' and product_type != '77' ";
+			$db->query($sql);
+			$db->fetch();
+			$orderDetailCnt = $db->dt[orderDetailCnt];
+
+			#주문상품 중 환불이 완료된 상품 갯수 가져오기(사은품제외)
+			$sql = "select count(*) as orderDetailRefundCnt from shop_order_detail where oid = '".$oid."' and product_type != '77' and refund_status = 'FC' ";
+			$db->query($sql);
+			$db->fetch();
+			$orderDetailRefundCnt = $db->dt[orderDetailRefundCnt];
+
+			if($orderDetailCnt == $orderDetailRefundCnt){
+				// 쿠폰사용이력 체크
+				$sql = "select publish_ix from shop_cupon_regist where use_oid = '".$oid."' and mem_ix = '".$user_code."' and use_yn = 1";
+				$db->query($sql);
+				$db->fetch();
+				$publish_ix = $db->dt[publish_ix];
+
+				if($publish_ix){
+					// 복원이 가능한 쿠폰인지 체크(회원가입, 생일쿠폰)
+					$sql = "select count(*) typeCnt from shop_cupon_publish where issue_type = 4 and publish_ix = '".$publish_ix."' ";
+					$db->query($sql);
+					$db->fetch();
+					$typeCuponCnt = $db->dt[typeCnt];
+
+					// 복원이 가능한 쿠폰인지 체크(등업쿠폰)
+					$sql = "select count(*) upCuponCnt from shop_cupon_publish cp, shop_group_benefits gb where cp.publish_ix = gb.benefit_value and gb.benefit_type = 'C' and cp.publish_ix = '".$publish_ix."' ";
+					$db->query($sql);
+					$db->fetch();
+					$upCuponCnt = $db->dt[upCuponCnt];
+
+					if($typeCuponCnt > 0 || $upCuponCnt > 0){
+						$sql = "update shop_cupon_regist set use_yn='0', use_oid='', usedate = null where use_oid = '".$oid."' and mem_ix = '".$user_code."' and use_yn = 1 ";
+						$db->query($sql);
+						if($typeCuponCnt > 0){
+							set_order_status($oid,ORDER_STATUS_REFUND_COMPLETE,"회원가입 또는 생일쿠폰 복구완료","시스템","");
+						}
+						if($upCuponCnt > 0){
+							set_order_status($oid,ORDER_STATUS_REFUND_COMPLETE,"등급쿠폰 복구완료","시스템","");
+						}
+					}
+				}
+			}
+
+			// // 반품완료 후 장바구니쿠폰(생일, 회원가입, 등급) 복원 로직 끝
+
             // 정산시 배송비 환불 처리!!!!
 			foreach($refund_delivery_price as  $ocde_ix => $d_price){
 				$db->query("UPDATE shop_order_claim_delivery SET delivery_price = '".$d_price."',ac_target_yn='Y' WHERE ocde_ix ='".$ocde_ix."' ");
@@ -1290,7 +1344,7 @@ if($act=="part_cancel"){
                 $mail_info['orderDetail'] = $order_details;
 
                 if($order_details[0]['status'] == ORDER_STATUS_RETURN_COMPLETE){
-                    @sendMessageByStep('order_refund', $mail_info);
+					@sendMessageByStep('order_refund', $mail_info);
 				}
 
 			}

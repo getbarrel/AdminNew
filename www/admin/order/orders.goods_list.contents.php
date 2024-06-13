@@ -1267,8 +1267,10 @@ if($pre_type==ORDER_STATUS_EXCHANGE_READY){
 									$Contents .= "<br/><img src='../images/".$admininfo["language"]."/btn_part_cancel.gif' align=absmiddle onclick=\"ShowModalWindow('../order/refund_price_give.php?oid=".$order_detail_datas[$j][oid]."',1000,1000,'refund_price_give');\" style='cursor:pointer;' />";
 								}
 								if($admininfo['department'] == 8 || $admininfo['department'] == 2 || $admininfo['department'] == 9){
-									$Contents .= "<br/><img src='../images/".$admininfo["language"]."/btn_buy_confirm.jpg' align=absmiddle onclick=\"btnConfirmation('".$order_detail_datas[$j][oid]."','".$order_detail_datas[$j][od_ix]."');\" style='cursor:pointer;' />";
-									//$Contents .= "<br/><img src='../images/".$admininfo["language"]."/btn_refund_complete.jpg' align=absmiddle onclick=\"btnComplete('".$order_detail_datas[$j][oid]."','".$order_detail_datas[$j][od_ix]."');\" style='cursor:pointer;' />";
+                                    if($order_detail_datas[$j][refund_status]!='FC'){
+                                        $Contents .= "<br/><img src='../images/".$admininfo["language"]."/btn_buy_confirm.jpg' align=absmiddle onclick=\"btnConfirmation('".$order_detail_datas[$j][oid]."','".$order_detail_datas[$j][od_ix]."');\" style='cursor:pointer;' />";
+                                        //$Contents .= "<br/><img src='../images/".$admininfo["language"]."/btn_refund_complete.jpg' align=absmiddle onclick=\"btnComplete('".$order_detail_datas[$j][oid]."','".$order_detail_datas[$j][od_ix]."');\" style='cursor:pointer;' />";
+                                    }
 								}
 							$Contents .= "
 							</td>";
