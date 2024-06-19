@@ -473,7 +473,8 @@ function getNameOfWeekday($WeekNum, $vdate,$type="datename"){
     if($type == "datename"){
         return date("Y-m-d",strtotime($vdate))." (".$WeekName[($WeekNum % 7)].")";
     }else if($type == "dayname"){
-        return date("Y-m-d",mktime(0,0,0,(int)substr($vdate,4,2),(int)substr($vdate,6,2),(int)substr($vdate,0,4))+60*60*24*$WeekNum)." (".$WeekName[(date('w',strtotime($vdate)) % 7)].")";//." (".$WeekName[0].")";
+        return date("Y-m-d",mktime(0,0,0,(int)substr($vdate,4,2),(int)substr($vdate,6,2),(int)substr($vdate,0,4))+60*60*24*$WeekNum)." (".$WeekName[(date('w',strtotime(date("Ymd", strtotime("+".$WeekNum." day", strtotime($vdate))))) % 7)].")";//." (".$WeekName[0].")";
+        //return date("Y-m-d",mktime(0,0,0,(int)substr($vdate,4,2),(int)substr($vdate,6,2),(int)substr($vdate,0,4))+60*60*24*$WeekNum)." (".$WeekName[(date('w',strtotime($vdate)) % 7)].")";//." (".$WeekName[0].")";
     }else if($type == "monthname"){
         return substr(date("Y-m-d",mktime(0,0,0,(int)substr($vdate,4,2),1,(int)substr($vdate,0,4))),0,7)." 월";
     }else if($type == "priodname"){
