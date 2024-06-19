@@ -987,7 +987,7 @@ if ($mode == "iframe"){
 									alert("비밀번호를 15자 이하로 해주세요.");
 									return false;
 								} else {
-									location.href = s_val_Data+"irs="+ig_inputString+"&ipw="+ig_inputString_PW;
+									location.href = s_val_Data+"&irs="+ig_inputString+"&ipw="+ig_inputString_PW;
 								}
 
 							} else {
