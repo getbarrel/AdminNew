@@ -740,7 +740,7 @@ function getAuthTemplet($selected="" , $admin_level=9){
 	global $admininfo;
 	$mdb = new Database;
 
-	if($_SESSION["admininfo"][admin_id] != "forbiz"){
+	if($_SESSION["admininfo"][admin_id] != "hmpartner1"){
 		$where = " and auth_templet_ix != '1' ";
 	}
 
