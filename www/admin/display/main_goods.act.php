@@ -50,10 +50,118 @@ if ($act == "insert"){
 		$b_best = 'N';
 	}
 
+	if($b_best2 == 'on'){
+		$b_best2 = 'Y';
+	}else{
+		$b_best2 = 'N';
+	}
+
+	if($b_best3 == 'on'){
+		$b_best3 = 'Y';
+	}else{
+		$b_best3 = 'N';
+	}
+
+	if($b_best4 == 'on'){
+		$b_best4 = 'Y';
+	}else{
+		$b_best4 = 'N';
+	}
+
+	if($b_best5 == 'on'){
+		$b_best5 = 'Y';
+	}else{
+		$b_best5 = 'N';
+	}
+
+	if($b_best6 == 'on'){
+		$b_best6 = 'Y';
+	}else{
+		$b_best6 = 'N';
+	}
+
+	if($b_best7 == 'on'){
+		$b_best7 = 'Y';
+	}else{
+		$b_best7 = 'N';
+	}
+
+	if($b_best8 == 'on'){
+		$b_best8 = 'Y';
+	}else{
+		$b_best8 = 'N';
+	}
+
+	if($b_best9 == 'on'){
+		$b_best9 = 'Y';
+	}else{
+		$b_best9 = 'N';
+	}
+
+	if($b_best10 == 'on'){
+		$b_best10 = 'Y';
+	}else{
+		$b_best10 = 'N';
+	}
+
 	if($i_best == 'on'){
 		$i_best = 'Y';
 	}else{
 		$i_best = 'N';
+	}
+
+	if($i_best2 == 'on'){
+		$i_best2 = 'Y';
+	}else{
+		$i_best2 = 'N';
+	}
+
+	if($i_best3 == 'on'){
+		$i_best3 = 'Y';
+	}else{
+		$i_best3 = 'N';
+	}
+
+	if($i_best4 == 'on'){
+		$i_best4 = 'Y';
+	}else{
+		$i_best4 = 'N';
+	}
+
+	if($i_best5 == 'on'){
+		$i_best5 = 'Y';
+	}else{
+		$i_best5 = 'N';
+	}
+
+	if($i_best6 == 'on'){
+		$i_best6 = 'Y';
+	}else{
+		$i_best6 = 'N';
+	}
+
+	if($i_best7 == 'on'){
+		$i_best7 = 'Y';
+	}else{
+		$i_best7 = 'N';
+	}
+
+	if($i_best8 == 'on'){
+		$i_best8 = 'Y';
+	}else{
+		$i_best8 = 'N';
+	}
+
+	if($i_best9 == 'on'){
+		$i_best9 = 'Y';
+	}else{
+		$i_best9 = 'N';
+	}
+
+	if($i_best10 == 'on'){
+		$i_best10 = 'Y';
+	}else{
+		$i_best10 = 'N';
 	}
 
 	if($u_best == 'on'){
@@ -62,10 +170,118 @@ if ($act == "insert"){
 		$u_best = 'N';
 	}
 
+	if($u_best2 == 'on'){
+		$u_best2 = 'Y';
+	}else{
+		$u_best2 = 'N';
+	}
+
+	if($u_best3 == 'on'){
+		$u_best3 = 'Y';
+	}else{
+		$u_best3 = 'N';
+	}
+
+	if($u_best4 == 'on'){
+		$u_best4 = 'Y';
+	}else{
+		$u_best4 = 'N';
+	}
+
+	if($u_best5 == 'on'){
+		$u_best5 = 'Y';
+	}else{
+		$u_best5 = 'N';
+	}
+
+	if($u_best6 == 'on'){
+		$u_best6 = 'Y';
+	}else{
+		$u_best6 = 'N';
+	}
+
+	if($u_best7 == 'on'){
+		$u_best7 = 'Y';
+	}else{
+		$u_best7 = 'N';
+	}
+
+	if($u_best8 == 'on'){
+		$u_best8 = 'Y';
+	}else{
+		$u_best8 = 'N';
+	}
+
+	if($u_best9 == 'on'){
+		$u_best9 = 'Y';
+	}else{
+		$u_best9 = 'N';
+	}
+
+	if($u_best10 == 'on'){
+		$u_best10 = 'Y';
+	}else{
+		$u_best10 = 'N';
+	}
+
 	if($b_best_e == 'on'){
 		$b_best_e = 'Y';
 	}else{
 		$b_best_e = 'N';
+	}
+
+	if($b_best_e2 == 'on'){
+		$b_best_e2 = 'Y';
+	}else{
+		$b_best_e2 = 'N';
+	}
+
+	if($b_best_e3 == 'on'){
+		$b_best_e3 = 'Y';
+	}else{
+		$b_best_e3 = 'N';
+	}
+
+	if($b_best_e4 == 'on'){
+		$b_best_e4 = 'Y';
+	}else{
+		$b_best_e4 = 'N';
+	}
+
+	if($b_best_e5 == 'on'){
+		$b_best_e5 = 'Y';
+	}else{
+		$b_best_e5 = 'N';
+	}
+
+	if($b_best_e6 == 'on'){
+		$b_best_e6 = 'Y';
+	}else{
+		$b_best_e6 = 'N';
+	}
+
+	if($b_best_e7 == 'on'){
+		$b_best_e7 = 'Y';
+	}else{
+		$b_best_e7 = 'N';
+	}
+
+	if($b_best_e8 == 'on'){
+		$b_best_e8 = 'Y';
+	}else{
+		$b_best_e8 = 'N';
+	}
+
+	if($b_best_e9 == 'on'){
+		$b_best_e9 = 'Y';
+	}else{
+		$b_best_e9 = 'N';
+	}
+
+	if($b_best_e10 == 'on'){
+		$b_best_e10 = 'Y';
+	}else{
+		$b_best_e10 = 'N';
 	}
 
 	if($i_best_e == 'on'){
@@ -74,10 +290,118 @@ if ($act == "insert"){
 		$i_best_e = 'N';
 	}
 
+	if($i_best_e2 == 'on'){
+		$i_best_e2 = 'Y';
+	}else{
+		$i_best_e2 = 'N';
+	}
+
+	if($i_best_e3 == 'on'){
+		$i_best_e3 = 'Y';
+	}else{
+		$i_best_e3 = 'N';
+	}
+
+	if($i_best_e4 == 'on'){
+		$i_best_e4 = 'Y';
+	}else{
+		$i_best_e4 = 'N';
+	}
+
+	if($i_best_e5 == 'on'){
+		$i_best_e5 = 'Y';
+	}else{
+		$i_best_e5 = 'N';
+	}
+
+	if($i_best_e6 == 'on'){
+		$i_best_e6 = 'Y';
+	}else{
+		$i_best_e6 = 'N';
+	}
+
+	if($i_best_e7 == 'on'){
+		$i_best_e7 = 'Y';
+	}else{
+		$i_best_e7 = 'N';
+	}
+
+	if($i_best_e8 == 'on'){
+		$i_best_e8 = 'Y';
+	}else{
+		$i_best_e8 = 'N';
+	}
+
+	if($i_best_e9 == 'on'){
+		$i_best_e9 = 'Y';
+	}else{
+		$i_best_e9 = 'N';
+	}
+
+	if($i_best_e10 == 'on'){
+		$i_best_e10 = 'Y';
+	}else{
+		$i_best_e10 = 'N';
+	}
+
 	if($u_best_e == 'on'){
 		$u_best_e = 'Y';
 	}else{
 		$u_best_e = 'N';
+	}
+
+	if($u_best_e2 == 'on'){
+		$u_best_e2 = 'Y';
+	}else{
+		$u_best_e2 = 'N';
+	}
+
+	if($u_best_e3 == 'on'){
+		$u_best_e3 = 'Y';
+	}else{
+		$u_best_e3 = 'N';
+	}
+
+	if($u_best_e4 == 'on'){
+		$u_best_e4 = 'Y';
+	}else{
+		$u_best_e4 = 'N';
+	}
+
+	if($u_best_e5 == 'on'){
+		$u_best_e5 = 'Y';
+	}else{
+		$u_best_e5 = 'N';
+	}
+
+	if($u_best_e6 == 'on'){
+		$u_best_e6 = 'Y';
+	}else{
+		$u_best_e6 = 'N';
+	}
+
+	if($u_best_e7 == 'on'){
+		$u_best_e7 = 'Y';
+	}else{
+		$u_best_e7 = 'N';
+	}
+
+	if($u_best_e8 == 'on'){
+		$u_best_e8 = 'Y';
+	}else{
+		$u_best_e8 = 'N';
+	}
+
+	if($u_best_e9 == 'on'){
+		$u_best_e9 = 'Y';
+	}else{
+		$u_best_e9 = 'N';
+	}
+
+	if($u_best_e10 == 'on'){
+		$u_best_e10 = 'Y';
+	}else{
+		$u_best_e10 = 'N';
 	}
 
 	if($b_style == 'on'){
@@ -202,6 +526,132 @@ if ($act == "insert"){
 		$bast_cate = $cid3;
 	}
 
+	if($cate2cid3 == ''){
+		if($cate2cid2 == ''){
+			if($cate2cid1 == ''){
+				$bast_cate2 = $cate2cid0;
+			}else{
+				$bast_cate2 = $cate2cid1;
+			}
+		}else{
+			$bast_cate2 = $cate2cid2;
+		}
+	}else{
+		$bast_cate2 = $cate2cid3;
+	}
+
+	if($cate3cid3 == ''){
+		if($cate3cid2 == ''){
+			if($cate3cid1 == ''){
+				$bast_cate3 = $cate3cid0;
+			}else{
+				$bast_cate3 = $cate3cid1;
+			}
+		}else{
+			$bast_cate3 = $cate3cid2;
+		}
+	}else{
+		$bast_cate3 = $cate3cid3;
+	}
+
+	if($cate4cid3 == ''){
+		if($cate4cid2 == ''){
+			if($cate4cid1 == ''){
+				$bast_cate4 = $cate4cid0;
+			}else{
+				$bast_cate4 = $cate4cid1;
+			}
+		}else{
+			$bast_cate4 = $cate4cid2;
+		}
+	}else{
+		$bast_cate4 = $cate4cid3;
+	}
+
+	if($cate5cid3 == ''){
+		if($cate5cid2 == ''){
+			if($cate5cid1 == ''){
+				$bast_cate5 = $cate5cid0;
+			}else{
+				$bast_cate5 = $cate5cid1;
+			}
+		}else{
+			$bast_cate5 = $cate5cid2;
+		}
+	}else{
+		$bast_cate5 = $cate5cid3;
+	}
+
+	if($cate6cid3 == ''){
+		if($cate6cid2 == ''){
+			if($cate6cid1 == ''){
+				$bast_cate6 = $cate6cid0;
+			}else{
+				$bast_cate6 = $cate6cid1;
+			}
+		}else{
+			$bast_cate6 = $cate6cid2;
+		}
+	}else{
+		$bast_cate6 = $cate6cid3;
+	}
+
+	if($cate7cid3 == ''){
+		if($cate7cid2 == ''){
+			if($cate7cid1 == ''){
+				$bast_cate7 = $cate7cid0;
+			}else{
+				$bast_cate7 = $cate7cid1;
+			}
+		}else{
+			$bast_cate7 = $cate7cid2;
+		}
+	}else{
+		$bast_cate7 = $cate7cid3;
+	}
+
+	if($cate8cid3 == ''){
+		if($cate8cid2 == ''){
+			if($cate8cid1 == ''){
+				$bast_cate8 = $cate8cid0;
+			}else{
+				$bast_cate8 = $cate8cid1;
+			}
+		}else{
+			$bast_cate8 = $cate8cid2;
+		}
+	}else{
+		$bast_cate8 = $cate8cid3;
+	}
+
+	if($cate9cid3 == ''){
+		if($cate9cid2 == ''){
+			if($cate9cid1 == ''){
+				$bast_cate9 = $cate9cid0;
+			}else{
+				$bast_cate9 = $cate9cid1;
+			}
+		}else{
+			$bast_cate9 = $cate9cid2;
+		}
+	}else{
+		$bast_cate9 = $cate9cid3;
+	}
+
+	if($cate10cid3 == ''){
+		if($cate10cid2 == ''){
+			if($cate10cid1 == ''){
+				$bast_cate10 = $cate10cid0;
+			}else{
+				$bast_cate10 = $cate10cid1;
+			}
+		}else{
+			$bast_cate10 = $cate10cid2;
+		}
+	}else{
+		$bast_cate10 = $cate10cid3;
+	}
+
 	$unix_timestamp_main_sdate = mktime($main_start_h,$main_start_i,$main_start_s,substr($main_start,5,2),substr($main_start,8,2),substr($main_start,0,4));
 	$unix_timestamp_main_edate = mktime($main_end_h,$main_end_i,$main_end_s,substr($main_end,5,2),substr($main_end,8,2),substr($main_end,0,4));
 
@@ -210,6 +660,17 @@ if ($act == "insert"){
 			 mall_ix, subject, explanation, special_use, 
 			 special_title, special_title_en, b_special, i_special, u_special, c_special, s_special, special_e, special_e_en, b_special_e, i_special_e, u_special_e, c_special_e, 
 			 best_use, best_title, best_title_en, b_best, i_best, u_best, c_best, s_best, best_e, best_e_en, b_best_e, i_best_e, u_best_e, c_best_e, bast_cate,
+			 
+			 best_use2, best_title2, best_title_en2, b_best2, i_best2, u_best2, c_best2, s_best2, best_e2, best_e_en2, b_best_e2, i_best_e2, u_best_e2, c_best_e2, bast_cate2,
+			 best_use3, best_title3, best_title_en3, b_best3, i_best3, u_best3, c_best3, s_best3, best_e3, best_e_en3, b_best_e3, i_best_e3, u_best_e3, c_best_e3, bast_cate3,
+			 best_use4, best_title4, best_title_en4, b_best4, i_best4, u_best4, c_best4, s_best4, best_e4, best_e_en4, b_best_e4, i_best_e4, u_best_e4, c_best_e4, bast_cate4,
+			 best_use5, best_title5, best_title_en5, b_best5, i_best5, u_best5, c_best5, s_best5, best_e5, best_e_en5, b_best_e5, i_best_e5, u_best_e5, c_best_e5, bast_cate5,
+			 best_use6, best_title6, best_title_en6, b_best6, i_best6, u_best6, c_best6, s_best6, best_e6, best_e_en6, b_best_e6, i_best_e6, u_best_e6, c_best_e6, bast_cate6,
+			 best_use7, best_title7, best_title_en7, b_best7, i_best7, u_best7, c_best7, s_best7, best_e7, best_e_en7, b_best_e7, i_best_e7, u_best_e7, c_best_e7, bast_cate7,
+			 best_use8, best_title8, best_title_en8, b_best8, i_best8, u_best8, c_best8, s_best8, best_e8, best_e_en8, b_best_e8, i_best_e8, u_best_e8, c_best_e8, bast_cate8,
+			 best_use9, best_title9, best_title_en9, b_best9, i_best9, u_best9, c_best9, s_best9, best_e9, best_e_en9, b_best_e9, i_best_e9, u_best_e9, c_best_e9, bast_cate9,
+			 best_use10, best_title10, best_title_en10, b_best10, i_best10, u_best10, c_best10, s_best10, best_e10, best_e_en10, b_best_e10, i_best_e10, u_best_e10, c_best_e10, bast_cate10,
+			 
 			 style_use, style_title, style_title_en, b_style, i_style, u_style, c_style, s_style, style_e, style_e_en, b_style_e, i_style_e, u_style_e, c_style_e, 
 			 journal_use, journal_title, journal_title_en, b_journal, i_journal, u_journal, c_journal, s_journal, journal_e, journal_e_en, b_journal_e, i_journal_e, u_journal_e, c_journal_e, 
 			 content_use, content_title, content_title_en, b_content, i_content, u_content, c_content, s_content, content_e, content_e_en, b_content_e, i_content_e, u_content_e, c_content_e, 
@@ -221,6 +682,17 @@ if ($act == "insert"){
     		 '".$mall_ix."', '".$subject."', '".$explanation."', '".$special_use."', 
 			 '".$special_title."', '".$special_title_en."', '".$b_special."', '".$i_special."', '".$u_special."', '".$c_special."', '".$s_special."', '".$special_e."', '".$special_e_en."', '".$b_special_e."', '".$i_special_e."', '".$u_special_e."', '".$c_special_e."', 
 			 '".$best_use."', '".$best_title."', '".$best_title_en."', '".$b_best."', '".$i_best."', '".$u_best."', '".$c_best."', '".$s_best."', '".$best_e."', '".$best_e_en."', '".$b_best_e."', '".$i_best_e."', '".$u_best_e."', '".$c_best_e."', '".$bast_cate."',
+			 
+			 '".$best_use2."', '".$best_title2."', '".$best_title_en2."', '".$b_best2."', '".$i_best2."', '".$u_best2."', '".$c_best2."', '".$s_best2."', '".$best_e2."', '".$best_e_en2."', '".$b_best_e2."', '".$i_best_e2."', '".$u_best_e2."', '".$c_best_e2."', '".$bast_cate2."',
+			 '".$best_use3."', '".$best_title3."', '".$best_title_en3."', '".$b_best3."', '".$i_best3."', '".$u_best3."', '".$c_best3."', '".$s_best3."', '".$best_e3."', '".$best_e_en3."', '".$b_best_e3."', '".$i_best_e3."', '".$u_best_e3."', '".$c_best_e3."', '".$bast_cate3."',
+			 '".$best_use4."', '".$best_title4."', '".$best_title_en4."', '".$b_best4."', '".$i_best4."', '".$u_best4."', '".$c_best4."', '".$s_best4."', '".$best_e4."', '".$best_e_en4."', '".$b_best_e4."', '".$i_best_e4."', '".$u_best_e4."', '".$c_best_e4."', '".$bast_cate4."',
+			 '".$best_use5."', '".$best_title5."', '".$best_title_en5."', '".$b_best5."', '".$i_best5."', '".$u_best5."', '".$c_best5."', '".$s_best5."', '".$best_e5."', '".$best_e_en5."', '".$b_best_e5."', '".$i_best_e5."', '".$u_best_e5."', '".$c_best_e5."', '".$bast_cate5."',
+			 '".$best_use6."', '".$best_title6."', '".$best_title_en6."', '".$b_best6."', '".$i_best6."', '".$u_best6."', '".$c_best6."', '".$s_best6."', '".$best_e6."', '".$best_e_en6."', '".$b_best_e6."', '".$i_best_e6."', '".$u_best_e6."', '".$c_best_e6."', '".$bast_cate6."',
+			 '".$best_use7."', '".$best_title7."', '".$best_title_en7."', '".$b_best7."', '".$i_best7."', '".$u_best7."', '".$c_best7."', '".$s_best7."', '".$best_e7."', '".$best_e_en7."', '".$b_best_e7."', '".$i_best_e7."', '".$u_best_e7."', '".$c_best_e7."', '".$bast_cate7."',
+			 '".$best_use8."', '".$best_title8."', '".$best_title_en8."', '".$b_best8."', '".$i_best8."', '".$u_best8."', '".$c_best8."', '".$s_best8."', '".$best_e8."', '".$best_e_en8."', '".$b_best_e8."', '".$i_best_e8."', '".$u_best_e8."', '".$c_best_e8."', '".$bast_cate8."',
+			 '".$best_use9."', '".$best_title9."', '".$best_title_en9."', '".$b_best9."', '".$i_best9."', '".$u_best9."', '".$c_best9."', '".$s_best9."', '".$best_e9."', '".$best_e_en9."', '".$b_best_e9."', '".$i_best_e9."', '".$u_best_e9."', '".$c_best_e9."', '".$bast_cate9."',
+			 '".$best_use10."', '".$best_title10."', '".$best_title_en10."', '".$b_best10."', '".$i_best10."', '".$u_best10."', '".$c_best10."', '".$s_best10."', '".$best_e10."', '".$best_e_en10."', '".$b_best_e10."', '".$i_best_e10."', '".$u_best_e10."', '".$c_best_e10."', '".$bast_cate10."',
+			 
 			 '".$style_use."', '".$style_title."', '".$style_title_en."', '".$b_style."', '".$i_style."', '".$u_style."', '".$c_style."', '".$s_style."', '".$style_e."', '".$style_e_en."', '".$b_style_e."', '".$i_style_e."', '".$u_style_e."', '".$c_style_e."',
 			 '".$journal_use."', '".$journal_title."', '".$journal_title_en."', '".$b_journal."', '".$i_journal."', '".$u_journal."', '".$c_journal."', '".$s_journal."', '".$journal_e."', '".$journal_e_en."', '".$b_journal_e."', '".$i_journal_e."', '".$u_journal_e."', '".$c_journal_e."',
 			 '".$content_use."', '".$content_title."', '".$content_title_en."', '".$b_content."', '".$i_content."', '".$u_content."', '".$c_content."', '".$s_content."', '".$content_e."', '".$content_e_en."', '".$b_content_e."', '".$i_content_e."', '".$u_content_e."', '".$c_content_e."',
@@ -402,10 +874,118 @@ if ($act == "update"){
 		$b_best = 'N';
 	}
 
+	if($b_best2 == 'on'){
+		$b_best2 = 'Y';
+	}else{
+		$b_best2 = 'N';
+	}
+
+	if($b_best3 == 'on'){
+		$b_best3 = 'Y';
+	}else{
+		$b_best3 = 'N';
+	}
+
+	if($b_best4 == 'on'){
+		$b_best4 = 'Y';
+	}else{
+		$b_best4 = 'N';
+	}
+
+	if($b_best5 == 'on'){
+		$b_best5 = 'Y';
+	}else{
+		$b_best5 = 'N';
+	}
+
+	if($b_best6 == 'on'){
+		$b_best6 = 'Y';
+	}else{
+		$b_best6 = 'N';
+	}
+
+	if($b_best7 == 'on'){
+		$b_best7 = 'Y';
+	}else{
+		$b_best7 = 'N';
+	}
+
+	if($b_best8 == 'on'){
+		$b_best8 = 'Y';
+	}else{
+		$b_best8 = 'N';
+	}
+
+	if($b_best9 == 'on'){
+		$b_best9 = 'Y';
+	}else{
+		$b_best9 = 'N';
+	}
+
+	if($b_best10 == 'on'){
+		$b_best10 = 'Y';
+	}else{
+		$b_best10 = 'N';
+	}
+
 	if($i_best == 'on'){
 		$i_best = 'Y';
 	}else{
 		$i_best = 'N';
+	}
+
+	if($i_best2 == 'on'){
+		$i_best2 = 'Y';
+	}else{
+		$i_best2 = 'N';
+	}
+
+	if($i_best3 == 'on'){
+		$i_best3 = 'Y';
+	}else{
+		$i_best3 = 'N';
+	}
+
+	if($i_best4 == 'on'){
+		$i_best4 = 'Y';
+	}else{
+		$i_best4 = 'N';
+	}
+
+	if($i_best5 == 'on'){
+		$i_best5 = 'Y';
+	}else{
+		$i_best5 = 'N';
+	}
+
+	if($i_best6 == 'on'){
+		$i_best6 = 'Y';
+	}else{
+		$i_best6 = 'N';
+	}
+
+	if($i_best7 == 'on'){
+		$i_best7 = 'Y';
+	}else{
+		$i_best7 = 'N';
+	}
+
+	if($i_best8 == 'on'){
+		$i_best8 = 'Y';
+	}else{
+		$i_best8 = 'N';
+	}
+
+	if($i_best9 == 'on'){
+		$i_best9 = 'Y';
+	}else{
+		$i_best9 = 'N';
+	}
+
+	if($i_best10 == 'on'){
+		$i_best10 = 'Y';
+	}else{
+		$i_best10 = 'N';
 	}
 
 	if($u_best == 'on'){
@@ -414,10 +994,118 @@ if ($act == "update"){
 		$u_best = 'N';
 	}
 
+	if($u_best2 == 'on'){
+		$u_best2 = 'Y';
+	}else{
+		$u_best2 = 'N';
+	}
+
+	if($u_best3 == 'on'){
+		$u_best3 = 'Y';
+	}else{
+		$u_best3 = 'N';
+	}
+
+	if($u_best4 == 'on'){
+		$u_best4 = 'Y';
+	}else{
+		$u_best4 = 'N';
+	}
+
+	if($u_best5 == 'on'){
+		$u_best5 = 'Y';
+	}else{
+		$u_best5 = 'N';
+	}
+
+	if($u_best6 == 'on'){
+		$u_best6 = 'Y';
+	}else{
+		$u_best6 = 'N';
+	}
+
+	if($u_best7 == 'on'){
+		$u_best7 = 'Y';
+	}else{
+		$u_best7 = 'N';
+	}
+
+	if($u_best8 == 'on'){
+		$u_best8 = 'Y';
+	}else{
+		$u_best8 = 'N';
+	}
+
+	if($u_best9 == 'on'){
+		$u_best9 = 'Y';
+	}else{
+		$u_best9 = 'N';
+	}
+
+	if($u_best10 == 'on'){
+		$u_best10 = 'Y';
+	}else{
+		$u_best10 = 'N';
+	}
+
 	if($b_best_e == 'on'){
 		$b_best_e = 'Y';
 	}else{
 		$b_best_e = 'N';
+	}
+
+	if($b_best_e2 == 'on'){
+		$b_best_e2 = 'Y';
+	}else{
+		$b_best_e2 = 'N';
+	}
+
+	if($b_best_e3 == 'on'){
+		$b_best_e3 = 'Y';
+	}else{
+		$b_best_e3 = 'N';
+	}
+
+	if($b_best_e4 == 'on'){
+		$b_best_e4 = 'Y';
+	}else{
+		$b_best_e4 = 'N';
+	}
+
+	if($b_best_e5 == 'on'){
+		$b_best_e5 = 'Y';
+	}else{
+		$b_best_e5 = 'N';
+	}
+
+	if($b_best_e6 == 'on'){
+		$b_best_e6 = 'Y';
+	}else{
+		$b_best_e6 = 'N';
+	}
+
+	if($b_best_e7 == 'on'){
+		$b_best_e7 = 'Y';
+	}else{
+		$b_best_e7 = 'N';
+	}
+
+	if($b_best_e8 == 'on'){
+		$b_best_e8 = 'Y';
+	}else{
+		$b_best_e8 = 'N';
+	}
+
+	if($b_best_e9 == 'on'){
+		$b_best_e9 = 'Y';
+	}else{
+		$b_best_e9 = 'N';
+	}
+
+	if($b_best_e10 == 'on'){
+		$b_best_e10 = 'Y';
+	}else{
+		$b_best_e10 = 'N';
 	}
 
 	if($i_best_e == 'on'){
@@ -426,10 +1114,118 @@ if ($act == "update"){
 		$i_best_e = 'N';
 	}
 
+	if($i_best_e2 == 'on'){
+		$i_best_e2 = 'Y';
+	}else{
+		$i_best_e2 = 'N';
+	}
+
+	if($i_best_e3 == 'on'){
+		$i_best_e3 = 'Y';
+	}else{
+		$i_best_e3 = 'N';
+	}
+
+	if($i_best_e4 == 'on'){
+		$i_best_e4 = 'Y';
+	}else{
+		$i_best_e4 = 'N';
+	}
+
+	if($i_best_e5 == 'on'){
+		$i_best_e5 = 'Y';
+	}else{
+		$i_best_e5 = 'N';
+	}
+
+	if($i_best_e6 == 'on'){
+		$i_best_e6 = 'Y';
+	}else{
+		$i_best_e6 = 'N';
+	}
+
+	if($i_best_e7 == 'on'){
+		$i_best_e7 = 'Y';
+	}else{
+		$i_best_e7 = 'N';
+	}
+
+	if($i_best_e8 == 'on'){
+		$i_best_e8 = 'Y';
+	}else{
+		$i_best_e8 = 'N';
+	}
+
+	if($i_best_e9 == 'on'){
+		$i_best_e9 = 'Y';
+	}else{
+		$i_best_e9 = 'N';
+	}
+
+	if($i_best_e10 == 'on'){
+		$i_best_e10 = 'Y';
+	}else{
+		$i_best_e10 = 'N';
+	}
+
 	if($u_best_e == 'on'){
 		$u_best_e = 'Y';
 	}else{
 		$u_best_e = 'N';
+	}
+
+	if($u_best_e2 == 'on'){
+		$u_best_e2 = 'Y';
+	}else{
+		$u_best_e2 = 'N';
+	}
+
+	if($u_best_e3 == 'on'){
+		$u_best_e3 = 'Y';
+	}else{
+		$u_best_e3 = 'N';
+	}
+
+	if($u_best_e4 == 'on'){
+		$u_best_e4 = 'Y';
+	}else{
+		$u_best_e4 = 'N';
+	}
+
+	if($u_best_e5 == 'on'){
+		$u_best_e5 = 'Y';
+	}else{
+		$u_best_e5 = 'N';
+	}
+
+	if($u_best_e6 == 'on'){
+		$u_best_e6 = 'Y';
+	}else{
+		$u_best_e6 = 'N';
+	}
+
+	if($u_best_e7 == 'on'){
+		$u_best_e7 = 'Y';
+	}else{
+		$u_best_e7 = 'N';
+	}
+
+	if($u_best_e8 == 'on'){
+		$u_best_e8 = 'Y';
+	}else{
+		$u_best_e8 = 'N';
+	}
+
+	if($u_best_e9 == 'on'){
+		$u_best_e9 = 'Y';
+	}else{
+		$u_best_e9 = 'N';
+	}
+
+	if($u_best_e10 == 'on'){
+		$u_best_e10 = 'Y';
+	}else{
+		$u_best_e10 = 'N';
 	}
 
 	if($b_style == 'on'){
@@ -554,6 +1350,132 @@ if ($act == "update"){
 		$bast_cate = $cid3;
 	}
 
+	if($cate2cid3 == ''){
+		if($cate2cid2 == ''){
+			if($cate2cid1 == ''){
+				$bast_cate2 = $cate2cid0;
+			}else{
+				$bast_cate2 = $cate2cid1;
+			}
+		}else{
+			$bast_cate2 = $cate2cid2;
+		}
+	}else{
+		$bast_cate2 = $cate2cid3;
+	}
+
+	if($cate3cid3 == ''){
+		if($cate3cid2 == ''){
+			if($cate3cid1 == ''){
+				$bast_cate3 = $cate3cid0;
+			}else{
+				$bast_cate3 = $cate3cid1;
+			}
+		}else{
+			$bast_cate3 = $cate3cid2;
+		}
+	}else{
+		$bast_cate3 = $cate3cid3;
+	}
+
+	if($cate4cid3 == ''){
+		if($cate4cid2 == ''){
+			if($cate4cid1 == ''){
+				$bast_cate4 = $cate4cid0;
+			}else{
+				$bast_cate4 = $cate4cid1;
+			}
+		}else{
+			$bast_cate4 = $cate4cid2;
+		}
+	}else{
+		$bast_cate4 = $cate4cid3;
+	}
+
+	if($cate5cid3 == ''){
+		if($cate5cid2 == ''){
+			if($cate5cid1 == ''){
+				$bast_cate5 = $cate5cid0;
+			}else{
+				$bast_cate5 = $cate5cid1;
+			}
+		}else{
+			$bast_cate5 = $cate5cid2;
+		}
+	}else{
+		$bast_cate5 = $cate5cid3;
+	}
+
+	if($cate6cid3 == ''){
+		if($cate6cid2 == ''){
+			if($cate6cid1 == ''){
+				$bast_cate6 = $cate6cid0;
+			}else{
+				$bast_cate6 = $cate6cid1;
+			}
+		}else{
+			$bast_cate6 = $cate6cid2;
+		}
+	}else{
+		$bast_cate6 = $cate6cid3;
+	}
+
+	if($cate7cid3 == ''){
+		if($cate7cid2 == ''){
+			if($cate7cid1 == ''){
+				$bast_cate7 = $cate7cid0;
+			}else{
+				$bast_cate7 = $cate7cid1;
+			}
+		}else{
+			$bast_cate7 = $cate7cid2;
+		}
+	}else{
+		$bast_cate7 = $cate7cid3;
+	}
+
+	if($cate8cid3 == ''){
+		if($cate8cid2 == ''){
+			if($cate8cid1 == ''){
+				$bast_cate8 = $cate8cid0;
+			}else{
+				$bast_cate8 = $cate8cid1;
+			}
+		}else{
+			$bast_cate8 = $cate8cid2;
+		}
+	}else{
+		$bast_cate8 = $cate8cid3;
+	}
+
+	if($cate9cid3 == ''){
+		if($cate9cid2 == ''){
+			if($cate9cid1 == ''){
+				$bast_cate9 = $cate9cid0;
+			}else{
+				$bast_cate9 = $cate9cid1;
+			}
+		}else{
+			$bast_cate9 = $cate9cid2;
+		}
+	}else{
+		$bast_cate9 = $cate9cid3;
+	}
+
+	if($cate10cid3 == ''){
+		if($cate10cid2 == ''){
+			if($cate10cid1 == ''){
+				$bast_cate10 = $cate10cid0;
+			}else{
+				$bast_cate10 = $cate10cid1;
+			}
+		}else{
+			$bast_cate10 = $cate10cid2;
+		}
+	}else{
+		$bast_cate10 = $cate10cid3;
+	}
+
 	$unix_timestamp_main_sdate = mktime($main_start_h,$main_start_i,$main_start_s,substr($main_start,5,2),substr($main_start,8,2),substr($main_start,0,4));
 	$unix_timestamp_main_edate = mktime($main_end_h,$main_end_i,$main_end_s,substr($main_end,5,2),substr($main_end,8,2),substr($main_end,0,4));
 
@@ -563,6 +1485,26 @@ if ($act == "update"){
 			special_e = '".$special_e."', special_e_en = '".$special_e_en."', b_special_e = '".$b_special_e."', i_special_e = '".$i_special_e."', u_special_e = '".$u_special_e."', c_special_e = '".$c_special_e."',
 			best_use = '".$best_use."', best_title = '".$best_title."', best_title_en = '".$best_title_en."', b_best = '".$b_best."', i_best = '".$i_best."', u_best = '".$u_best."', c_best = '".$c_best."', s_best = '".$s_best."', 
 			best_e = '".$best_e."', best_e_en = '".$best_e_en."', b_best_e = '".$b_best_e."', i_best_e = '".$i_best_e."', u_best_e = '".$u_best_e."', c_best_e = '".$c_best_e."', bast_cate = '".$bast_cate."',
+			
+			best_use2 = '".$best_use2."', best_title2 = '".$best_title2."', best_title_en2 = '".$best_title_en2."', b_best2 = '".$b_best2."', i_best2 = '".$i_best2."', u_best2 = '".$u_best2."', c_best2 = '".$c_best2."', s_best2 = '".$s_best2."', 
+			best_e2 = '".$best_e2."', best_e_en2 = '".$best_e_en2."', b_best_e2 = '".$b_best_e2."', i_best_e2 = '".$i_best_e2."', u_best_e2 = '".$u_best_e2."', c_best_e2 = '".$c_best_e2."', bast_cate2 = '".$bast_cate2."',	
+			best_use3 = '".$best_use3."', best_title3 = '".$best_title3."', best_title_en3 = '".$best_title_en3."', b_best3 = '".$b_best3."', i_best3 = '".$i_best3."', u_best3 = '".$u_best3."', c_best3 = '".$c_best3."', s_best3 = '".$s_best3."', 
+			best_e3 = '".$best_e3."', best_e_en3 = '".$best_e_en3."', b_best_e3 = '".$b_best_e3."', i_best_e3 = '".$i_best_e3."', u_best_e3 = '".$u_best_e3."', c_best_e3 = '".$c_best_e3."', bast_cate3 = '".$bast_cate3."',
+			best_use4 = '".$best_use4."', best_title4 = '".$best_title4."', best_title_en4 = '".$best_title_en4."', b_best4 = '".$b_best4."', i_best4 = '".$i_best4."', u_best4 = '".$u_best4."', c_best4 = '".$c_best4."', s_best4 = '".$s_best4."', 
+			best_e4 = '".$best_e4."', best_e_en4 = '".$best_e_en4."', b_best_e4 = '".$b_best_e4."', i_best_e4 = '".$i_best_e4."', u_best_e4 = '".$u_best_e4."', c_best_e4 = '".$c_best_e4."', bast_cate4 = '".$bast_cate4."',
+			best_use5 = '".$best_use5."', best_title5 = '".$best_title5."', best_title_en5 = '".$best_title_en5."', b_best5 = '".$b_best5."', i_best5 = '".$i_best5."', u_best5 = '".$u_best5."', c_best5 = '".$c_best5."', s_best5 = '".$s_best5."', 
+			best_e5 = '".$best_e5."', best_e_en5 = '".$best_e_en5."', b_best_e5 = '".$b_best_e5."', i_best_e5 = '".$i_best_e5."', u_best_e5 = '".$u_best_e5."', c_best_e5 = '".$c_best_e5."', bast_cate5 = '".$bast_cate5."',
+			best_use6 = '".$best_use6."', best_title6 = '".$best_title6."', best_title_en6 = '".$best_title_en6."', b_best6 = '".$b_best6."', i_best6 = '".$i_best6."', u_best6 = '".$u_best6."', c_best6 = '".$c_best6."', s_best6 = '".$s_best6."', 
+			best_e6 = '".$best_e6."', best_e_en6 = '".$best_e_en6."', b_best_e6 = '".$b_best_e6."', i_best_e6 = '".$i_best_e6."', u_best_e6 = '".$u_best_e6."', c_best_e6 = '".$c_best_e6."', bast_cate6 = '".$bast_cate6."',
+			best_use7 = '".$best_use7."', best_title7 = '".$best_title7."', best_title_en7 = '".$best_title_en7."', b_best7 = '".$b_best7."', i_best7 = '".$i_best7."', u_best7 = '".$u_best7."', c_best7 = '".$c_best7."', s_best7 = '".$s_best7."', 
+			best_e7 = '".$best_e7."', best_e_en7 = '".$best_e_en7."', b_best_e7 = '".$b_best_e7."', i_best_e7 = '".$i_best_e7."', u_best_e7 = '".$u_best_e7."', c_best_e7 = '".$c_best_e7."', bast_cate7 = '".$bast_cate7."',
+			best_use8 = '".$best_use8."', best_title8 = '".$best_title8."', best_title_en8 = '".$best_title_en8."', b_best8 = '".$b_best8."', i_best8 = '".$i_best8."', u_best8 = '".$u_best8."', c_best8 = '".$c_best8."', s_best8 = '".$s_best8."', 
+			best_e8 = '".$best_e8."', best_e_en8 = '".$best_e_en8."', b_best_e8 = '".$b_best_e8."', i_best_e8 = '".$i_best_e8."', u_best_e8 = '".$u_best_e8."', c_best_e8 = '".$c_best_e8."', bast_cate8 = '".$bast_cate8."',
+			best_use9 = '".$best_use9."', best_title9 = '".$best_title9."', best_title_en9 = '".$best_title_en9."', b_best9 = '".$b_best9."', i_best9 = '".$i_best9."', u_best9 = '".$u_best9."', c_best9 = '".$c_best9."', s_best9 = '".$s_best9."', 
+			best_e9 = '".$best_e9."', best_e_en9 = '".$best_e_en9."', b_best_e9 = '".$b_best_e9."', i_best_e9 = '".$i_best_e9."', u_best_e9 = '".$u_best_e9."', c_best_e9 = '".$c_best_e9."', bast_cate9 = '".$bast_cate9."',
+			best_use10 = '".$best_use10."', best_title10 = '".$best_title10."', best_title_en10 = '".$best_title_en10."', b_best10 = '".$b_best10."', i_best10 = '".$i_best10."', u_best10 = '".$u_best10."', c_best10 = '".$c_best10."', s_best10 = '".$s_best10."', 
+			best_e10 = '".$best_e10."', best_e_en10 = '".$best_e_en10."', b_best_e10 = '".$b_best_e10."', i_best_e10 = '".$i_best_e10."', u_best_e10 = '".$u_best_e10."', c_best_e10 = '".$c_best_e10."', bast_cate10 = '".$bast_cate10."',
+			
 			style_use = '".$style_use."', style_title = '".$style_title."', style_title_en = '".$style_title_en."', b_style = '".$b_style."', i_style = '".$i_style."', u_style = '".$u_style."', c_style = '".$c_style."', s_style = '".$s_style."',
 			style_e = '".$style_e."', style_e_en = '".$style_e_en."', b_style_e = '".$b_style_e."', i_style_e = '".$i_style_e."', u_style_e = '".$u_style_e."', c_style_e = '".$c_style_e."',
 			journal_use = '".$journal_use."', journal_title = '".$journal_title."', journal_title_en = '".$journal_title_en."', b_journal = '".$b_journal."', i_journal = '".$i_journal."', u_journal = '".$u_journal."', c_journal = '".$c_journal."', s_journal = '".$s_journal."',

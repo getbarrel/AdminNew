@@ -53,6 +53,150 @@ if($slave_db->total){
 	$c_best_e				= $slave_db->dt[c_best_e];
 	$bast_cate				= $slave_db->dt[bast_cate];
 
+	$best_use2				= $slave_db->dt[best_use2];
+	$best_title2			= $slave_db->dt[best_title2];
+	$best_title_en2			= $slave_db->dt[best_title_en2];
+	$b_best2				= $slave_db->dt[b_best2];
+	$i_best2				= $slave_db->dt[i_best2];
+	$u_best2				= $slave_db->dt[u_best2];
+	$c_best2				= $slave_db->dt[c_best2];
+	$s_best2				= $slave_db->dt[s_best2];
+	$best_e2				= $slave_db->dt[best_e2];
+	$best_e_en2				= $slave_db->dt[best_e_en2];
+	$b_best_e2				= $slave_db->dt[b_best_e2];
+	$i_best_e2				= $slave_db->dt[i_best_e2];
+	$u_best_e2				= $slave_db->dt[u_best_e2];
+	$c_best_e2				= $slave_db->dt[c_best_e2];
+	$bast_cate2				= $slave_db->dt[bast_cate2];
+
+	$best_use3				= $slave_db->dt[best_use3];
+	$best_title3			= $slave_db->dt[best_title3];
+	$best_title_en3			= $slave_db->dt[best_title_en3];
+	$b_best3				= $slave_db->dt[b_best3];
+	$i_best3				= $slave_db->dt[i_best3];
+	$u_best3				= $slave_db->dt[u_best3];
+	$c_best3				= $slave_db->dt[c_best3];
+	$s_best3				= $slave_db->dt[s_best3];
+	$best_e3				= $slave_db->dt[best_e3];
+	$best_e_en3				= $slave_db->dt[best_e_en3];
+	$b_best_e3				= $slave_db->dt[b_best_e3];
+	$i_best_e3				= $slave_db->dt[i_best_e3];
+	$u_best_e3				= $slave_db->dt[u_best_e3];
+	$c_best_e3				= $slave_db->dt[c_best_e3];
+	$bast_cate3				= $slave_db->dt[bast_cate3];
+
+	$best_use4				= $slave_db->dt[best_use4];
+	$best_title4			= $slave_db->dt[best_title4];
+	$best_title_en4			= $slave_db->dt[best_title_en4];
+	$b_best4				= $slave_db->dt[b_best4];
+	$i_best4				= $slave_db->dt[i_best4];
+	$u_best4				= $slave_db->dt[u_best4];
+	$c_best4				= $slave_db->dt[c_best4];
+	$s_best4				= $slave_db->dt[s_best4];
+	$best_e4				= $slave_db->dt[best_e4];
+	$best_e_en4				= $slave_db->dt[best_e_en4];
+	$b_best_e4				= $slave_db->dt[b_best_e4];
+	$i_best_e4				= $slave_db->dt[i_best_e4];
+	$u_best_e4				= $slave_db->dt[u_best_e4];
+	$c_best_e4				= $slave_db->dt[c_best_e4];
+	$bast_cate4				= $slave_db->dt[bast_cate4];
+
+	$best_use5				= $slave_db->dt[best_use5];
+	$best_title5			= $slave_db->dt[best_title5];
+	$best_title_en5			= $slave_db->dt[best_title_en5];
+	$b_best5				= $slave_db->dt[b_best5];
+	$i_best5				= $slave_db->dt[i_best5];
+	$u_best5				= $slave_db->dt[u_best5];
+	$c_best5				= $slave_db->dt[c_best5];
+	$s_best5				= $slave_db->dt[s_best5];
+	$best_e5				= $slave_db->dt[best_e5];
+	$best_e_en5				= $slave_db->dt[best_e_en5];
+	$b_best_e5				= $slave_db->dt[b_best_e5];
+	$i_best_e5				= $slave_db->dt[i_best_e5];
+	$u_best_e5				= $slave_db->dt[u_best_e5];
+	$c_best_e5				= $slave_db->dt[c_best_e5];
+	$bast_cate5				= $slave_db->dt[bast_cate5];
+
+	$best_use6				= $slave_db->dt[best_use6];
+	$best_title6			= $slave_db->dt[best_title6];
+	$best_title_en6			= $slave_db->dt[best_title_en6];
+	$b_best6				= $slave_db->dt[b_best6];
+	$i_best6				= $slave_db->dt[i_best6];
+	$u_best6				= $slave_db->dt[u_best6];
+	$c_best6				= $slave_db->dt[c_best6];
+	$s_best6				= $slave_db->dt[s_best6];
+	$best_e6				= $slave_db->dt[best_e6];
+	$best_e_en6				= $slave_db->dt[best_e_en6];
+	$b_best_e6				= $slave_db->dt[b_best_e6];
+	$i_best_e6				= $slave_db->dt[i_best_e6];
+	$u_best_e6				= $slave_db->dt[u_best_e6];
+	$c_best_e6				= $slave_db->dt[c_best_e6];
+	$bast_cate6				= $slave_db->dt[bast_cate6];
+
+	$best_use7				= $slave_db->dt[best_use7];
+	$best_title7			= $slave_db->dt[best_title7];
+	$best_title_en7			= $slave_db->dt[best_title_en7];
+	$b_best7				= $slave_db->dt[b_best7];
+	$i_best7				= $slave_db->dt[i_best7];
+	$u_best7				= $slave_db->dt[u_best7];
+	$c_best7				= $slave_db->dt[c_best7];
+	$s_best7				= $slave_db->dt[s_best7];
+	$best_e7				= $slave_db->dt[best_e7];
+	$best_e_en7				= $slave_db->dt[best_e_en7];
+	$b_best_e7				= $slave_db->dt[b_best_e7];
+	$i_best_e7				= $slave_db->dt[i_best_e7];
+	$u_best_e7				= $slave_db->dt[u_best_e7];
+	$c_best_e7				= $slave_db->dt[c_best_e7];
+	$bast_cate7				= $slave_db->dt[bast_cate7];
+
+	$best_use8				= $slave_db->dt[best_use8];
+	$best_title8			= $slave_db->dt[best_title8];
+	$best_title_en8			= $slave_db->dt[best_title_en8];
+	$b_best8				= $slave_db->dt[b_best8];
+	$i_best8				= $slave_db->dt[i_best8];
+	$u_best8				= $slave_db->dt[u_best8];
+	$c_best8				= $slave_db->dt[c_best8];
+	$s_best8				= $slave_db->dt[s_best8];
+	$best_e8				= $slave_db->dt[best_e8];
+	$best_e_en8				= $slave_db->dt[best_e_en8];
+	$b_best_e8				= $slave_db->dt[b_best_e8];
+	$i_best_e8				= $slave_db->dt[i_best_e8];
+	$u_best_e8				= $slave_db->dt[u_best_e8];
+	$c_best_e8				= $slave_db->dt[c_best_e8];
+	$bast_cate8				= $slave_db->dt[bast_cate8];
+
+	$best_use9				= $slave_db->dt[best_use9];
+	$best_title9			= $slave_db->dt[best_title9];
+	$best_title_en9			= $slave_db->dt[best_title_en9];
+	$b_best9				= $slave_db->dt[b_best9];
+	$i_best9				= $slave_db->dt[i_best9];
+	$u_best9				= $slave_db->dt[u_best9];
+	$c_best9				= $slave_db->dt[c_best9];
+	$s_best9				= $slave_db->dt[s_best9];
+	$best_e9				= $slave_db->dt[best_e9];
+	$best_e_en9				= $slave_db->dt[best_e_en9];
+	$b_best_e9				= $slave_db->dt[b_best_e9];
+	$i_best_e9				= $slave_db->dt[i_best_e9];
+	$u_best_e9				= $slave_db->dt[u_best_e9];
+	$c_best_e9				= $slave_db->dt[c_best_e9];
+	$bast_cate9				= $slave_db->dt[bast_cate9];
+
+	$best_use10				= $slave_db->dt[best_use10];
+	$best_title10			= $slave_db->dt[best_title10];
+	$best_title_en10		= $slave_db->dt[best_title_en10];
+	$b_best10				= $slave_db->dt[b_best10];
+	$i_best10				= $slave_db->dt[i_best10];
+	$u_best10				= $slave_db->dt[u_best10];
+	$c_best10				= $slave_db->dt[c_best10];
+	$s_best10				= $slave_db->dt[s_best10];
+	$best_e10				= $slave_db->dt[best_e10];
+	$best_e_en10			= $slave_db->dt[best_e_en10];
+	$b_best_e10				= $slave_db->dt[b_best_e10];
+	$i_best_e10				= $slave_db->dt[i_best_e10];
+	$u_best_e10				= $slave_db->dt[u_best_e10];
+	$c_best_e10				= $slave_db->dt[c_best_e10];
+	$bast_cate10			= $slave_db->dt[bast_cate10];
+
 	$style_use				= $slave_db->dt[style_use];
 
 	$style_title			= $slave_db->dt[style_title];
@@ -287,7 +431,10 @@ $(function() {
 
 
 
-function loadCategory(obj,target) {
+function loadCategory(obj,target,num) {
+    console.log(obj);
+    console.log(target);
+    console.log(num);
 	var trigger = obj.find('option:selected').val();
 	var form = obj.closest('form').attr('name');
 	var depth = obj.attr('depth');//sel.getAttribute('depth');
@@ -304,11 +451,68 @@ function loadCategory(obj,target) {
 				
 			},  
 			success: function(datas){
-				$('select[class=cid]').each(function(){
-					if(parseInt($(this).attr('depth')) > parseInt(depth)){
-						$(this).find('option').not(':first').remove();
-					}
-				});
+                if(num == 1){
+					$('select[class=cid1]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});    
+                }else if(num == 2){
+                    $('select[class=cid2]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 3){
+                    $('select[class=cid3]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 4){
+                    $('select[class=cid4]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 5){
+                    $('select[class=cid5]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 6){
+                    $('select[class=cid6]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 7){
+                    $('select[class=cid7]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 8){
+                    $('select[class=cid8]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 9){
+                    $('select[class=cid9]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }else if(num == 10){
+                    $('select[class=cid10]').each(function(){
+						if(parseInt($(this).attr('depth')) > parseInt(depth)){
+							$(this).find('option').not(':first').remove();
+						}
+					});
+                }
+				
 				 
 				if(datas != null){
 					$.each(datas, function(i, data){ 
@@ -438,14 +642,14 @@ $Contents .= "
 								</td>
 							</tr>
 							<tr>
-								<td class='search_box_title'><b>베스트아이템 사용유무</b></td>
+								<td class='search_box_title'><b>베스트아이템1 사용유무</b></td>
 								<td class='search_box_item' colspan=3>
-									<input type='radio' class='textbox' name='best_use' id='best_use_y' size=50 value='Y' checked style='border:0px;' ".($best_use == "Y" ? "checked":"")."><label for='best_use_y'> 사용</label>
-									<input type='radio' class='textbox' name='best_use' id='best_use_n' size=50 value='N' style='border:0px;' ".($best_use == "N" ? "checked":"")."><label for='best_use_n'> 미사용</label>
+									<input type='radio' class='textbox' name='best_use' id='best_use_y' size=50 value='Y' style='border:0px;' ".($best_use == "" || $best_use == "Y" ? "checked":"")." onclick='clickChk(1, 0)'><label for='best_use_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use' id='best_use_n' size=50 value='N' style='border:0px;' ".($best_use == "N" ? "checked":"")." onclick='clickChk(1, 1)'><label for='best_use_n'> 미사용</label>
 								</td>
 							</tr>
-							<tr>
-								<td class='search_box_title'><b>베스트아이템 제목</b></td>
+							<tr id='bestTId1'>
+								<td class='search_box_title'><b>베스트아이템1 제목</b></td>
 								<td class='search_box_item'>
 									<table border=0 width=100%>
 									<col width=50px><col width=*>
@@ -453,7 +657,7 @@ $Contents .= "
 										<tr height=28><td>영문</td><td><textarea name='best_title_en' id='best_title_en' style='width:85%;height:15px'>".$best_title_en."</textarea></td></tr>
 									</table>
 								</td>
-								<td class='search_box_title'><b>베스트아이템 제목 설정</b></td>
+								<td class='search_box_title'><b>베스트아이템1 제목 설정</b></td>
 								<td class='search_box_item'>
 									<input type='radio' name='s_best' id='s_best_L' value='L' ".("L" == $s_best || "" == $s_best  ? "checked":"")."><label for='s_best_L'> 좌측정렬</label>
 									<input type='radio' name='s_best' id='s_best_C' value='C' ".("C" == $s_best ? "checked":"")."><label for='s_best_C'> 가운데정렬</label>
@@ -464,16 +668,16 @@ $Contents .= "
 									글자색 <input type='text' name='c_best' id='c_best' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best ? "#000000":$c_best)."'>
 								</td>
 							</tr>
-							<tr>
-								<td class='search_box_title'><b>베스트아이템 간단설명</b></td>
+							<tr id='bestEId1'>
+								<td class='search_box_title'><b>베스트아이템1 간단설명</b></td>
 								<td class='search_box_item'>
 									<table border=0 width=100%>
 									<col width=50px><col width=*>
-										<tr height=28><td>국문</td><td><textarea name='best_e' id='best_title' style='width:85%;height:15px'>".$best_e."</textarea></td></tr>
-										<tr height=28><td>영문</td><td><textarea name='best_e_en' id='best_title_en' style='width:85%;height:15px'>".$best_e_en."</textarea></td></tr>
+										<tr height=28><td>국문</td><td><textarea name='best_e' id='best_e' style='width:85%;height:15px'>".$best_e."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en' id='best_e_en' style='width:85%;height:15px'>".$best_e_en."</textarea></td></tr>
 									</table>
 								</td>
-								<td class='search_box_title'><b>베스트아이템 간단설명 설정</b></td>
+								<td class='search_box_title'><b>베스트아이템1 간단설명 설정</b></td>
 								<td class='search_box_item'>
 									진하게<input type='checkbox' name='b_best_e' id='b_best_e' ".("Y" == $b_best_e ? "checked":"").">
 									기울기<input type='checkbox' name='i_best_e' id='i_best_e' ".("Y" == $i_best_e ? "checked":"").">
@@ -481,15 +685,528 @@ $Contents .= "
 									글자색 <input type='text' name='c_best_e' id='c_best_e' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e ? "#000000":$c_best_e)."'>
 								</td>
 							</tr>
-							<tr>
-								<td class='search_box_title'><b>베스트아이템 설정</b></td>
+							<tr id='bestCId1'>
+								<td class='search_box_title'><b>베스트아이템1 설정</b></td>
 								<td class='search_box_item' colspan=3>
 									<table border=0 cellpadding=0 cellspacing=0>
                                         <tr>
-											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cid0", " class='cid' onChange=\"loadCategory($(this),'cid1',2)\" title='대분류' ", 0, $bast_cate, "cid0") . " </td>
-                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cid1", " class='cid' onChange=\"loadCategory($(this),'cid2',2)\" title='중분류'", 1, $bast_cate, "cid1") . " </td>
-                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cid2", " class='cid' onChange=\"loadCategory($(this),'cid3',2)\" title='소분류'", 2, $bast_cate, "cid2") . " </td>
-                                            <td>" . getCategoryList3("세분류", "cid3", " class='cid' onChange=\"loadCategory($(this),'cid_1',2)\" title='세분류'", 3, $bast_cate, "cid3") . "</td>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cid0", " class='cid1' onChange=\"loadCategory($(this),'cid1',1)\" title='대분류' ", 0, $bast_cate, "cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cid1", " class='cid1' onChange=\"loadCategory($(this),'cid2',1)\" title='중분류'", 1, $bast_cate, "cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cid2", " class='cid1' onChange=\"loadCategory($(this),'cid3',1)\" title='소분류'", 2, $bast_cate, "cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cid3", " class='cid1' onChange=\"loadCategory($(this),'cid_1',1)\" title='세분류'", 3, $bast_cate, "cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템2 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use2' id='best_use2_y' size=50 value='Y' style='border:0px;' ".($best_use2 == "Y" ? "checked":"")." onclick='clickChk(2, 0)'><label for='best_use2_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use2' id='best_use2_n' size=50 value='N' style='border:0px;' ".($best_use2 == "" || $best_use2 == "N" ? "checked":"")." onclick='clickChk(2, 1)'><label for='best_use2_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId2' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템2 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title2' id='best_title2' style='width:85%;height:15px'>".$best_title2."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en2' id='best_title_en2' style='width:85%;height:15px'>".$best_title_en2."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템2 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best2' id='s_best2_L' value='L' ".("L" == $s_best2 || "" == $s_best2  ? "checked":"")."><label for='s_best2_L'> 좌측정렬</label>
+									<input type='radio' name='s_best2' id='s_best2_C' value='C' ".("C" == $s_best2 ? "checked":"")."><label for='s_best2_C'> 가운데정렬</label>
+									<input type='radio' name='s_best2' id='s_best2_R' value='R' ".("R" == $s_best2 ? "checked":"")."><label for='s_best2_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best2' id='b_best2' ".("Y" == $b_best2 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best2' id='i_best2' ".("Y" == $i_best2 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best2' id='u_best2' ".("Y" == $u_best2 ? "checked":"").">
+									글자색 <input type='text' name='c_best2' id='c_best2' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best2 ? "#000000":$c_best2)."'>
+								</td>
+							</tr>
+							<tr id='bestEId2' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템2 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e2' id='best_e2' style='width:85%;height:15px'>".$best_e2."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en2' id='best_e_en2' style='width:85%;height:15px'>".$best_e_en2."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템2 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e2' id='b_best_e2' ".("Y" == $b_best_e2 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e2' id='i_best_e2' ".("Y" == $i_best_e2 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e2' id='u_best_e2' ".("Y" == $u_best_e2 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e2' id='c_best_e2' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e2 ? "#000000":$c_best_e2)."'>
+								</td>
+							</tr>
+							<tr id='bestCId2' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템2 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate2cid0", " class='cid2' onChange=\"loadCategory($(this),'cate2cid1',2)\" title='대분류' ", 0, $bast_cate2, "cate2cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate2cid1", " class='cid2' onChange=\"loadCategory($(this),'cate2cid2',2)\" title='중분류'", 1, $bast_cate2, "cate2cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate2cid2", " class='cid2' onChange=\"loadCategory($(this),'cate2cid3',2)\" title='소분류'", 2, $bast_cate2, "cate2cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate2cid3", " class='cid2' onChange=\"loadCategory($(this),'cate2cid_1',2)\" title='세분류'", 3, $bast_cate2, "cate2cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템3 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use3' id='best_use3_y' size=50 value='Y' style='border:0px;' ".($best_use3 == "Y" ? "checked":"")." onclick='clickChk(3, 0)'><label for='best_use3_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use3' id='best_use3_n' size=50 value='N' style='border:0px;' ".($best_use3 == "" || $best_use3 == "N" ? "checked":"")." onclick='clickChk(3, 1)'><label for='best_use3_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId3' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템3 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title3' id='best_title3' style='width:85%;height:15px'>".$best_title3."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en3' id='best_title_en3' style='width:85%;height:15px'>".$best_title_en3."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템3 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best3' id='s_best3_L' value='L' ".("L" == $s_best3 || "" == $s_best3  ? "checked":"")."><label for='s_best3_L'> 좌측정렬</label>
+									<input type='radio' name='s_best3' id='s_best3_C' value='C' ".("C" == $s_best3 ? "checked":"")."><label for='s_best3_C'> 가운데정렬</label>
+									<input type='radio' name='s_best3' id='s_best3_R' value='R' ".("R" == $s_best3 ? "checked":"")."><label for='s_best3_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best3' id='b_best3' ".("Y" == $b_best3 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best3' id='i_best3' ".("Y" == $i_best3 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best3' id='u_best3' ".("Y" == $u_best3 ? "checked":"").">
+									글자색 <input type='text' name='c_best3' id='c_best3' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best3 ? "#000000":$c_best3)."'>
+								</td>
+							</tr>
+							<tr id='bestEId3' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템3 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e3' id='best_e3' style='width:85%;height:15px'>".$best_e3."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en3' id='best_e_en3' style='width:85%;height:15px'>".$best_e_en3."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템3 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e3' id='b_best_e3' ".("Y" == $b_best_e3 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e3' id='i_best_e3' ".("Y" == $i_best_e3 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e3' id='u_best_e3' ".("Y" == $u_best_e3 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e3' id='c_best_e3' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e3 ? "#000000":$c_best_e3)."'>
+								</td>
+							</tr>
+							<tr id='bestCId3' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템3 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate3cid0", " class='cid3' onChange=\"loadCategory($(this),'cate3cid1',3)\" title='대분류' ", 0, $bast_cate3, "cate3cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate3cid1", " class='cid3' onChange=\"loadCategory($(this),'cate3cid2',3)\" title='중분류'", 1, $bast_cate3, "cate3cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate3cid2", " class='cid3' onChange=\"loadCategory($(this),'cate3cid3',3)\" title='소분류'", 2, $bast_cate3, "cate3cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate3cid3", " class='cid3' onChange=\"loadCategory($(this),'cate3cid_1',3)\" title='세분류'", 3, $bast_cate3, "cate3cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템4 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use4' id='best_use4_y' size=50 value='Y' style='border:0px;' ".($best_use4 == "Y" ? "checked":"")." onclick='clickChk(4, 0)'><label for='best_use4_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use4' id='best_use4_n' size=50 value='N' style='border:0px;' ".($best_use4 == "" || $best_use4 == "N" ? "checked":"")." onclick='clickChk(4, 1)'><label for='best_use4_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId4' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템4 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title4' id='best_title4' style='width:85%;height:15px'>".$best_title4."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en4' id='best_title_en4' style='width:85%;height:15px'>".$best_title_en4."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템4 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best4' id='s_best4_L' value='L' ".("L" == $s_best4 || "" == $s_best4  ? "checked":"")."><label for='s_best4_L'> 좌측정렬</label>
+									<input type='radio' name='s_best4' id='s_best4_C' value='C' ".("C" == $s_best4 ? "checked":"")."><label for='s_best4_C'> 가운데정렬</label>
+									<input type='radio' name='s_best4' id='s_best4_R' value='R' ".("R" == $s_best4 ? "checked":"")."><label for='s_best4_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best4' id='b_best4' ".("Y" == $b_best4 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best4' id='i_best4' ".("Y" == $i_best4 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best4' id='u_best4' ".("Y" == $u_best4 ? "checked":"").">
+									글자색 <input type='text' name='c_best4' id='c_best4' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best4 ? "#000000":$c_best4)."'>
+								</td>
+							</tr>
+							<tr id='bestEId4' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템4 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e4' id='best_e4' style='width:85%;height:15px'>".$best_e4."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en4' id='best_e_en4' style='width:85%;height:15px'>".$best_e_en4."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템4 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e4' id='b_best_e4' ".("Y" == $b_best_e4 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e4' id='i_best_e4' ".("Y" == $i_best_e4 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e4' id='u_best_e4' ".("Y" == $u_best_e4 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e4' id='c_best_e4' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e4 ? "#000000":$c_best_e4)."'>
+								</td>
+							</tr>
+							<tr id='bestCId4' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템4 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate4cid0", " class='cid4' onChange=\"loadCategory($(this),'cate4cid1',4)\" title='대분류' ", 0, $bast_cate4, "cate4cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate4cid1", " class='cid4' onChange=\"loadCategory($(this),'cate4cid2',4)\" title='중분류'", 1, $bast_cate4, "cate4cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate4cid2", " class='cid4' onChange=\"loadCategory($(this),'cate4cid3',4)\" title='소분류'", 2, $bast_cate4, "cate4cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate4cid3", " class='cid4' onChange=\"loadCategory($(this),'cate4cid_1',4)\" title='세분류'", 3, $bast_cate4, "cate4cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템5 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use5' id='best_use5_y' size=50 value='Y' style='border:0px;' ".($best_use5 == "Y" ? "checked":"")." onclick='clickChk(5, 0)'><label for='best_use5_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use5' id='best_use5_n' size=50 value='N' style='border:0px;' ".($best_use5 == "" || $best_use5 == "N" ? "checked":"")." onclick='clickChk(5, 1)'><label for='best_use5_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId5' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템5 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title5' id='best_title5' style='width:85%;height:15px'>".$best_title3."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en5' id='best_title_en5' style='width:85%;height:15px'>".$best_title_en3."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템5 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best5' id='s_best5_L' value='L' ".("L" == $s_best5 || "" == $s_best5  ? "checked":"")."><label for='s_best5_L'> 좌측정렬</label>
+									<input type='radio' name='s_best5' id='s_best5_C' value='C' ".("C" == $s_best5 ? "checked":"")."><label for='s_best5_C'> 가운데정렬</label>
+									<input type='radio' name='s_best5' id='s_best5_R' value='R' ".("R" == $s_best5 ? "checked":"")."><label for='s_best5_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best5' id='b_best5' ".("Y" == $b_best5 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best5' id='i_best5' ".("Y" == $i_best5 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best5' id='u_best5' ".("Y" == $u_best5 ? "checked":"").">
+									글자색 <input type='text' name='c_best5' id='c_best5' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best5 ? "#000000":$c_best5)."'>
+								</td>
+							</tr>
+							<tr id='bestEId5' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템5 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e5' id='best_e5' style='width:85%;height:15px'>".$best_e5."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en5' id='best_e_en5' style='width:85%;height:15px'>".$best_e_en5."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템5 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e5' id='b_best_e5' ".("Y" == $b_best_e5 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e5' id='i_best_e5' ".("Y" == $i_best_e5 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e5' id='u_best_e5' ".("Y" == $u_best_e5 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e5' id='c_best_e5' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e5 ? "#000000":$c_best_e5)."'>
+								</td>
+							</tr>
+							<tr id='bestCId5' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템5 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate5cid0", " class='cid5' onChange=\"loadCategory($(this),'cate5cid1',5)\" title='대분류' ", 0, $bast_cate5, "cate5cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate5cid1", " class='cid5' onChange=\"loadCategory($(this),'cate5cid2',5)\" title='중분류'", 1, $bast_cate5, "cate5cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate5cid2", " class='cid5' onChange=\"loadCategory($(this),'cate5cid3',5)\" title='소분류'", 2, $bast_cate5, "cate5cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate5cid3", " class='cid5' onChange=\"loadCategory($(this),'cate5cid_1',5)\" title='세분류'", 3, $bast_cate5, "cate5cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템6 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use6' id='best_use6_y' size=50 value='Y' style='border:0px;' ".($best_use6 == "Y" ? "checked":"")." onclick='clickChk(6, 0)'><label for='best_use6_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use6' id='best_use6_n' size=50 value='N' style='border:0px;' ".($best_use6 == "" || $best_use6 == "N" ? "checked":"")." onclick='clickChk(6, 1)'><label for='best_use6_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId6' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템6 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title6' id='best_title6' style='width:85%;height:15px'>".$best_title6."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en6' id='best_title_en6' style='width:85%;height:15px'>".$best_title_en6."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템6 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best6' id='s_best6_L' value='L' ".("L" == $s_best6 || "" == $s_best6  ? "checked":"")."><label for='s_best6_L'> 좌측정렬</label>
+									<input type='radio' name='s_best6' id='s_best6_C' value='C' ".("C" == $s_best6 ? "checked":"")."><label for='s_best6_C'> 가운데정렬</label>
+									<input type='radio' name='s_best6' id='s_best6_R' value='R' ".("R" == $s_best6 ? "checked":"")."><label for='s_best6_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best6' id='b_best6' ".("Y" == $b_best6 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best6' id='i_best6' ".("Y" == $i_best6 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best6' id='u_best6' ".("Y" == $u_best6 ? "checked":"").">
+									글자색 <input type='text' name='c_best6' id='c_best6' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best6 ? "#000000":$c_best6)."'>
+								</td>
+							</tr>
+							<tr id='bestEId6' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템6 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e6' id='best_e6' style='width:85%;height:15px'>".$best_e6."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en6' id='best_e_en6' style='width:85%;height:15px'>".$best_e_en6."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템6 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e6' id='b_best_e6' ".("Y" == $b_best_e6 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e6' id='i_best_e6' ".("Y" == $i_best_e6 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e6' id='u_best_e6' ".("Y" == $u_best_e6 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e6' id='c_best_e6' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e6 ? "#000000":$c_best_e6)."'>
+								</td>
+							</tr>
+							<tr id='bestCId6' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템6 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate6cid0", " class='cid6' onChange=\"loadCategory($(this),'cate6cid1',6)\" title='대분류' ", 0, $bast_cate6, "cate6cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate6cid1", " class='cid6' onChange=\"loadCategory($(this),'cate6cid2',6)\" title='중분류'", 1, $bast_cate6, "cate6cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate6cid2", " class='cid6' onChange=\"loadCategory($(this),'cate6cid3',6)\" title='소분류'", 2, $bast_cate6, "cate6cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate6cid3", " class='cid6' onChange=\"loadCategory($(this),'cate6cid_1',6)\" title='세분류'", 3, $bast_cate6, "cate6cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템7 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use7' id='best_use7_y' size=50 value='Y' style='border:0px;' ".($best_use7 == "Y" ? "checked":"")." onclick='clickChk(7, 0)'><label for='best_use7_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use7' id='best_use7_n' size=50 value='N' style='border:0px;' ".($best_use7 == "" || $best_use7 == "N" ? "checked":"")." onclick='clickChk(7, 1)'><label for='best_use7_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId7' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템7 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title7' id='best_title7' style='width:85%;height:15px'>".$best_title7."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en7' id='best_title_en7' style='width:85%;height:15px'>".$best_title_en7."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템7 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best7' id='s_best7_L' value='L' ".("L" == $s_best7 || "" == $s_best7  ? "checked":"")."><label for='s_best7_L'> 좌측정렬</label>
+									<input type='radio' name='s_best7' id='s_best7_C' value='C' ".("C" == $s_best7 ? "checked":"")."><label for='s_best7_C'> 가운데정렬</label>
+									<input type='radio' name='s_best7' id='s_best7_R' value='R' ".("R" == $s_best7 ? "checked":"")."><label for='s_best7_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best7' id='b_best7' ".("Y" == $b_best7 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best7' id='i_best7' ".("Y" == $i_best7 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best7' id='u_best7' ".("Y" == $u_best7 ? "checked":"").">
+									글자색 <input type='text' name='c_best7' id='c_best7' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best7 ? "#000000":$c_best7)."'>
+								</td>
+							</tr>
+							<tr id='bestEId7' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템7 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e7' id='best_e7' style='width:85%;height:15px'>".$best_e7."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en7' id='best_e_en7' style='width:85%;height:15px'>".$best_e_en7."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템7 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e7' id='b_best_e7' ".("Y" == $b_best_e7 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e7' id='i_best_e7' ".("Y" == $i_best_e7 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e7' id='u_best_e7' ".("Y" == $u_best_e7 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e7' id='c_best_e7' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e7 ? "#000000":$c_best_e7)."'>
+								</td>
+							</tr>
+							<tr id='bestCId7' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템7 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate7cid0", " class='cid7' onChange=\"loadCategory($(this),'cate7cid1',7)\" title='대분류' ", 0, $bast_cate7, "cate7cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate7cid1", " class='cid7' onChange=\"loadCategory($(this),'cate7cid2',7)\" title='중분류'", 1, $bast_cate7, "cate7cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate7cid2", " class='cid7' onChange=\"loadCategory($(this),'cate7cid3',7)\" title='소분류'", 2, $bast_cate7, "cate7cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate7cid3", " class='cid7' onChange=\"loadCategory($(this),'cate7cid_1',7)\" title='세분류'", 3, $bast_cate7, "cate7cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템8 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use8' id='best_use8_y' size=50 value='Y' style='border:0px;' ".($best_use8 == "Y" ? "checked":"")." onclick='clickChk(8, 0)'><label for='best_use8_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use8' id='best_use8_n' size=50 value='N' style='border:0px;' ".($best_use8 == "" || $best_use8 == "N" ? "checked":"")." onclick='clickChk(8, 1)'><label for='best_use8_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId8' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템8 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title8' id='best_title8' style='width:85%;height:15px'>".$best_title8."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en8' id='best_title_en8' style='width:85%;height:15px'>".$best_title_en8."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템8 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best8' id='s_best8_L' value='L' ".("L" == $s_best8 || "" == $s_best8  ? "checked":"")."><label for='s_best8_L'> 좌측정렬</label>
+									<input type='radio' name='s_best8' id='s_best8_C' value='C' ".("C" == $s_best8 ? "checked":"")."><label for='s_best8_C'> 가운데정렬</label>
+									<input type='radio' name='s_best8' id='s_best8_R' value='R' ".("R" == $s_best8 ? "checked":"")."><label for='s_best8_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best8' id='b_best8' ".("Y" == $b_best8 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best8' id='i_best8' ".("Y" == $i_best8 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best8' id='u_best8' ".("Y" == $u_best8 ? "checked":"").">
+									글자색 <input type='text' name='c_best8' id='c_best8' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best8 ? "#000000":$c_best8)."'>
+								</td>
+							</tr>
+							<tr id='bestEId8' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템8 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e8' id='best_e8' style='width:85%;height:15px'>".$best_e8."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en8' id='best_e_en8' style='width:85%;height:15px'>".$best_e_en8."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템8 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e8' id='b_best_e8' ".("Y" == $b_best_e8 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e8' id='i_best_e8' ".("Y" == $i_best_e8 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e8' id='u_best_e8' ".("Y" == $u_best_e8 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e8' id='c_best_e8' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e8 ? "#000000":$c_best_e8)."'>
+								</td>
+							</tr>
+							<tr id='bestCId8' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템8 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate8cid0", " class='cid8' onChange=\"loadCategory($(this),'cate8cid1',8)\" title='대분류' ", 0, $bast_cate8, "cate8cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate8cid1", " class='cid8' onChange=\"loadCategory($(this),'cate8cid2',8)\" title='중분류'", 1, $bast_cate8, "cate8cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate8cid2", " class='cid8' onChange=\"loadCategory($(this),'cate8cid3',8)\" title='소분류'", 2, $bast_cate8, "cate8cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate8cid3", " class='cid8' onChange=\"loadCategory($(this),'cate8cid_1',8)\" title='세분류'", 3, $bast_cate8, "cate8cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템9 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use9' id='best_use9_y' size=50 value='Y' style='border:0px;' ".($best_use9 == "Y" ? "checked":"")." onclick='clickChk(9, 0)'><label for='best_use9_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use9' id='best_use9_n' size=50 value='N' style='border:0px;' ".($best_use9 == "" || $best_use9 == "N" ? "checked":"")." onclick='clickChk(9, 1)'><label for='best_use9_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId9' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템9 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title9' id='best_title9' style='width:85%;height:15px'>".$best_title9."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en9' id='best_title_en9' style='width:85%;height:15px'>".$best_title_en9."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템9 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best9' id='s_best9_L' value='L' ".("L" == $s_best9 || "" == $s_best9  ? "checked":"")."><label for='s_best9_L'> 좌측정렬</label>
+									<input type='radio' name='s_best9' id='s_best9_C' value='C' ".("C" == $s_best9 ? "checked":"")."><label for='s_best9_C'> 가운데정렬</label>
+									<input type='radio' name='s_best9' id='s_best9_R' value='R' ".("R" == $s_best9 ? "checked":"")."><label for='s_best9_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best9' id='b_best9' ".("Y" == $b_best9 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best9' id='i_best9' ".("Y" == $i_best9 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best9' id='u_best9' ".("Y" == $u_best9 ? "checked":"").">
+									글자색 <input type='text' name='c_best9' id='c_best9' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best9 ? "#000000":$c_best9)."'>
+								</td>
+							</tr>
+							<tr id='bestEId9' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템9 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e9' id='best_e9' style='width:85%;height:15px'>".$best_e9."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en9' id='best_e_en9' style='width:85%;height:15px'>".$best_e_en9."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템9 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e9' id='b_best_e9' ".("Y" == $b_best_e9 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e9' id='i_best_e9' ".("Y" == $i_best_e9 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e9' id='u_best_e9' ".("Y" == $u_best_e9 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e9' id='c_best_e9' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e9 ? "#000000":$c_best_e9)."'>
+								</td>
+							</tr>
+							<tr id='bestCId9' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템9 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate9cid0", " class='cid9' onChange=\"loadCategory($(this),'cate9cid1',9)\" title='대분류' ", 0, $bast_cate9, "cate9cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate9cid1", " class='cid9' onChange=\"loadCategory($(this),'cate9cid2',9)\" title='중분류'", 1, $bast_cate9, "cate9cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate9cid2", " class='cid9' onChange=\"loadCategory($(this),'cate9cid3',9)\" title='소분류'", 2, $bast_cate9, "cate9cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate9cid3", " class='cid9' onChange=\"loadCategory($(this),'cate9cid_1',9)\" title='세분류'", 3, $bast_cate9, "cate9cid3") . "</td>
+                                        </tr>
+                                    </table>
+                                </td>
+							</tr>
+							<tr>
+								<td class='search_box_title'><b>베스트아이템10 사용유무</b></td>
+								<td class='search_box_item' colspan=3>
+									<input type='radio' class='textbox' name='best_use10' id='best_use10_y' size=50 value='Y' style='border:0px;' ".($best_use10 == "Y" ? "checked":"")." onclick='clickChk(10, 0)'><label for='best_use10_y'> 사용</label>
+									<input type='radio' class='textbox' name='best_use10' id='best_use10_n' size=50 value='N' style='border:0px;' ".($best_use10 == "" || $best_use10 == "N" ? "checked":"")." onclick='clickChk(10, 1)'><label for='best_use10_n'> 미사용</label>
+								</td>
+							</tr>
+							<tr id='bestTId10' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템10 제목</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_title10' id='best_title10' style='width:85%;height:15px'>".$best_title10."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_title_en10' id='best_title_en10' style='width:85%;height:15px'>".$best_title_en10."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템10 제목 설정</b></td>
+								<td class='search_box_item'>
+									<input type='radio' name='s_best10' id='s_best10_L' value='L' ".("L" == $s_best10 || "" == $s_best10  ? "checked":"")."><label for='s_best10_L'> 좌측정렬</label>
+									<input type='radio' name='s_best10' id='s_best10_C' value='C' ".("C" == $s_best10 ? "checked":"")."><label for='s_best10_C'> 가운데정렬</label>
+									<input type='radio' name='s_best10' id='s_best10_R' value='R' ".("R" == $s_best10 ? "checked":"")."><label for='s_best10_R'> 우측정렬</label><br><br>
+									진하게<input type='checkbox' name='b_best10' id='b_best10' ".("Y" == $b_best10 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best10' id='i_best10' ".("Y" == $i_best10 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best10' id='u_best10' ".("Y" == $u_best10 ? "checked":"").">
+									글자색 <input type='text' name='c_best10' id='c_best10' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best10 ? "#000000":$c_best10)."'>
+								</td>
+							</tr>
+							<tr id='bestEId10' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템10 간단설명</b></td>
+								<td class='search_box_item'>
+									<table border=0 width=100%>
+									<col width=50px><col width=*>
+										<tr height=28><td>국문</td><td><textarea name='best_e10' id='best_e10' style='width:85%;height:15px'>".$best_e10."</textarea></td></tr>
+										<tr height=28><td>영문</td><td><textarea name='best_e_en10' id='best_e_en10' style='width:85%;height:15px'>".$best_e_en10."</textarea></td></tr>
+									</table>
+								</td>
+								<td class='search_box_title'><b>베스트아이템10 간단설명 설정</b></td>
+								<td class='search_box_item'>
+									진하게<input type='checkbox' name='b_best_e10' id='b_best_e10' ".("Y" == $b_best_e10 ? "checked":"").">
+									기울기<input type='checkbox' name='i_best_e10' id='i_best_e10' ".("Y" == $i_best_e10 ? "checked":"").">
+									밑줄<input type='checkbox' name='u_best_e10' id='u_best_e10' ".("Y" == $u_best_e10 ? "checked":"").">
+									글자색 <input type='text' name='c_best_e10' id='c_best_e10' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_best_e10 ? "#000000":$c_best_e10)."'>
+								</td>
+							</tr>
+							<tr id='bestCId10' style='display:none'>
+								<td class='search_box_title'><b>베스트아이템10 설정</b></td>
+								<td class='search_box_item' colspan=3>
+									<table border=0 cellpadding=0 cellspacing=0>
+                                        <tr>
+											<td style='padding-right:5px;'>" . getCategoryList3("대분류", "cate10cid0", " class='cid10' onChange=\"loadCategory($(this),'cate10cid1',10)\" title='대분류' ", 0, $bast_cate10, "cate10cid0") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("중분류", "cate10cid1", " class='cid10' onChange=\"loadCategory($(this),'cate10cid2',10)\" title='중분류'", 1, $bast_cate10, "cate10cid1") . " </td>
+                                            <td style='padding-right:5px;'>" . getCategoryList3("소분류", "cate10cid2", " class='cid10' onChange=\"loadCategory($(this),'cate10cid3',10)\" title='소분류'", 2, $bast_cate10, "cate10cid2") . " </td>
+                                            <td>" . getCategoryList3("세분류", "cate10cid3", " class='cid10' onChange=\"loadCategory($(this),'cate10cid_1',10)\" title='세분류'", 3, $bast_cate10, "cate10cid3") . "</td>
                                         </tr>
                                     </table>
                                 </td>
@@ -908,6 +1625,79 @@ function select_date(FromDate,ToDate,dType) {
 	$(\"#end_datepicker\").val(ToDate);
 }
 
+function clickChk(num, val){
+    if(val == 0){
+        $('#bestTId'+num).css('display','');
+        $('#bestEId'+num).css('display','');
+        $('#bestCId'+num).css('display','');
+    }else if(val == 1){
+        $('#bestTId'+num).css('display','none');
+        $('#bestEId'+num).css('display','none');
+        $('#bestCId'+num).css('display','none');
+    }
+}
+
+
+
+if('$best_use' == 'Y' || '$best_use' == ''){
+	clickChk(1, 0)
+}else{
+	clickChk(1, 1)
+}
+
+if('$best_use2' == 'Y'){
+	clickChk(2, 0)
+}else{
+	clickChk(2, 1)
+}
+
+if('$best_use3' == 'Y'){
+	clickChk(3, 0)
+}else{
+	clickChk(3, 1)
+}
+
+if('$best_use4' == 'Y'){
+	clickChk(4, 0)
+}else{
+	clickChk(4, 1)
+}
+
+if('$best_use5' == 'Y'){
+	clickChk(5, 0)
+}else{
+	clickChk(5, 1)
+}
+
+if('$best_use6' == 'Y'){
+	clickChk(6, 0)
+}else{
+	clickChk(6, 1)
+}
+
+if('$best_use7' == 'Y'){
+	clickChk(7, 0)
+}else{
+	clickChk(7, 1)
+}
+
+if('$best_use8' == 'Y'){
+	clickChk(8, 0)
+}else{
+	clickChk(8, 1)
+}
+
+if('$best_use9' == 'Y'){
+	clickChk(9, 0)
+}else{
+	clickChk(9, 1)
+}
+
+if('$best_use10' == 'Y'){
+	clickChk(10, 0)
+}else{
+	clickChk(10, 1)
+}
 
 sortGroup(true);
 my_init('$group_total');
