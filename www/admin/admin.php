@@ -127,12 +127,12 @@ if($act== "cert") {	// 2차 인증 항목 추가
 										//echo $ig_chk_DATA["admin_id"];
 										//echo "<hr>";
 									if(trim($ig_chk_DATA["admin_id"]) == trim($id)) {
-										echo"
+										/*echo"
 											<script>alert('이미 로그인중인 계정입니다.');
 											document.location.href='./'
 											</script>
 											";
-										exit;
+										exit;*/
 									}
 								}
 							}
