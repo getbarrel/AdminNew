@@ -110,7 +110,7 @@ function SubContentSave(frm,vMode)
 	}
 }
 
-function setContent(cname, cid, depth, global_cname, b_preface, i_preface, u_preface, c_preface, content_link, content_link_yn, content_use, content_view, content_type)
+function setContent(cname, cid, depth, global_cname, b_preface, i_preface, u_preface, c_preface, content_link, content_link_yn, content_use, content_view, content_type, content_list_use)
 {
 	cname			= cname.replace("&quot;","\"");
 	cname			= cname.replace("&#39;","'");
@@ -154,6 +154,12 @@ function setContent(cname, cid, depth, global_cname, b_preface, i_preface, u_pre
 		$('#content_use_1').attr('checked',true);
 	}else if(content_use == "0"){
 		$('#content_use_0').attr('checked',true);
+	}
+
+	if(content_list_use == "1"){
+		$('#content_list_use_1').attr('checked',true);
+	}else if(content_list_use == "0"){
+		$('#content_list_use_0').attr('checked',true);
 	}
 
 	if(content_view == "1"){	

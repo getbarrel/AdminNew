@@ -1959,7 +1959,8 @@ if($mode == "modify"){
 					c_preface = '$c_preface', 
 					content_link = '$content_link', 
 					content_link_yn = '$content_link_yn', 
-					content_use = '$content_use', 
+					content_use = '$content_use',
+                    content_list_use = '$content_list_use',
 					content_view = '$content_view', 
 					content_type = '$content_type'
 				WHERE 
@@ -2092,9 +2093,9 @@ if ($mode == "insert"){
 		}
 
 		$sql = "insert into shop_content_class
-				(cid, depth, vlevel1, vlevel2, vlevel3, vlevel4, vlevel5, cname, global_cname, b_preface, i_preface, u_preface, c_preface, content_link, content_link_yn, content_use, content_view, content_type, regdate)
+				(cid, depth, vlevel1, vlevel2, vlevel3, vlevel4, vlevel5, cname, global_cname, b_preface, i_preface, u_preface, c_preface, content_link, content_link_yn, content_use, content_list_use, content_view, content_type, regdate)
 				values
-				('$sub_cid', '$sub_depth','$level1','$level2','$level3','$level4','$level5', '$cname', '$global_cname', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$content_link', '$content_link_yn', '$content_use', '$content_view', '$content_type', NOW())
+				('$sub_cid', '$sub_depth','$level1','$level2','$level3','$level4','$level5', '$cname', '$global_cname', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$content_link', '$content_link_yn', '$content_use', '$content_list_use', '$content_view', '$content_type', NOW())
 		";
 		$db->query($sql);
 

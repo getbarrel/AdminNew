@@ -225,6 +225,13 @@ $Contents .= "
 						<input type='radio' name='content_type' id='content_type_4' value='4'><label for='content_type_4'> 리뷰</label> * 카테고리 여부가 N인 경우에만 적용 됩니다.
 					</td>
 				</tr>
+				<tr bgcolor=#ffffff>
+					<td class='input_box_title' nowrap> 	<b>전체리스트숨김</b></td>
+					<td class='input_box_item' nowrap colspan='3'>
+						<input type='radio' name='content_list_use' id='content_list_use_1' value='1'><label for='content_list_use_1'> 사용</label>
+						<input type='radio' name='content_list_use' id='content_list_use_0' value='0' checked><label for='content_list_use_1'> 미사용</label> * 사용 처리 시 전체 리스트에 노출되지 않음
+					</td>
+				</tr>
 				</table><br>
 				
 				<table cellpadding=0 cellspacing=0 width=100% style='padding-top:20px'>
@@ -322,6 +329,13 @@ $Contents .= "
 						<input type='radio' name='content_type' id='content_type_2' value='2'><label for='content_type_2'> 스타일</label>
 						<input type='radio' name='content_type' id='content_type_3' value='3'><label for='content_type_3'> 프로필</label>
 						<input type='radio' name='content_type' id='content_type_4' value='4'><label for='content_type_4'> 리뷰</label> * 카테고리 여부가 N인 경우에만 적용 됩니다.
+					</td>
+				</tr>
+				<tr bgcolor=#ffffff>
+					<td class='input_box_title' nowrap> 	<b>전체리스트숨김</b></td>
+					<td class='input_box_item' nowrap colspan='3'>
+						<input type='radio' name='content_list_use' id='content_list_use_1' value='1'><label for='content_list_use_1'> 사용</label>
+						<input type='radio' name='content_list_use' id='content_list_use_0' value='0' checked><label for='content_list_use_1'> 미사용</label> * 사용 처리 시 전체 리스트에 노출되지 않음
 					</td>
 				</tr>
 				</table>";
@@ -469,6 +483,7 @@ function PrintNode($mdb){
 	$content_use	= $mdb->dt[content_use];
 	$content_view	= $mdb->dt[content_view];
 	$content_type	= $mdb->dt[content_type];
+    $content_list_use = $mdb->dt[content_list_use];
 
 	$cid1 = substr($cid,0,3);
 	$cid2 = substr($cid,3,3);
@@ -484,7 +499,7 @@ function PrintNode($mdb){
 
 	return "	var node$cid = new TreeNode('$cname', '../resources/Common_TreeNode_CodeManage.gif', '../resources/Common_TreeNode_CodeManage.gif');
 	node$cid.expanded = true;
-	node$cid.action = \"setContent('$cname', '$cid', $depth, '$global_cname', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$content_link', '$content_link_yn', '$content_use', '$content_view', '$content_type')\";
+	node$cid.action = \"setContent('$cname', '$cid', $depth, '$global_cname', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$content_link', '$content_link_yn', '$content_use', '$content_view', '$content_type', '$content_list_use')\";
 	rootnode.addNode(node$cid);\n\n";
 }
 
@@ -505,6 +520,7 @@ function PrintGroupNode($mdb)
 	$content_use	= $mdb->dt[content_use];
 	$content_view	= $mdb->dt[content_view];
 	$content_type	= $mdb->dt[content_type];
+    $content_list_use = $mdb->dt[content_list_use];
 
 	$cid1 = substr($mcid,0,3);
 	$cid2 = substr($mcid,3,3);
@@ -555,7 +571,7 @@ function PrintGroupNode($mdb)
 
 	$mstring .=  "	groupnode$mcid.tooltip = '$cname';
 		groupnode$mcid.id ='nodeid$mcid';
-		groupnode$mcid.action = \"setContent('$cname', '$mcid', $depth, '$global_cname', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$content_link', '$content_link_yn', '$content_use', '$content_view', '$content_type')\";
+		groupnode$mcid.action = \"setContent('$cname', '$mcid', $depth, '$global_cname', '$b_preface', '$i_preface', '$u_preface', '$c_preface', '$content_link', '$content_link_yn', '$content_use', '$content_view', '$content_type', '$content_list_use')\";
 		$ParentNodeCode.addNode(groupnode$mcid);\n\n";
 
 	return $mstring;
