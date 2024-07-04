@@ -433,6 +433,8 @@ fortune_120417_1.jpg","validation"=>"true","sample"=>"","width"=>"300");
     $goods_basic_sample[] = array("code"=>"slistNum","title"=>"리스트작은이미지","desc"=>"","type"=>"","comment"=>"0으로 설정 시 1번 이미지가 상품리스트 이미지로 등록 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"true","sample"=>"2");
     $goods_basic_sample[] = array("code"=>"nailNum","title"=>"썸네일이미지","desc"=>"","type"=>"","comment"=>"0으로 설정 시 1번 이미지가 상품리스트 이미지로 등록 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"true","sample"=>"3");
     $goods_basic_sample[] = array("code"=>"pattNum","title"=>"패턴이미지","desc"=>"","type"=>"","comment"=>"0으로 설정 시 1번 이미지가 상품리스트 이미지로 등록 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"true","sample"=>"4");
+    $goods_basic_sample[] = array("code"=>"marker_left_dn","title"=>"상품마커좌측하단","desc"=>"","type"=>"","comment"=>"0으로 설정 미노출 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"true","sample"=>"0");
+    $goods_basic_sample[] = array("code"=>"marker_right_dn","title"=>"상품마커우측하단","desc"=>"","type"=>"","comment"=>"0으로 설정 미노출 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"true","sample"=>"0");
     $goods_basic_sample[] = array("code"=>"admin_memo","code_group"=>"","title"=>"관리자메모","desc"=>"","type"=>"","comment"=>"관리자 메모를 입력해주세요. ","validation"=>"true","sample"=>"","width"=>"300");
     /*
     $goods_basic_sample[] = array("code"=>"pattern_image","code_group"=>"","title"=>"패턴 이미지","desc"=>"","type"=>"","comment"=>"상품 이미지 파일명을 입력해주세요.

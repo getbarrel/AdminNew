@@ -91,7 +91,7 @@ $Contents .=	"
 							<td class='input_box_item' id='select_category_path3' align=left style='padding-left:10px;' colspan=3>";
 							if($admininfo["com_type"] == "A"){
 							$Contents .="
-								<img src='../images/".$admininfo["language"]."/btn_mgr_basic.gif' align=absmiddle onclick=\"location.href='batch_products_upload_excel_v0.2.xlsx'\" style='cursor:pointer;'>
+								<img src='../images/".$admininfo["language"]."/btn_mgr_basic.gif' align=absmiddle onclick=\"location.href='batch_products_upload_excel_v0.3.xlsx'\" style='cursor:pointer;'>
 								<!-- img src='../images/".$admininfo["language"]."/btn_mgr_wms.gif' align=absmiddle onclick=\"location.href='batch_products_upload_excel_wms.xls'\" style='cursor:pointer;'> 
 								<img src='../images/".$admininfo["language"]."/btn_seller.gif' align=absmiddle onclick=\"location.href='batch_products_upload_excel_seller.xls'\" style='cursor:pointer;' -->";
 							}else{

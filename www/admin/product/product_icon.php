@@ -54,10 +54,11 @@ $Contents02 = "
 	<div style='width:100%;height:350px;'>
 	<table width='100%' cellpadding=0 cellspacing=0 align='left' class='list_table_box' style='margin-top:3px;'>
 	  <tr height=27 bgcolor=#efefef align=center style='font-weight:bold'>
-		<td class='s_td' style='width:20%; padding:0; text-align:center;' class='s_td'> 아이콘타입</td>
-	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='s_td'> 아이콘명</td>
-	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='m_td'> 아이콘 이미지 파일</td>
-	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='m_td'> 모바일아이콘 이미지 파일</td>
+		<td class='s_td' style='width:10%; padding:0; text-align:center;' class='s_td'> 아이콘타입</td>
+	    <td class='m_td' style='width:10%; padding:0; text-align:center;' class='s_td'> 아이콘명</td>
+	    <td class='m_td' style='width:10%; padding:0; text-align:center;' class='s_td'> 아이콘번호</td>
+	    <td class='m_td' style='width:15%; padding:0; text-align:center;' class='m_td'> 아이콘 이미지 파일</td>
+	    <td class='m_td' style='width:15%; padding:0; text-align:center;' class='m_td'> 모바일아이콘 이미지 파일</td>
 	    <td class='m_td' style='width:10%; padding:0; text-align:center;' class='m_td'> 사용유무</td>
 	    <td class='m_td' style='width:20%; padding:0; text-align:center;' class='m_td'> 등록일자</td>
 	    <td class='e_td' style='width:10%; padding:0; text-align:center;' class='e_td'> 관리</td>
@@ -98,6 +99,7 @@ if($total){
 		  <tr bgcolor=#ffffff height=30 align=center>
 			<td class='list_box_td list_bg_gray'>".$icon_type."</td>
 		    <td class='list_box_td list_bg_gray'>".$db->dt[icon_name]."</td>
+		    <td class='list_box_td list_bg_gray'>".$db->dt[idx]."</td>
 		    <td class='list_box_td'><img src='".$_SESSION["admin_config"][mall_data_root]."/images/icon/".$db->dt[idx].".gif' align='absmiddle' style='vertical-align:middle'></td>
 			";
 

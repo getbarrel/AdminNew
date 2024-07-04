@@ -228,6 +228,8 @@ if($act == "update" || $act == "tmp_update"){	//상품 업데이트
 				$sql .= ($check_infos[update_check_slistNum] == '1'?", slistNum = '$slistNum'":"");
 				$sql .= ($check_infos[update_check_nailNum] == '1'?", nailNum = '$nailNum'":"");
 				$sql .= ($check_infos[update_check_pattNum] == '1'?", pattNum = '$pattNum'":"");
+				$sql .= ($check_infos[update_check_marker_left_dn] == '1'?", marker_left_dn = '$marker_left_dn'":"");
+				$sql .= ($check_infos[update_check_marker_right_dn] == '1'?", marker_right_dn = '$marker_right_dn'":"");
 				$sql .= ($check_infos[update_check_c_preface] == '1'?", c_preface = '$c_preface'":"");
 					
 				$sql .= ($check_infos[update_check_wholesale_allow_byoneperson_cnt] == '1'?", allow_byoneperson_cnt = '$allow_byoneperson_cnt'":"");

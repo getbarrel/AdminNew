@@ -102,6 +102,8 @@ if($page_type == 'input'){
     $goods_basic_sample[] = array("code"=>"slistNum","title"=>"리스트작은이미지","desc"=>"","type"=>"","comment"=>"0으로 설정 시 1번 이미지가 상품리스트 이미지로 등록 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"false","sample"=>"2");
     $goods_basic_sample[] = array("code"=>"nailNum","title"=>"썸네일이미지","desc"=>"","type"=>"","comment"=>"0으로 설정 시 1번 이미지가 상품리스트 이미지로 등록 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"false","sample"=>"3");
     $goods_basic_sample[] = array("code"=>"pattNum","title"=>"패턴이미지","desc"=>"","type"=>"","comment"=>"0으로 설정 시 1번 이미지가 상품리스트 이미지로 등록 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"false","sample"=>"4");
+    $goods_basic_sample[] = array("code"=>"marker_left_dn","title"=>"상품마커좌측하단","desc"=>"","type"=>"","comment"=>"0으로 설정 미노출 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"false","sample"=>"0");
+    $goods_basic_sample[] = array("code"=>"marker_right_dn","title"=>"상품마커우측하단","desc"=>"","type"=>"","comment"=>"0으로 설정 미노출 됩니다.(빈칸으로 등록시 0으로 저장됩니다.)","validation"=>"false","sample"=>"0");
 
 }else if($page_type == 'update'){
 
