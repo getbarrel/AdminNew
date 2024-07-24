@@ -175,7 +175,8 @@ if(count($goods_datas) == 0){
 		}else{
 			$img_str = "../image/no_img.gif";
 		}*/
-		$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], "s", $goods_datas[$i]);
+		//$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], "s", $goods_datas[$i]);
+        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $goods_datas[$i][id], "slist", $goods_datas[$i]);
 
 		switch($goods_datas[$i][state]){	
 			case '1':
