@@ -916,6 +916,34 @@
 		exit;
 	}
 
+    //************메일폼 화면 Test E-mail 발송 ************* 2024-08-07 HM
+    if ($update_kind == "testemail"){
+        include($_SERVER["DOCUMENT_ROOT"]."/include/email.send.php");
+
+        $db = new Database;
+
+        $sql = "select mc_mail_title, mc_mail_text from ".TBL_SHOP_MAILSEND_CONFIG." where mc_ix ='".$_POST[mc_ix]."' ";
+        $db->query($sql);
+        $db->fetch();
+
+        $mc_mail_title  = $db->dt[mc_mail_title];
+        $mc_mail_text   = $db->dt[mc_mail_text];
+
+        $mail_subject = "관리자님, ".$mc_mail_title;
+
+        $mail_info[mem_name]    = '관리자';
+        $mail_info[mem_mail]    = $_POST[mail_addrs];
+        $mail_info[mem_id]      = 'SendTestID';
+
+        if(SendMail($mail_info, $mail_subject,$mc_mail_text,"","","Y")){
+            echo "Yes";
+        }else{
+            echo "No";
+        }
+
+        exit;
+    }
+
 	//************대량 E-mail 발송 ************* 2014-05-22 JBG
 	if ($update_kind == "bigemail"){
 

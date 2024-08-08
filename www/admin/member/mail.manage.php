@@ -15,6 +15,48 @@ function SubmitX(frm){
 	return true;
 }
 
+function testSendMail(mcIx){
+    if($('#mainName').val() == ''){
+        alert('전송할 이메일 주소를 입력해 주세요.');
+		return false;
+	}
+    
+    if (emailCheck($('#mainName').val())) {
+		
+	} else {
+		alert('유효하지 않은 이메일 주소입니다.');
+        return false;
+	}
+    
+    $.ajax({
+		type: 'POST',
+		data: {'update_kind': 'testemail', 'mc_ix': mcIx, 'mail_addrs': $('#mainName').val()},
+		url: './member_batch.act.php',
+		dataType: 'json',
+		async: true,
+		error: function(e) {
+            alert('메일 전송 요청이 실패 되었습니다.');
+			return false;
+            //console.log(e); 
+        },
+		success: function(d) {
+			//console.log(d);
+            alert('메일 전송 요청이 완료 되었습니다.');
+			return false;
+		}
+	});
+    
+}
+
+function emailCheck(email_address){     
+	email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
+	if(!email_regex.test(email_address)){ 
+		return false; 
+	}else{
+		return true;
+	}
+}
+
 </Script>
 ";
 $db = new Database;
@@ -200,6 +242,9 @@ $Contents ="
 		 </table>
 		<table cellpadding=0 cellspacing=0 width=100%;>
         <tr height=60>
+        	<td>
+        		<input type='text' size='20px;' id='mainName'><a href=javascript:testSendMail('$mc_ix')> 테스트메일보내기</a>
+        	</td>
 			<td bgcolor='#ffffff' align=right style='padding:0px;'>
 				<input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 align=absmiddle valign='top'>
 				<a href='mail.manage.list2.php'><img src='../images/".$admininfo["language"]."/b_cancel.gif' border=0 align=absmiddle valign='top'></a>
