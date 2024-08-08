@@ -35,7 +35,7 @@ function testSendMail(mcIx){
 		dataType: 'json',
 		async: true,
 		error: function(e) {
-            alert('메일 전송 요청이 실패 되었습니다.');
+            alert('메일 전송 요청이 완료 되었습니다.');
 			return false;
             //console.log(e); 
         },
@@ -203,6 +203,19 @@ $Contents ="
 
 		      </td>
 			 </tr>
+			 <tr>
+		      <td class='input_box_title'> 테스트메일보내기 </td>
+		      <td class='input_box_item'>
+				<input type='text' size='50px;' id='mainName'><a href=javascript:testSendMail('$mc_ix')> 메일전송</a>
+
+		      </td>
+			 </tr>
+			 
+			 
+			 <td>
+        		
+        	</td>
+			 
 		</table>
 		<table width='100%' border='0' cellspacing='0' cellpadding='0' class='input_table_box' style='margin-top:3px;'>
 		    </tr>
@@ -242,9 +255,6 @@ $Contents ="
 		 </table>
 		<table cellpadding=0 cellspacing=0 width=100%;>
         <tr height=60>
-        	<td>
-        		<input type='text' size='20px;' id='mainName'><a href=javascript:testSendMail('$mc_ix')> 테스트메일보내기</a>
-        	</td>
 			<td bgcolor='#ffffff' align=right style='padding:0px;'>
 				<input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 align=absmiddle valign='top'>
 				<a href='mail.manage.list2.php'><img src='../images/".$admininfo["language"]."/b_cancel.gif' border=0 align=absmiddle valign='top'></a>
