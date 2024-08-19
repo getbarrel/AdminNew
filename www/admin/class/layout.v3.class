@@ -2981,6 +2981,8 @@ function PrintLogSummaryLeft(){
 
 					if($strlen == "2") {
 						$wel_reData = mb_strcut($str, 0, 3, "UTF-8")."*";
+					} else if($strlen == "1") {
+                    	$wel_reData = $str_head;
 					} else {
 						$wel_reData = $str_head.$str_body.$str_tail;
 					}
