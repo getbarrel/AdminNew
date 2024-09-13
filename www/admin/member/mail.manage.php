@@ -48,6 +48,28 @@ function testSendMail(mcIx){
     
 }
 
+function allSendMail(mcIx){
+    if(confirm('가입되어있는 회원 전체에 메일을 보냅니다.\\n\\n메일을 보내시겠습니까?')){        
+        $.ajax({
+			type: 'POST',
+			data: { 'update_kind': 'allemail', 'mc_ix': mcIx },
+			url: './member_batch.act.php',
+			dataType: 'json',
+			async: true,
+			error: function (xhr, status, error) {
+                // 에러 발생 시 자세한 내용을 콘솔에 출력
+                console.error('에러 발생:', xhr.status, status, error);
+                console.error('응답 내용:', xhr.responseText); // 서버로부터 받은 에러 메시지 확인
+                alert('메일 전송 요청 중 에러가 발생했습니다.');
+            },
+			success: function (d) {
+				console.log('성공:', d); // 성공 내용을 콘솔에 출력
+				alert('메일 전송 요청이 완료되었습니다.');
+			}
+		});   
+    }
+}
+
 function emailCheck(email_address){     
 	email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
 	if(!email_regex.test(email_address)){ 
@@ -95,6 +117,12 @@ if($db->total){
 
 if($mc_code != ""){
 	$thisfile = load_template($_SERVER["DOCUMENT_ROOT"]."/mallstory_templete/".SiteUseTemplete($HTTP_HOST)."/ms_mail_".$mc_code.".htm");
+}
+
+$sendAllFrm = "style='display:none;'";
+
+if($mc_ix == 125 || $mc_ix == 126){
+	$sendAllFrm = "style='display:'";
 }
 
 $Contents ="
@@ -211,11 +239,13 @@ $Contents ="
 		      </td>
 			 </tr>
 			 
-			 
-			 <td>
-        		
-        	</td>
-			 
+			 <tr $sendAllFrm>
+		      <td class='input_box_title'> 전체메일보내기 </td>
+		      <td class='input_box_item'>
+				<a href=javascript:allSendMail('$mc_ix')> 메일전송</a>
+		      </td>
+			 </tr>
+
 		</table>
 		<table width='100%' border='0' cellspacing='0' cellpadding='0' class='input_table_box' style='margin-top:3px;'>
 		    </tr>

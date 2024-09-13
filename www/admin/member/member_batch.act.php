@@ -929,6 +929,22 @@
         $mc_mail_title  = $db->dt[mc_mail_title];
         $mc_mail_text   = $db->dt[mc_mail_text];
 
+        if($_POST[mc_ix] == "0125"){
+            $policySql = "select pi_code, pi_contents, startdate, regdate, moddate from shop_policy_info where pi_code='use' order by startdate desc limit 0,1 ";
+
+            $db->query($policySql);
+            $db->fetch();
+
+            $mail_info[startdate] = date('Y-m-d', strtotime($db->dt[startdate]));
+        }else if($_POST[mc_ix] == "0126"){
+            $policySql = "select pi_code, pi_contents, startdate, regdate, moddate from shop_policy_info where pi_code='person' order by startdate desc limit 0,1 ";
+
+            $db->query($policySql);
+            $db->fetch();
+
+            $mail_info[startdate] = date('Y-m-d', strtotime($db->dt[startdate]));
+        }
+
         $mail_subject = "관리자님, ".$mc_mail_title;
 
         $mail_info[mem_name]    = '관리자';
@@ -939,6 +955,69 @@
             echo "Yes";
         }else{
             echo "No";
+        }
+
+        exit;
+    }
+
+    if($update_kind == "allemail"){
+        include($_SERVER["DOCUMENT_ROOT"]."/include/email.send.php");
+
+        $db = new Database;
+
+        /*
+        $sql = "SELECT
+                    code,
+                    info as email_agree,
+                    date_format(agree_infodate, '%Y-%m-%d') as email_agree_date,
+                    sms as sms_agree,
+                    date_format(smsdate, '%Y-%m-%d') as sms_agree_date,
+                    AES_DECRYPT(UNHEX(mail),'".$db->ase_encrypt_key."') as mail,
+                    AES_DECRYPT(UNHEX(IFNULL(name,'-')),'".$slave_db->ase_encrypt_key."') as name
+                FROM
+                    common_member_detail
+                WHERE
+                    info='1' AND
+                    agree_infodate < '".$date."' AND
+                    agree_infodate !='0000-00-00 00:00:00' ";
+        */
+        $userSql = "SELECT  
+                    u.id, 
+                    AES_DECRYPT(UNHEX(d.mail),'".$db->ase_encrypt_key."') as mail,
+                    AES_DECRYPT(UNHEX(IFNULL(d.name,'-')),'".$slave_db->ase_encrypt_key."') as name
+                FROM 
+                    common_user as u left join 
+                    common_member_detail as d on u.code = d.code
+                WHERE 
+                    d.code in ('c1d13f0804e9e6caaa22ff77cc5c30cf', 'f052174a92df18ab4075f592a343c202')";// , '56b6623a0c1c054efc845c6935122990', '4803eeba2cfb464c5d139309c85d7a51' => kmstar72
+        $db->query($userSql);
+        $userArray = $db->fetchall();
+
+        $sql = "select mc_ix, mc_mail_title, mc_mail_text from ".TBL_SHOP_MAILSEND_CONFIG." where mc_ix ='".$_POST[mc_ix]."' ";
+        $db->query($sql);
+        $db->fetch();
+
+        $mc_mail_title  = $db->dt[mc_mail_title];
+        $mc_mail_text   = $db->dt[mc_mail_text];
+        $mc_ix          = $db->dt[mc_ix];
+
+        if($mc_ix == "0125"){
+            $policySql = "select pi_code, pi_contents, startdate, regdate, moddate from shop_policy_info where pi_code='use' order by startdate desc limit 0,1 ";
+        }else if($mc_ix == "0126"){
+            $policySql = "select pi_code, pi_contents, startdate, regdate, moddate from shop_policy_info where pi_code='person' order by startdate desc limit 0,1 ";
+        }
+
+        $db->query($policySql);
+        $db->fetch();
+
+        $mail_info[startdate] = date('Y-m-d', strtotime($db->dt[startdate]));
+
+        for($i=0;$i<count($userArray);$i++){
+            $mail_info[mem_id]   = $userArray[$i][id];
+            $mail_info[mem_mail] = $userArray[$i][mail];
+            $mail_info[mem_name] = $userArray[$i][name];
+
+            SendMail($mail_info, $mc_mail_title, $mc_mail_text,"","","Y");
         }
 
         exit;
