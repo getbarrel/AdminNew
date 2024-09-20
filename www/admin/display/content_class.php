@@ -194,6 +194,7 @@ $Contents .= "
 						기울기<input type='checkbox' name='i_preface' id='i_preface'>
 						밑줄<input type='checkbox' name='u_preface' id='u_preface'><br>
 						색상코드 <input type='text' name='c_preface' id='c_preface' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_preface ? "#000000":$c_preface)."'>
+						<input type='checkbox' name='n_preface' id='n_preface'>사용안함
 					</td>
 				</tr>
 				<tr bgcolor=#ffffff>
@@ -300,6 +301,7 @@ $Contents .= "
 						기울기<input type='checkbox' name='i_preface'>
 						밑줄<input type='checkbox' name='u_preface'><br>
 						색상코드 <input type='text' name='c_preface' id='c_preface' style='width:50px' maxlength='7' data-jscolor='{required:false, format:hex}' value='".("" == $c_preface ? "#000000":$c_preface)."'>
+						<input type='checkbox' name='n_preface' id='n_preface'>사용안함
 					</td>
 				</tr>
 				<tr bgcolor=#ffffff>

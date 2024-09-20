@@ -144,6 +144,12 @@ function setContent(cname, cid, depth, global_cname, b_preface, i_preface, u_pre
 		$('#u_preface').attr('checked',false);
 	}
 
+	if(c_preface == ""){
+		$('#n_preface').attr('checked',true);
+	}else{
+		$('#n_preface').attr('checked',false);
+	}
+
 	if(content_link_yn == "Y"){
 		$('#content_link_yn').attr('checked',true);
 	}else if(content_link_yn == "N"){

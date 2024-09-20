@@ -1063,18 +1063,26 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                                                     <col width= '100' >
                                                     <col width= '100' >
                                                     <tr>";
-                                                        if($mode == "Upd") {
+                                                        //if($mode == "Upd") {
                                                         $Contents .= "
                                                             <td align='left'>";
                                                                 if($display_gubun == "P"){
-                                                                    $Contents .= "<a href='https://www.getbarrel.com/content/focusNow2/".$con_ix."/preview' target='_blank' >";
+                                                                    if($_SERVER['HTTP_HOST'] == "0925admintest.barrelmade.co.kr") {
+                                                                        $Contents .= "<a href='https://qa.barrelmade.co.kr/content/focusNow2/".$con_ix."/preview' target='_blank' >";
+                                                                    }else{
+                                                                        $Contents .= "<a href='https://www.getbarrel.com/content/focusNow2/".$con_ix."/preview' target='_blank' >";
+                                                                    }
                                                                 }else{
-                                                                    $Contents .= "<a href='https://www.getbarrel.com/content/focusNow4/".$con_ix."/preview' target='_blank' >";
+                                                                    if($_SERVER['HTTP_HOST'] == "0925admintest.barrelmade.co.kr") {
+                                                                        $Contents .= "<a href='https://qa.barrelmade.co.kr/content/focusNow4/".$con_ix."/preview' target='_blank' >";
+                                                                    }else{
+                                                                        $Contents .= "<a href='https://www.getbarrel.com/content/focusNow4/".$con_ix."/preview' target='_blank' >";
+                                                                    }
                                                                 }
                                                             $Contents .= "<img src='../images/".$admininfo["language"]."/btn_promotion_preview.gif' align=absmiddle>
                                                                 </a>
                                                             </td> ";
-                                                        }
+                                                        //}
                                                         $Contents .= "
                                                         <td><input type='checkbox' name='delete_cache' id='delete_cache' value='Y'><label for='delete_cache'>캐쉬삭제하기</label></td>
                                                         <td><input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 align=absmiddle></td>
@@ -1411,9 +1419,13 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                                                     <col width= '100' >
                                                     <col width= '100' >
                                                     <tr>";
-                                                    if($mode == "Upd") {
-                                                        $Contents .= "<td align='left'><a href='https://www.getbarrel.com/content/styleDetail/".$con_ix."/".$cid."/preview' target='_blank' ><img src='../images/".$admininfo["language"]."/btn_promotion_preview.gif' align=absmiddle></a></td> ";
-                                                    }
+                                                    //if($mode == "Upd") {
+                                                        if($_SERVER['HTTP_HOST'] == "0925admintest.barrelmade.co.kr") {
+                                                            $Contents .= "<td align='left'><a href='https://qa.barrelmade.co.kr/content/styleDetail/".$con_ix."/".$cid."/preview' target='_blank' ><img src='../images/".$admininfo["language"]."/btn_promotion_preview.gif' align=absmiddle></a></td> ";
+                                                        }else{
+                                                            $Contents .= "<td align='left'><a href='https://www.getbarrel.com/content/styleDetail/".$con_ix."/".$cid."/preview' target='_blank' ><img src='../images/".$admininfo["language"]."/btn_promotion_preview.gif' align=absmiddle></a></td> ";
+                                                        }
+                                                    //}
                                                     $Contents .= "
                                                         <td><input type='checkbox' name='delete_cache' id='delete_cache' value='Y'><label for='delete_cache'>캐쉬삭제하기</label></td>
                                                         <td><input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 align=absmiddle></td>
@@ -1555,14 +1567,33 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                             </td>
                         </tr>
                         <tr bgcolor=#ffffff>
-                            <td class='input_box_title' nowrap oncontextmenu='init2();return false;'> 	<b>종목 설정 </b></td>
-                            <td class='input_box_item' nowrap colspan='3'>
-                                서핑<input type='checkbox' name='player_subject_surf' id='player_subject_surf' ".("Y" == $player_subject->surf ? "checked":"").">
+                            <td class='input_box_title' nowrap oncontextmenu='init2();return false;'>
+                                <b>종목 설정 </b>
+                                <input type='button' value='설정' onclick=\"PoPWindow('./player_subject_list.php?mmode=pop',500,500,'color_code')\" />
+                            </td>
+                            <td class='input_box_item' nowrap colspan='3'>";
+                            $slave_db->query("SELECT idx, subject FROM shop_content_player_subject WHERE disp = 'Y' ");
+                            $palyerSubject = $slave_db->fetchall();
+
+                            for($s=0; $s < count($palyerSubject);$s++){
+                                $subjectIdx = $palyerSubject[$s]['idx'];
+                                $checked = "";
+                                foreach($player_subject as $key => $val){
+                                    if($subjectIdx == $key){
+                                        $checked = "checked";
+                                        break;
+                                    }
+                                }
+                                $Contents .= $palyerSubject[$s]['subject']." <input type='checkbox' name='player_subject[$subjectIdx]' id='player_subject[$subjectIdx]' $checked>";
+                            }
+
+                                /*서핑<input type='checkbox' name='player_subject_surf' id='player_subject_surf' ".("Y" == $player_subject->surf ? "checked":"").">
                                 수영<input type='checkbox' name='player_subject_swim' id='player_subject_swim' ".("Y" == $player_subject->swim ? "checked":"").">
                                 프리다이빙<input type='checkbox' name='player_subject_free' id='player_subject_free' ".("Y" == $player_subject->free ? "checked":"").">
                                 스쿠버다이빙<input type='checkbox' name='player_subject_scuba' id='player_subject_scuba' ".("Y" == $player_subject->scuba ? "checked":"").">
                                 요가<input type='checkbox' name='player_subject_yoga' id='player_subject_yoga' ".("Y" == $player_subject->yoga ? "checked":"").">
-                                필라테스<input type='checkbox' name='player_subject_pila' id='player_subject_pila' ".("Y" == $player_subject->pila ? "checked":"").">
+                                필라테스<input type='checkbox' name='player_subject_pila' id='player_subject_pila' ".("Y" == $player_subject->pila ? "checked":"").">*/
+                        $Contents .= "
                             </td>
                         </tr>
                         <tr bgcolor=#ffffff>
@@ -1964,7 +1995,15 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                                                 <col width= '100' >
                                                 <col width= '100' >
                                                 <col width= '100' >
-                                                <tr>
+                                                <tr>";
+                                                //if($mode == "Upd") {
+                                                if($_SERVER['HTTP_HOST'] == "0925admintest.barrelmade.co.kr") {
+                                                    $Contents .= "<td align='left'><a href='https://qa.barrelmade.co.kr/content/teamDetail/".$con_ix."' target='_blank' ><img src='../images/".$admininfo["language"]."/btn_promotion_preview.gif' align=absmiddle></a></td> ";
+                                                }else{
+                                                    $Contents .= "<td align='left'><a href='https://www.getbarrel.com/content/teamDetail/".$con_ix."' target='_blank' ><img src='../images/".$admininfo["language"]."/btn_promotion_preview.gif' align=absmiddle></a></td> ";
+                                                }
+                                                //}
+                                                $Contents .= "
                                                     <td><input type='checkbox' name='delete_cache' id='delete_cache' value='Y'><label for='delete_cache'>캐쉬삭제하기</label></td>
                                                     <td><input type=image src='../images/".$admininfo["language"]."/b_save.gif' border=0 align=absmiddle></td>
                                                     <td><a href='content_list.php'><img src='../images/".$admininfo["language"]."/b_cancel.gif' border=0 align=absmiddle></a></td>

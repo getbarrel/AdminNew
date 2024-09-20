@@ -167,7 +167,7 @@ class LayOut{
 		$sql = "insert into admin_menus(menu_code,menu_div, menu_name,menu_path,menu_link, regdate)
 			values
 			('".md5($_SERVER["PHP_SELF"])."','".str_replace(" ","",$paths[2])."','".(count($navis[1]) >= 1 ? trim($navis[1]):trim($navis[0]))."','".str_replace("HOME > ","",$this->Navigation)."','".$_SERVER["PHP_SELF"]."',NOW())";
-		echo $sql;
+		//echo $sql;
 		$mndb->query($sql);
 	}
 

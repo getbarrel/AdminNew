@@ -1444,7 +1444,11 @@ if($mode == "Upd"){
             $u_comment = 'N';
         }
 
-        if($player_subject_surf == 'on'){
+        foreach($player_subject as $key => $val){
+            $player_subject[$key] = 'Y';
+        }
+
+        /*if($player_subject_surf == 'on'){
             $player_subject['surf'] = 'Y';
         }else{
             $player_subject['surf'] = 'N';
@@ -1478,7 +1482,7 @@ if($mode == "Upd"){
             $player_subject['pila'] = 'Y';
         }else{
             $player_subject['pila'] = 'N';
-        }
+        }*/
 
         $unix_timestamp_display_sdate = mktime($display_start_h,$display_start_i,$display_start_s,substr($display_start,5,2),substr($display_start,8,2),substr($display_start,0,4));
         $unix_timestamp_display_edate = mktime($display_end_h,$display_end_i,$display_end_s,substr($display_end,5,2),substr($display_end,8,2),substr($display_end,0,4));
@@ -1875,53 +1879,95 @@ function CopyImage($pid, $type = "", $gubun)
         chmod($backUpBasicDir,0777);
     }
 
-    $postCount = 0;
+    //if($_SESSION['admininfo']['charger_id'] == "hmpartner1"){
+        foreach($_POST['imgName'] as $key => $val){
+            $image_info = getimagesize($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key]);
 
-    foreach($_POST['imgName'] as $key => $val){
+            // 원본이미지
+            copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".date('YmdHis', time())."_".$key.".gif");
 
-        $image_info = getimagesize($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key]);
-
-        // 원본이미지
-        copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$key.".gif");
-
-        if (file_exists($_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$gubun."/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key])) {
-            unlink($_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$gubun."/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key]);
-        }
-        $postCount++;
-    }
-
-    $backUpBasicHandle = opendir($backUpBasicDir);
-    @mkdir($basicDir);
-    while(false !== ($basicFile = readdir($backUpBasicHandle))){
-        if(is_file($backUpBasicDir . "/" . $basicFile)){
-            copy($backUpBasicDir . "/" . $basicFile, $basicDir . "/" . $basicFile);
-            unlink($backUpBasicDir . "/" . $basicFile);
-        }
-    }
-    closedir($backUpBasicHandle);
-
-    $handle  = opendir($basicDir); // 디렉토리 open
-
-    $eleCount = 0;
-
-    // 디렉토리의 파일을 저장
-    while (false !== ($filename = readdir($handle))) {
-        // 파일인 경우만 목록에 추가한다.
-        if(is_file($basicDir . "/" . $filename)){
-            $eleCount++;
-        }
-    }
-
-    closedir($handle); // 디렉토리 close
-
-    if($postCount < $eleCount){
-        for($delImgNum = $postCount;$delImgNum < $eleCount;$delImgNum++){
-
-            if (file_exists($basicDir."/basic_".$pid."_".$delImgNum.".gif")) {
-                unlink($basicDir."/basic_".$pid."_".$delImgNum.".gif");
+            if (file_exists($_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$gubun."/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key])) {
+                unlink($_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$gubun."/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key]);
             }
         }
-    }
+
+        $handle  = opendir($basicDir); // 디렉토리 open
+
+        $eleCount = 0;
+
+        // 디렉토리의 파일을 전체 삭제.
+        while (false !== ($filename = readdir($handle))) {
+            // 파일인 경우만 목록에 추가한다.
+            if(is_file($basicDir . "/" . $filename)){
+                unlink($basicDir . "/" . $filename);
+            }
+        }
+
+        closedir($handle); // 디렉토리 close
+
+        // 등록된 이미지를 디렉토리로 복사. 등록된 이미지는 삭제.
+        $backUpBasicHandle = opendir($backUpBasicDir);
+        @mkdir($basicDir);
+        while(false !== ($basicFile = readdir($backUpBasicHandle))){
+            if(is_file($backUpBasicDir . "/" . $basicFile)){
+                copy($backUpBasicDir . "/" . $basicFile, $basicDir . "/" . $basicFile);
+                unlink($backUpBasicDir . "/" . $basicFile);
+            }
+        }
+        closedir($backUpBasicHandle);
+    /*}else{
+        $postCount = 0;
+
+        foreach($_POST['imgName'] as $key => $val){
+
+            $image_info = getimagesize($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key]);
+
+            // 원본이미지
+            copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$key.".gif");
+
+            if (isset($_POST['imgName'][$key]) && strpos($_POST['imgName'][$key], 'basic_') !== false) {
+
+            } else {
+                if (file_exists($_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$gubun."/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key])) {
+                    unlink($_SESSION["admin_config"]["mall_data_root"] . "/images/content/".$gubun."/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key]);
+                }
+            }
+
+            $postCount++;
+        }
+        $backUpBasicHandle = opendir($backUpBasicDir);
+        @mkdir($basicDir);
+        while(false !== ($basicFile = readdir($backUpBasicHandle))){
+            if(is_file($backUpBasicDir . "/" . $basicFile)){
+                copy($backUpBasicDir . "/" . $basicFile, $basicDir . "/" . $basicFile);
+                unlink($backUpBasicDir . "/" . $basicFile);
+            }
+        }
+        closedir($backUpBasicHandle);
+
+        $handle  = opendir($basicDir); // 디렉토리 open
+
+        $eleCount = 0;
+
+        // 디렉토리의 파일을 저장
+        while (false !== ($filename = readdir($handle))) {
+            // 파일인 경우만 목록에 추가한다.
+            if(is_file($basicDir . "/" . $filename)){
+                $eleCount++;
+            }
+        }
+
+        closedir($handle); // 디렉토리 close
+
+        if($postCount < $eleCount){
+            for($delImgNum = $postCount;$delImgNum < $eleCount;$delImgNum++){
+
+                if (file_exists($basicDir."/basic_".$pid."_".$delImgNum.".gif")) {
+                    unlink($basicDir."/basic_".$pid."_".$delImgNum.".gif");
+                }
+            }
+        }
+    }*/
 }
 // 컨텐츠분류관리 수정
 if($mode == "modify"){
@@ -1949,6 +1995,10 @@ if($mode == "modify"){
 		}else{
 			$content_link_yn = 'N';
 		}
+
+        if($n_preface == 'on'){
+            $c_preface = '';
+        }
 
 		$sql = "UPDATE shop_content_class SET
 					cname = '$cname', 
@@ -2091,6 +2141,10 @@ if ($mode == "insert"){
 		}else{
 			$content_link_yn = 'N';
 		}
+
+        if($n_preface == 'on'){
+            $c_preface = '';
+        }
 
 		$sql = "insert into shop_content_class
 				(cid, depth, vlevel1, vlevel2, vlevel3, vlevel4, vlevel5, cname, global_cname, b_preface, i_preface, u_preface, c_preface, content_link, content_link_yn, content_use, content_list_use, content_view, content_type, regdate)
