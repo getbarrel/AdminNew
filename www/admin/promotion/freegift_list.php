@@ -304,7 +304,7 @@ $P->strContents = $Contents;
 echo $P->PrintLayOut();
 
 function PrintSearchTextList(){
-	global $db, $mdb, $page, $search_type;
+	global $db, $mdb, $page, $nset, $search_type;
 	global $auth_delete_msg, $auth_excel_msg, $admininfo;
 	global $_FREEGIFT_CONDITION;
 
@@ -380,7 +380,7 @@ function PrintSearchTextList(){
 	}else{
 		$start = ($page - 1) * $max;
 	}
-	
+
 	if($_SERVER["QUERY_STRING"] == "nset=$nset&page=$page"){
 		$query_string = str_replace("nset=$nset&page=$page","",$_SERVER["QUERY_STRING"]) ;
 	}else{
