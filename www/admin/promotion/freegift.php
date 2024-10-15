@@ -1046,7 +1046,13 @@ function relationFreeGiftProductList($fg_ix, $group_code, $disp_type=""){
 	}else{
 		$i=0;
 		if($disp_type == "clipart"){
-			$mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
+            $mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
 			$mString .= '<script id="setproduct">'."\n";
 			$mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
 			for($i=0;$i<$db->total;$i++){
@@ -1056,7 +1062,7 @@ function relationFreeGiftProductList($fg_ix, $group_code, $disp_type=""){
                 }else{
 				    $disp = 0;
                 }
-                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
 			}
 			$mString .= '</script>'."\n";
 		}
@@ -1103,6 +1109,12 @@ function relationFreeGiftExceptProductList($fg_ix, $group_code, $disp_type=""){
     }else{
         $i=0;
         if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
             $mString = '<ul id="productList_except_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
             $mString .= '<script id="setproduct">'."\n";
             $mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
@@ -1113,7 +1125,7 @@ function relationFreeGiftExceptProductList($fg_ix, $group_code, $disp_type=""){
                 }else{
                     $disp = 0;
                 }
-                $mString .= 'ms_productSearch._setProduct("productList_except_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_except_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$disp.'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
             }
             $mString .= '</script>'."\n";
         }
@@ -1151,12 +1163,18 @@ function relationFreeGiftSelectProductList($fg_ix, $group_code, $disp_type=""){
 	}else{
 		$i=0;
 		if($disp_type == "clipart"){
-			$mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
+            $mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
 			$mString .= '<script id="setproduct">'."\n";
 			$mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
 			for($i=0;$i<$db->total;$i++){
 				$db->fetch($i);
-                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
 			}
 			$mString .= '</script>'."\n";
 		}
