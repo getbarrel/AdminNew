@@ -32,7 +32,7 @@ if (!in_array($_SERVER['PHP_SELF'], $not_castle_page)) {
 //		include_once $_SERVER['DOCUMENT_ROOT'].'/include/logSender/Newsend_error_log.php';
 //		//include_once $_SERVER['DOCUMENT_ROOT'].'/include/logSender/send_error_log.php'; 160517 pde 기존 몰스토리 DB 입력에서 자체 DB 입력으로 수정
 //	    $logSender = new ErrorLogSender();
-//	    $logSender->sendError( $error ); 
+//	    $logSender->sendError( $error );
 //	  }
 //	}
 //	register_shutdown_function( "forbizErrorHandler" );

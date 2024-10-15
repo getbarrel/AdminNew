@@ -10,7 +10,8 @@ $not_castle_page = array(
     '/admin/product/fileupload_ok.php',
     '/admin/display/content.save.php',
     '/admin/bbsmanage/bbs.php',
-    '/admin/member/member_batch.act.php'
+    '/admin/member/member_batch.act.php',
+    '/admin/store/mall_policy_act.php'
 );
 //$pos = strpos($_SERVER['PHP_SELF'], '/admin/');
 //if($pos === false){

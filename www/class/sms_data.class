@@ -38,7 +38,8 @@ if (!class_exists('SmsData'))
                 $dest_phone_len = strlen($send_data['dest_phone']);
 
 
-                $msg_body_utf8 = iconv("CP949", "utf-8", $send_data['msg_body']);
+                //$msg_body_utf8 = iconv("CP949", "utf-8", $send_data['msg_body']);
+                $msg_body_utf8 = $send_data['msg_body'];
                 $dest_name_utf8 = iconv("CP949", "utf-8", $send_data['dest_name']);
                 $send_name_utf8 = iconv("CP949", "utf-8", $send_data['send_name']);
                 $sms_div_utf8 = iconv("CP949", "utf-8", $send_data['sms_div']);

@@ -133,7 +133,8 @@ if (!class_exists('SMS'))
                 $send_data['dest_phone'] = $this->dest_phone;
                 $send_data['dest_name'] = iconv("utf-8","CP949",$this->dest_name);
                 $send_data['send_phone'] = str_replace('-','',$this->send_phone);
-                $send_data['msg_body'] = iconv("utf-8","CP949",$this->msg_body);
+                //$send_data['msg_body'] = iconv("utf-8","CP949",$this->msg_body);
+                $send_data['msg_body'] = $this->msg_body;
                 $send_data['send_type'] = $this->send_type;
                 $send_data['send_date'] = $this->send_date;
                 $send_data['send_time'] = $this->send_time;
@@ -201,7 +202,8 @@ if (!class_exists('SMS'))
             $send_data['dest_phone'] = $this->dest_phone;
             $send_data['dest_name'] = iconv("utf-8","CP949",$this->dest_name);
             $send_data['send_phone'] = str_replace('-','',$this->send_phone);
-            $send_data['msg_body'] = iconv("utf-8","CP949",$this->msg_body);
+            //$send_data['msg_body'] = iconv("utf-8","CP949",$this->msg_body);
+            $send_data['msg_body'] = $this->msg_body;
             $send_data['send_type'] = 6;
             $send_data['templete_code'] = $this->templete_code;
             $send_data['btn_code'] = $this->btn_code;

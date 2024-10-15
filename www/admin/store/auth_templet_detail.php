@@ -20,7 +20,7 @@ if(!$auth_templet_ix){
 	{
 		$start = ($page - 1) * $max;
 	}
-	
+
 	$sql = "Select auth_templet_name from  admin_auth_templet where auth_templet_ix = '".$auth_templet_ix."'  ";
 	$db->query($sql);
 	$db->fetch();
@@ -28,11 +28,11 @@ if(!$auth_templet_ix){
 
 	$where = "where am.disp_auth = 'Y'  ";
 	if($menu_div != ""){
-		$where .= " and am.menu_div = '".$menu_div."' ";	
+		$where .= " and am.menu_div = '".$menu_div."' ";
 	}
-	
+
 	if($_COOKIE["auth_view_type"] == ""){
-		$auth_view_type_where = " and (auth_read = 'Y' or auth_write_update = 'Y' or auth_delete = 'Y' or auth_delete = 'Y')  ";
+		//$auth_view_type_where = " and (auth_read = 'Y' or auth_write_update = 'Y' or auth_delete = 'Y' or auth_delete = 'Y')  ";
 	}
 	//몰타입에 따른 권한템플릿 리스트 노출 관리 1305070  JK
 	/*
@@ -53,7 +53,7 @@ if(!$auth_templet_ix){
 		}else if($admininfo[mall_type] == "BW"){
 			$type_where = " and am.use_wholesale = 'Y'"; //비즈도매형에대한 메뉴구분 정보가 없슴 (도매형 정보로 대체 함)
 		}else if($admininfo[mall_type] == "O"){
-			$type_where = " and am.use_openmarket = 'Y'"; //오픈마켓 
+			$type_where = " and am.use_openmarket = 'Y'"; //오픈마켓
 		}else if($admininfo[mall_type] == "E"){
 			$type_where = " and am.use_enterprise = 'Y'"; //오픈마켓 형
 		}else{
@@ -188,7 +188,7 @@ if(!$auth_templet_ix){
 						<li class='front'></li>
 						<li class='back'>".page_bar($total, $page, $max,"&".$_SERVER["QUERY_STRING"],"")."</li>
 					  </ul>";
-	if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){	
+	if(checkMenuAuth(md5($_SERVER["PHP_SELF"]),"U")){
 
 	if($admininfo[mall_type] == "F"){
 		$sql = "SELECT * FROM admin_auth_templet where use_soho = 'Y' order by auth_templet_level asc ";
@@ -244,18 +244,19 @@ if($db->total){
 		</tr>
 	</table>
 	";*/
+
 $help_text = getTransDiscription(md5($_SERVER["PHP_SELF"]),'A');
 
 
 	$Contents .= HelpBox("권한 템플릿 상세권한관리", $help_text);
-	
+
 
 $Script = "<script language='javascript' src='../js/table_changeorder.js'></script>
 <script language='javascript'>
 function CheckedAll(obj_id, target_obj_ix){
-	//alert($('#'+obj_id).is(':checked'));
+	
 	if($('#'+obj_id).is(':checked')){
-		//alert($('#'+obj_id).is(':checked'));
+	
 			$('.'+target_obj_ix).each(function(){
 				if($(this).is(':checked')){
 					$(this).attr('checked','');
@@ -264,7 +265,6 @@ function CheckedAll(obj_id, target_obj_ix){
 				}
 			})
 	}else{
-		//alert(1);
 		$('.'+target_obj_ix).each(function(){
 			$(this).attr('checked',false);
 		})
@@ -295,7 +295,7 @@ function fixAll(frm){
 }
 
 function CheckAuthViewType(){
-	//alert($('#auth_view_type').attr('checked'));
+	
 	if($('#auth_view_type').attr('checked') == 'checked' || $('#auth_view_type').attr('checked') == true){				
 		$.cookie('auth_view_type', 'ALL', {expires:1,domain:document.domain, path:'/', secure:0});		
 	}else{		
@@ -319,20 +319,20 @@ echo $P->PrintLayOut();
 
 function getMenuGroup($i, $selected=""){
 	$mdb = new Database;
-	
-	
-	
+
+
+
 	$sql = 	"SELECT *
 			FROM admin_menu_div
 			where disp=1";
-	
+
 	$mdb->query($sql);
-	
+
 	$mstring = "<select name='set_menu_info[".$i."][menu_div]' id='menu_div' >";
 	$mstring .= "<option value=''>1차분류</option>";
 	if($mdb->total){
-		
-		
+
+
 		for($i=0;$i < $mdb->total;$i++){
 			$mdb->fetch($i);
 			if($mdb->dt[div_name] == $selected){
@@ -341,10 +341,10 @@ function getMenuGroup($i, $selected=""){
 				$mstring .= "<option value='".$mdb->dt[div_name]."'>".$mdb->dt[div_name]."</option>";
 			}
 		}
-		
-	}	
+
+	}
 	$mstring .= "</select>";
-	
+
 	return $mstring;
 }
 
@@ -353,7 +353,7 @@ function getMenuGroup($i, $selected=""){
 function getMenuGroupTab($selected=""){
 	global $auth_templet_ix, $admininfo;
 	$mdb = new Database;
-	
+
 	//몰타입에 따른 권한템플릿 리스트 노출 관리 1305070  JK
 	if($admininfo[charger_id] == "forbiz"){
 		$type_where = " ";
@@ -379,17 +379,17 @@ function getMenuGroupTab($selected=""){
 		}
 		//상점 타입 (H:홈페이지, F:무료형, R:임대형, S:독립형, B:입점형,BW:비즈도매형, O:오픈마켓형)
 	}
-	
+
 	$sql = 	"SELECT *
 			FROM admin_menu_div
 			where disp=1 $type_where order by vieworder asc ";
-	
+
 	$mdb->query($sql);
-	
+
 	if($mdb->total){
 		for($i=0;$i < $mdb->total && $i < 10;$i++){
 			$mdb->fetch($i);
-			
+
 			$mstring .= "
 					<table id='tab_01' ".($mdb->dt[div_name] == $selected ? "class='on'":"").">
 					<tr>
@@ -399,7 +399,7 @@ function getMenuGroupTab($selected=""){
 					</tr>
 					</table>";
 		}
-		
+
 		$mstring .= "<div style='padding:0px 0px 0px 20px'><select name='menu_div' id='menu_div' style='margin-left:5px;border:1px solid silver;padding:1px;' onchange=\"document.location.href='?menu_div='+this.value+'&auth_templet_ix='+".$auth_templet_ix."\">";
 		$mstring .= "<option value=''>메뉴분류</option>";
 		if($mdb->total){
@@ -411,14 +411,14 @@ function getMenuGroupTab($selected=""){
 					$mstring .= "<option value='".$mdb->dt[div_name]."'>".$mdb->dt[gnb_name]."</option>";
 				}
 			}
-			
-		}	
+
+		}
 		$mstring .= "</select></div>";
-		
-		
-		
-	}	
-	
+
+
+
+	}
+
 	return $mstring;
 }
 ?>
