@@ -855,13 +855,18 @@ function ProductQna(){
 		$sql = "select pq.*,cu.mall_ix from ".TBL_SHOP_PRODUCT_QNA." pq left join ".TBL_COMMON_USER." cu on pq.ucode = cu.code $where order by  regdate desc limit $start, $max";
 		$mdb->query($sql);
 
+		$addQaDir = "";
+		if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+			$addQaDir = "/QA";
+		}
+
 		for($i=0;$i < $mdb->total;$i++){
 			$mdb->fetch($i);
 
 			$no = $total - ($page - 1) * $max - $i;
 
 			//$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $mdb->dt[pid], "s");
-			$img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $mdb->dt[pid], "slist");
+			$img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $mdb->dt[pid], "slist");
 
 			$sql = "select 
 						ccd.com_name,

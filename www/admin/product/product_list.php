@@ -178,10 +178,16 @@ if(count($goods_datas) == 0){//$slave_db->total
 		$innerview .= "<tr bgcolor=#ffffff height=150><td colspan=5 align=center> 검색후 상품확인 가능합니다.</td></tr>";
 	}
 }else{
+
+	$addQaDir = "";
+	if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+		$addQaDir = "/QA";
+	}
+
 	for ($i = 0; $i < count($goods_datas); $i++){
 
 		//$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $goods_datas[$i][id], "ms", $goods_datas[$i]);
-		$img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $goods_datas[$i][id], "slist", $goods_datas[$i]);
+		$img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $goods_datas[$i][id], "slist", $goods_datas[$i]);
 
 		$sql = "select dt_ix from shop_product_delivery where pid = '".$goods_datas[$i][id]."' and is_wholesale = 'R' order by delivery_div limit 0,1";
 		$slave_db->query($sql);
@@ -238,7 +244,7 @@ $innerview .= "	<tr bgcolor='#ffffff'>
 						
 					}
 
-	$innerview .= "<br><a href='".$front_url."/shop/goodsView/".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/productNew", $goods_datas[$i][id], 'basic', $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a><br><div style='padding-top:5px;'>".$goods_datas[$i][etc8]."</div>";
+	$innerview .= "<br><a href='".$front_url."/shop/goodsView/".$goods_datas[$i][id]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/productNew".$addQaDir, $goods_datas[$i][id], 'basic', $goods_datas[$i])."'><img src='".$img_str."' width=50 height=50></a><br><div style='padding-top:5px;'>".$goods_datas[$i][etc8]."</div>";
 	$innerview .= "<div style='padding:5px;'>";
 	$innerview .= "	<div style='padding-top:4px;'>조회수 : ".$goods_datas[$i][view_cnt]."</div>";
 	$innerview .= "	<div style='padding-top:4px;'>판매수 : ".$goods_datas[$i][order_cnt]." 개</div>";

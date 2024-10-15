@@ -696,6 +696,10 @@ if($slave_db->total == 0){
             $border_line = " border-bottom: 1px solid red";
         }
 
+        $addQaDir = "";
+        if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+            $addQaDir = "/QA";
+        }
 
 		/*
 		if(file_exists($_SERVER["DOCUMENT_ROOT"]."".PrintImage($admin_config[mall_data_root]."/images/product", $slave_db->dt[id], "s", $slave_db->dt)) || $image_hosting_type=='ftp') {
@@ -706,7 +710,7 @@ if($slave_db->total == 0){
 		*/
 
 		//$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $slave_db->dt[id], "s", $slave_db->dt);
-        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $slave_db->dt[id], "slist", $slave_db->dt);
+        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $slave_db->dt[id], "slist", $slave_db->dt);
 
         $vieworder = $slave_db->dt[$sortDepth];
 
