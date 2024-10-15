@@ -799,7 +799,7 @@ if ($act == 'insert' || $act == "tmp_insert") {    //상품추가
 
     //CopyImage($INSERT_PRODUCT_ID, "");
 	if($_POST['imgInsYN']){
-		CopyImage2($INSERT_PRODUCT_ID, "");
+		CopyImage3($INSERT_PRODUCT_ID, "");
 	}
     //CopyImage($INSERT_PRODUCT_ID, "_rectangular");
 
@@ -1552,7 +1552,7 @@ if ($act == "update" || $act == "tmp_update") {    //상품 업데이트
     //상품 수정 히스토리 쌓기 2014-04-09 이학봉
     //CopyImage($id, "");
 	if($_POST['imgInsYN']){
-		CopyImage2($id, "");
+		CopyImage3($id, "");
 	}
     //CopyImage($id, "_rectangular");
 
@@ -4380,13 +4380,18 @@ function CopyImage3($pid, $type = "")
 {
     global $admin_config, $image_info2, $db;
 
-    $uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew", $pid, 'Y');
-    $adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew", $pid, 'Y');
+    $addQaDir = "";
+    if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+        $addQaDir = "/QA";
+    }
 
-    $basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$uploaddir;
+    $uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew" . $addQaDir, $pid, 'Y');
+    $adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew" . $addQaDir, $pid, 'Y');
+
+    $basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir.$uploaddir;
     $backUpBasicDir = $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/productNew";
 
-    $addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$adduploaddir;
+    $addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir.$adduploaddir;
     $backUpAddDir	= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/addimgNew";
 
     if(!is_dir($backUpBasicDir)){
@@ -4403,94 +4408,6 @@ function CopyImage3($pid, $type = "")
 
     $time = date('YmdHis', time());
 
-
-    $sql = "select * from shop_addimage_new where pid = '".$pid."' order by sort asc ";
-    $db->query($sql);
-
-    print_r($db->total);
-
-    if(!$db->total){
-        if($_POST['imgName']){
-            foreach($_POST['imgName'] as $key => $val){
-                $image_type = substr($_POST['imgName'][$key], -3);
-                $image_info = getimagesize($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key]);
-
-                if ($image_info[0] > $image_info[1]) {
-                    $image_resize_type = "W";
-                } else {
-                    $image_resize_type = "H";
-                }
-
-                // 원본이미지
-                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$key.".gif");
-
-                $sql = "INSERT INTO shop_addimage_new(pid, imgpath, extension, insert_yn, regdate, sort) VALUES ('$pid', '', '$image_type', 'Y', NOW(), '$key') ";
-                $db->query($sql);
-
-                $db->query("SELECT id FROM shop_addimage_new WHERE id=LAST_INSERT_ID()");
-                $db->fetch();
-                $addID = $db->dt[id];
-
-                // 리스트이미지
-                if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                    MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$addID."_".$key.".gif", MIRROR_NONE);
-                    resize_png($backUpAddDir."/list_".$pid."_".$addID."_".$key.".".$image_type, $image_info2[0][width], $image_info2[0][height], $image_resize_type);
-                }else{
-                    copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$addID."_".$key.".gif");
-                    resize_jpg($backUpAddDir."/list_".$pid."_".$addID."_".$key.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
-                }
-
-                // 오버이미지
-                if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                    MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$addID."_".$key.".gif", MIRROR_NONE);
-                    resize_png($backUpAddDir."/over_".$pid."_".$addID."_".$key.".".$image_type, $image_info2[1][width], $image_info2[1][height], $image_resize_type);
-                }else{
-                    copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$addID."_".$key.".gif");
-                    resize_jpg($backUpAddDir."/over_".$pid."_".$addID."_".$key.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
-                }
-
-                // 이미지작은
-                if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                    MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$addID."_".$key.".gif", MIRROR_NONE);
-                    resize_png($backUpAddDir."/slist_".$pid."_".$addID."_".$key.".".$image_type, $image_info2[2][width], $image_info2[2][height], $image_resize_type);
-                }else{
-                    copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$addID."_".$key.".gif");
-                    resize_jpg($backUpAddDir."/slist_".$pid."_".$addID."_".$key.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
-                }
-
-                // 썸네일이미지
-                if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                    MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/nail_".$pid."_".$addID."_".$key.".gif", MIRROR_NONE);
-                    resize_png($backUpAddDir."/nail_".$pid."_".$addID."_".$key.".".$image_type, $image_info2[3][width], $image_info2[3][height], $image_resize_type);
-                }else{
-                    copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key],	$backUpAddDir."/nail_".$pid."_".$addID."_".$key.".gif");
-                    resize_jpg($backUpAddDir."/nail_".$pid."_".$addID."_".$key.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
-                }
-
-                // 패턴이미지
-                if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                    MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$addID."_".$key.".gif", MIRROR_NONE);
-                    resize_png($backUpAddDir."/patt_".$pid."_".$addID."_".$key.".".$image_type, $image_info2[4][width], $image_info2[4][height], $image_resize_type);
-                }else{
-                    copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$addID."_".$key.".gif");
-                    resize_jpg($backUpAddDir."/patt_".$pid."_".$addID."_".$key.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
-                }
-
-                if (file_exists($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key])) {
-                    unlink($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key]);
-                }
-            }
-        }
-    }else{
-
-    }
-
-    exit;
-
-
-
-
-
     if($_POST['imgName']){
         foreach($_POST['imgName'] as $key => $val){
             $image_type = substr($_POST['imgName'][$key], -3);
@@ -4502,187 +4419,55 @@ function CopyImage3($pid, $type = "")
                 $image_resize_type = "H";
             }
 
-            /*if ($image_type == "gif" || $image_type == "GIF") {
-                // 원본이미지
-                MirrorGif($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-
-                // 리스트이미지
-                MirrorGif($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_gif($backUpAddDir."/list_".$pid."_".$time."_".$key.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
-
-                // 오버이미지
-                MirrorGif($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_gif($backUpAddDir."/over_".$pid."_".$time."_".$key.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
-
-                // 이미지작은
-                MirrorGif($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_gif($backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
-
-                // 썸네일이미지
-                MirrorGif($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_gif($backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
-
-                // 패턴이미지
-                MirrorGif($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_gif($backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
-
-            } else */
-
-            /*if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                // 원본이미지
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$time."_".$key.".".$image_type, MIRROR_NONE);
-
-                // 리스트이미지
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$time."_".$key.".".$image_type, MIRROR_NONE);
-                resize_png($backUpAddDir."/list_".$pid."_".$time."_".$key.".".$image_type, $image_info2[0][width], $image_info2[0][height], $image_resize_type);
-
-                if (file_exists($addDir."/list_".$_POST['imgComName']."_".$key.".".$image_type)) {
-                    unlink($addDir."/list_".$_POST['imgComName']."_".$key.".".$image_type);
-                }
-
-                // 오버이미지
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$time."_".$key.".".$image_type, MIRROR_NONE);
-                resize_png($backUpAddDir."/over_".$pid."_".$time."_".$key.".".$image_type, $image_info2[1][width], $image_info2[1][height], $image_resize_type);
-
-                if (file_exists($addDir."/over_".$_POST['imgComName']."_".$key.".".$image_type)) {
-                    unlink($addDir."/over_".$_POST['imgComName']."_".$key.".".$image_type);
-                }
-
-                // 이미지작은
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$time."_".$key.".".$image_type, MIRROR_NONE);
-                resize_png($backUpAddDir."/slist_".$pid."_".$time."_".$key.".".$image_type, $image_info2[2][width], $image_info2[2][height], $image_resize_type);
-
-                if (file_exists($addDir."/slist_".$_POST['imgComName']."_".$key.".".$image_type)) {
-                    unlink($addDir."/slist_".$_POST['imgComName']."_".$key.".".$image_type);
-                }
-
-                // 썸네일이미지
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/nail_".$pid."_".$time."_".$key.".".$image_type, MIRROR_NONE);
-                resize_png($backUpAddDir."/nail_".$pid."_".$time."_".$key.".".$image_type, $image_info2[3][width], $image_info2[3][height], $image_resize_type);
-
-                if (file_exists($addDir."/nail_".$_POST['imgComName']."_".$key.".".$image_type)) {
-                    unlink($addDir."/nail_".$_POST['imgComName']."_".$key.".".$image_type);
-                }
-
-                // 패턴이미지
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$time."_".$key.".".$image_type, MIRROR_NONE);
-                resize_png($backUpAddDir."/patt_".$pid."_".$time."_".$key.".".$image_type, $image_info2[4][width], $image_info2[4][height], $image_resize_type);
-
-                if (file_exists($addDir."/patt_".$_POST['imgComName']."_".$key.".".$image_type)) {
-                    unlink($addDir."/patt_".$_POST['imgComName']."_".$key.".".$image_type);
-                }
-            } else {
-                // 원본이미지
-                Mirror($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-
-                // 리스트이미지
-                Mirror($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_jpg($backUpAddDir."/list_".$pid."_".$time."_".$key.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
-
-                if (file_exists($addDir."/list_".$_POST['imgComName']."_".$key.".gif")) {
-                    unlink($addDir."/list_".$_POST['imgComName']."_".$key.".gif");
-                }
-
-                // 오버이미지
-                Mirror($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_jpg($backUpAddDir."/over_".$pid."_".$time."_".$key.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
-
-                if (file_exists($addDir."/over_".$_POST['imgComName']."_".$key.".gif")) {
-                    unlink($addDir."/over_".$_POST['imgComName']."_".$key.".gif");
-                }
-
-                // 이미지작은
-                Mirror($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_jpg($backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
-
-                if (file_exists($addDir."/slist_".$_POST['imgComName']."_".$key.".gif")) {
-                    unlink($addDir."/slist_".$_POST['imgComName']."_".$key.".gif");
-                }
-
-                // 썸네일이미지
-                Mirror($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_jpg($backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
-
-                if (file_exists($addDir."/nail_".$_POST['imgComName']."_".$key.".gif")) {
-                    unlink($addDir."/nail_".$_POST['imgComName']."_".$key.".gif");
-                }
-
-                // 패턴이미지
-                Mirror($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
-                resize_jpg($backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
-
-                if (file_exists($addDir."/patt_".$_POST['imgComName']."_".$key.".gif")) {
-                    unlink($addDir."/patt_".$_POST['imgComName']."_".$key.".gif");
-                }
-            }*/
             // 원본이미지
-            copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$key.".gif");
-
-            //$akamaiFtpUploadFiles['basic'] = "basic_".$pid."_".$key.".gif";
+            copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpBasicDir."/basic_".$pid."_".$time."_".$key.".gif");
 
             // 리스트이미지
             if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$key.".gif", MIRROR_NONE);
-                resize_png($backUpAddDir."/list_".$pid."_".$key.".".$image_type, $image_info2[0][width], $image_info2[0][height], $image_resize_type);
+                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
+                resize_png($backUpAddDir."/list_".$pid."_".$time."_".$key.".".$image_type, $image_info2[0][width], $image_info2[0][height], $image_resize_type);
             }else{
-                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$key.".gif");
-                resize_jpg($backUpAddDir."/list_".$pid."_".$key.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
+                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/list_".$pid."_".$time."_".$key.".gif");
+                resize_jpg($backUpAddDir."/list_".$pid."_".$time."_".$key.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
             }
-
-
-
-
-
-            //$akamaiFtpUploadFilesAdd['list'] = "list_".$pid."_".$key.".gif";
 
             // 오버이미지
             if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$key.".gif", MIRROR_NONE);
-                resize_png($backUpAddDir."/over_".$pid."_".$key.".".$image_type, $image_info2[1][width], $image_info2[1][height], $image_resize_type);
+                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
+                resize_png($backUpAddDir."/over_".$pid."_".$time."_".$key.".".$image_type, $image_info2[1][width], $image_info2[1][height], $image_resize_type);
             }else{
-                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$key.".gif");
-                resize_jpg($backUpAddDir."/over_".$pid."_".$key.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
+                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/over_".$pid."_".$time."_".$key.".gif");
+                resize_jpg($backUpAddDir."/over_".$pid."_".$time."_".$key.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
             }
-
-            //$akamaiFtpUploadFilesAdd['over'] = "over_".$pid."_".$key.".gif";
 
             // 이미지작은
             if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$key.".gif", MIRROR_NONE);
-                resize_png($backUpAddDir."/slist_".$pid."_".$key.".".$image_type, $image_info2[2][width], $image_info2[2][height], $image_resize_type);
+                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
+                resize_png($backUpAddDir."/slist_".$pid."_".$time."_".$key.".".$image_type, $image_info2[2][width], $image_info2[2][height], $image_resize_type);
             }else{
-                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$key.".gif");
-                resize_jpg($backUpAddDir."/slist_".$pid."_".$key.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
+                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif");
+                resize_jpg($backUpAddDir."/slist_".$pid."_".$time."_".$key.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
             }
-
-            //$akamaiFtpUploadFilesAdd['slist'] = "slist_".$pid."_".$key.".gif";
 
             // 썸네일이미지
             if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/nail_".$pid."_".$key.".gif", MIRROR_NONE);
-                resize_png($backUpAddDir."/nail_".$pid."_".$key.".".$image_type, $image_info2[3][width], $image_info2[3][height], $image_resize_type);
+                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
+                resize_png($backUpAddDir."/nail_".$pid."_".$time."_".$key.".".$image_type, $image_info2[3][width], $image_info2[3][height], $image_resize_type);
             }else{
-                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key],	$backUpAddDir."/nail_".$pid."_".$key.".gif");
-                resize_jpg($backUpAddDir."/nail_".$pid."_".$key.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
+                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key],	$backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif");
+                resize_jpg($backUpAddDir."/nail_".$pid."_".$time."_".$key.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
             }
-
-            //$akamaiFtpUploadFilesAdd['nail'] = "nail_".$pid."_".$key.".gif";
 
             // 패턴이미지
             if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
-                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$key.".gif", MIRROR_NONE);
-                resize_png($backUpAddDir."/patt_".$pid."_".$key.".".$image_type, $image_info2[4][width], $image_info2[4][height], $image_resize_type);
+                MirrorPNG($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif", MIRROR_NONE);
+                resize_png($backUpAddDir."/patt_".$pid."_".$time."_".$key.".".$image_type, $image_info2[4][width], $image_info2[4][height], $image_resize_type);
             }else{
-                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$key.".gif");
-                resize_jpg($backUpAddDir."/patt_".$pid."_".$key.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
+                copy($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key], $backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif");
+                resize_jpg($backUpAddDir."/patt_".$pid."_".$time."_".$key.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
             }
 
-            //$akamaiFtpUploadFilesAdd['patt'] = "patt_".$pid."_".$key.".gif";
-
-            /*if (file_exists($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key])) {
-                unlink($_SERVER["DOCUMENT_ROOT"].$_POST['imgTemp'][$key]."/".$_POST['imgName'][$key]);
-            }*/
-
+            // 신규 등록된 백업 이미지는 삭제한다.
             if (file_exists($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key])) {
                 unlink($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/".$_POST['imgName'][$key]);
             }
@@ -4690,6 +4475,21 @@ function CopyImage3($pid, $type = "")
         }
     }
 
+    // 기존 상품기본 이미지 폴더의 이미지를 일괄 삭제.(productNew 폴더)
+    $handle  = opendir($basicDir); // 디렉토리 open
+
+    // 디렉토리의 파일을 전체 삭제.
+    while (false !== ($filename = readdir($handle))) {
+        // 파일인 경우만 목록에 추가한다.
+        if(is_file($basicDir . "/" . $filename)){
+            unlink($basicDir . "/" . $filename);
+        }
+    }
+
+    closedir($handle); // 디렉토리 close
+    // // 기존 상품기본 이미지 폴더의 이미지를 일괄 삭제.(productNew 폴더)
+
+    //복사한 상품기본 이미지를 설정된 이미지 폴더로 복사. 복사된 이미지는 삭제.
     $backUpBasicHandle = opendir($backUpBasicDir);
     @mkdir($basicDir);
     while(false !== ($basicFile = readdir($backUpBasicHandle))){
@@ -4699,110 +4499,34 @@ function CopyImage3($pid, $type = "")
         }
     }
     closedir($backUpBasicHandle);
+    // //복사한 상품기본 이미지를 설정된 이미지 폴더로 복사. 복사된 이미지는 삭제.
 
+
+    // 기존 상품 리사이징이미지 폴더의 이미지를 일괄 삭제.(addimgNew 폴더)
+    $addHandle  = opendir($addDir); // 디렉토리 open
+
+    // 디렉토리의 파일을 전체 삭제.
+    while (false !== ($filename = readdir($addHandle))) {
+        // 파일인 경우만 목록에 추가한다.
+        if(is_file($addDir . "/" . $filename)){
+            unlink($addDir . "/" . $filename);
+        }
+    }
+
+    closedir($addHandle); // 디렉토리 close
+    // // 기존 상품 리사이징이미지 폴더의 이미지를 일괄 삭제.(addimgNew 폴더)
+
+    //복사한 리사이징이미지 이미지를 설정된 리사이징이미지 이미지 폴더로 복사. 복사된 이미지는 삭제.
     $backUpAddHandle = opendir($backUpAddDir);
     @mkdir($addDir);
-    while(false !== ($addFile = readdir($backUpAddHandle))){
-        if(is_file($backUpAddDir . "/" . $addFile)){
-            copy($backUpAddDir . "/" . $addFile, $addDir . "/" . $addFile);
-            unlink($backUpAddDir . "/" . $addFile);
+    while(false !== ($basicFile = readdir($backUpAddHandle))){
+        if(is_file($backUpAddDir . "/" . $basicFile)){
+            copy($backUpAddDir . "/" . $basicFile, $addDir . "/" . $basicFile);
+            unlink($backUpAddDir . "/" . $basicFile);
         }
     }
     closedir($backUpAddHandle);
-
-    //akamaiFtpUpload($_SESSION["admin_config"]["mall_data_root"]."/images/productNew".$uploaddir, $akamaiFtpUploadFiles);
-    //akamaiFtpUpload($_SESSION["admin_config"]["mall_data_root"]."/images/addimgNew".$adduploaddir, $akamaiFtpUploadFilesAdd);
-
-    $handle  = opendir($basicDir); // 디렉토리 open
-
-    $eleCount = 0;
-
-    // 디렉토리의 파일을 저장
-    while (false !== ($filename = readdir($handle))) {
-        // 파일인 경우만 목록에 추가한다.
-        if(is_file($basicDir . "/" . $filename)){
-            $eleCount++;
-        }
-    }
-
-    closedir($handle); // 디렉토리 close
-
-    if($postCount < $eleCount){
-        for($delImgNum = $postCount;$delImgNum < $eleCount;$delImgNum++){
-
-            if (file_exists($basicDir."/basic_".$pid."_".$delImgNum.".gif")) {
-                unlink($basicDir."/basic_".$pid."_".$delImgNum.".gif");
-            }
-
-            /*if (file_exists($basicDir."/basic_".$_POST['imgComName']."_".$delImgNum.".jpe")) {
-                unlink($basicDir."/basic_".$_POST['imgComName']."_".$delImgNum.".jpe");
-            }
-
-            if (file_exists($basicDir."/basic_".$_POST['imgComName']."_".$delImgNum.".png")) {
-                unlink($basicDir."/basic_".$_POST['imgComName']."_".$delImgNum.".png");
-            }*/
-
-            if (file_exists($addDir."/list_".$pid."_".$delImgNum.".gif")) {
-                unlink($addDir."/list_".$pid."_".$delImgNum.".gif");
-            }
-
-            /*if (file_exists($basicDir."/list_".$_POST['imgComName']."_".$delImgNum.".jpe")) {
-                unlink($basicDir."/list_".$_POST['imgComName']."_".$delImgNum.".jpe");
-            }
-
-            if (file_exists($basicDir."/list_".$_POST['imgComName']."_".$delImgNum.".png")) {
-                unlink($basicDir."/list_".$_POST['imgComName']."_".$delImgNum.".png");
-            }*/
-
-            if (file_exists($addDir."/over_".$pid."_".$delImgNum.".gif")) {
-                unlink($addDir."/over_".$pid."_".$delImgNum.".gif");
-            }
-
-            /*if (file_exists($basicDir."/over_".$_POST['imgComName']."_".$delImgNum.".jpe")) {
-                unlink($basicDir."/over_".$_POST['imgComName']."_".$delImgNum.".jpe");
-            }
-
-            if (file_exists($basicDir."/over_".$_POST['imgComName']."_".$delImgNum.".png")) {
-                unlink($basicDir."/over_".$_POST['imgComName']."_".$delImgNum.".png");
-            }*/
-
-            if (file_exists($addDir."/slist_".$pid."_".$delImgNum.".gif")) {
-                unlink($addDir."/slist_".$pid."_".$delImgNum.".gif");
-            }
-
-            /*if (file_exists($basicDir."/slist_".$_POST['imgComName']."_".$delImgNum.".jpe")) {
-                unlink($basicDir."/slist_".$_POST['imgComName']."_".$delImgNum.".jpe");
-            }
-
-            if (file_exists($basicDir."/slist_".$_POST['imgComName']."_".$delImgNum.".png")) {
-                unlink($basicDir."/slist_".$_POST['imgComName']."_".$delImgNum.".png");
-            }*/
-
-            if (file_exists($addDir."/nail_".$pid."_".$delImgNum.".gif")) {
-                unlink($addDir."/nail_".$pid."_".$delImgNum.".gif");
-            }
-
-            /*if (file_exists($basicDir."/nail_".$_POST['imgComName']."_".$delImgNum.".jpe")) {
-                unlink($basicDir."/nail_".$_POST['imgComName']."_".$delImgNum.".jpe");
-            }
-
-            if (file_exists($basicDir."/nail_".$_POST['imgComName']."_".$delImgNum.".png")) {
-                unlink($basicDir."/nail_".$_POST['imgComName']."_".$delImgNum.".png");
-            }*/
-
-            if (file_exists($addDir."/patt_".$pid."_".$delImgNum.".gif")) {
-                unlink($addDir."/patt_".$pid."_".$delImgNum.".gif");
-            }
-
-            /*if (file_exists($basicDir."/patt_".$_POST['imgComName']."_".$delImgNum.".jpe")) {
-                unlink($basicDir."/patt_".$_POST['imgComName']."_".$delImgNum.".jpe");
-            }
-
-            if (file_exists($basicDir."/patt_".$_POST['imgComName']."_".$delImgNum.".png")) {
-                unlink($basicDir."/patt_".$_POST['imgComName']."_".$delImgNum.".png");
-            }*/
-        }
-    }
+    // //복사한 리사이징이미지 이미지를 설정된 리사이징이미지 이미지 폴더로 복사. 복사된 이미지는 삭제.
 }
 
 ?>
