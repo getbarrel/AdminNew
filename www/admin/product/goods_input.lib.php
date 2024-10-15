@@ -931,12 +931,18 @@ function relationSetOption($pid, $group_code, $disp_type=""){
 	}else{
 		$i=0;
 		if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
 			$mString = '<ul id="productSetList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
 			$mString .= '<script>'."\n";
 			$mString .= 'ms_productSearch.groupCode = '.$group_code.''.";\n";
 			for($i=0;$i<$db->total;$i++){
 				$db->fetch($i);
-				$mString .= 'ms_productSearch._setProduct("productSetList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'");'."\n";
+				$mString .= 'ms_productSearch._setProduct("productSetList_'.$group_code.'", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'");'."\n";
 
 			}
 			$mString .= '</script>'."\n";
@@ -982,13 +988,19 @@ function relationProductList($pid, $disp_type=""){
 	}else{
 		$i=0;
 		if($disp_type == "clipart"){
-			$mString = '<ul id="productList_1" name="productList" class="productList"></ul>'."\n";
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
+            $mString = '<ul id="productList_1" name="productList" class="productList"></ul>'."\n";
 			$mString .= '<script>'."\n";
 			$mString .= 'ms_productSearch.groupCode = 1'.";\n";
 			for($i=0;$i<$db->total;$i++){
 				$db->fetch($i);
 				//function(obj, mode, pID, imgSrc, pName, bName, pPrice, listprice, reserve,coprice,wholesale_price,wholesale_sellprice, disp, state, dcprice, vieworder, viewcnt, regdate)
-				$mString .= 'ms_productSearch._setProduct("productList_1", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
+				$mString .= 'ms_productSearch._setProduct("productList_1", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
 
 			}
 			$mString .= '</script>'."\n";
@@ -1033,13 +1045,19 @@ function relationProductList2($pid, $disp_type=""){
     }else{
         $i=0;
         if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
             $mString = '<ul id="productList_2" name="productList" class="productList"></ul>'."\n";
             $mString .= '<script>'."\n";
             $mString .= 'ms_productSearch.groupCode = 2'.";\n";
             for($i=0;$i<$db->total;$i++){
                 $db->fetch($i);
                 //function(obj, mode, pID, imgSrc, pName, bName, pPrice, listprice, reserve,coprice,wholesale_price,wholesale_sellprice, disp, state, dcprice, vieworder, viewcnt, regdate)
-                $mString .= 'ms_productSearch._setProduct("productList_2", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_2", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
 
             }
             $mString .= '</script>'."\n";
@@ -1084,13 +1102,19 @@ function addProductList($pid, $disp_type=""){
     }else{
         $i=0;
         if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
             $mString = '<ul id="productList_3" name="productList" class="productList"></ul>'."\n";
             $mString .= '<script>'."\n";
             $mString .= 'ms_productSearch.groupCode = 3'.";\n";
             for($i=0;$i<$db->total;$i++){
                 $db->fetch($i);
                 //function(obj, mode, pID, imgSrc, pName, bName, pPrice, listprice, reserve,coprice,wholesale_price,wholesale_sellprice, disp, state, dcprice, vieworder, viewcnt, regdate)
-                $mString .= 'ms_productSearch._setProduct("productList_3", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_3", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
 
             }
             $mString .= '</script>'."\n";
@@ -1135,13 +1159,19 @@ function addProductList1($pid, $disp_type=""){
     }else{
         $i=0;
         if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
             $mString = '<ul id="productList_4" name="productList" class="productList"></ul>'."\n";
             $mString .= '<script>'."\n";
             $mString .= 'ms_productSearch.groupCode = 4'.";\n";
             for($i=0;$i<$db->total;$i++){
                 $db->fetch($i);
                 //function(obj, mode, pID, imgSrc, pName, bName, pPrice, listprice, reserve,coprice,wholesale_price,wholesale_sellprice, disp, state, dcprice, vieworder, viewcnt, regdate)
-                $mString .= 'ms_productSearch._setProduct("productList_4", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("productList_4", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'");'."\n";
 
             }
             $mString .= '</script>'."\n";
@@ -1187,12 +1217,18 @@ function relationSetProductList($pid, $disp_type=""){
 	}else{
 		$i=0;
 		if($disp_type == "clipart"){
-			$mString = '<ul id="productList_2" name="productList" class="productList"></ul>'."\n";
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
+            $mString = '<ul id="productList_2" name="productList" class="productList"></ul>'."\n";
 			$mString .= '<script>'."\n";
 			$mString .= 'ms_productSearch.groupCode = 2'.";\n";
 			for($i=0;$i<$db->total;$i++){
 				$db->fetch($i);
-				$mString .= 'ms_productSearch._setProduct("productList_2", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.str_replace("\"","&quot;",trim($db->dt['pname'])).'", "'.str_replace("\"","&quot;",trim($db->dt['brand_name'])).'", "'.$db->dt['sellprice'].'");'."\n";
+				$mString .= 'ms_productSearch._setProduct("productList_2", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.str_replace("\"","&quot;",trim($db->dt['pname'])).'", "'.str_replace("\"","&quot;",trim($db->dt['brand_name'])).'", "'.$db->dt['sellprice'].'");'."\n";
 
 			}
 			$mString .= '</script>'."\n";
@@ -1653,13 +1689,19 @@ function giftProductList($pid, $disp_type=""){
     }else{
         $i=0;
         if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
             $mString = '<ul id="gift_1" name="giftList" class="productList"></ul>'."\n";
             $mString .= '<script>'."\n";
             $mString .= 'ms_productSearch.groupCode = 1'.";\n";
             for($i=0;$i<$db->total;$i++){
                 $db->fetch($i);
                 //function(obj, mode, pID, imgSrc, pName, bName, pPrice, listprice, reserve,coprice,wholesale_price,wholesale_sellprice, disp, state, dcprice, vieworder, viewcnt, regdate)
-                $mString .= 'ms_productSearch._setProduct("gift_1", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
+                $mString .= 'ms_productSearch._setProduct("gift_1", "M", "'.$db->dt['id'].'", "'.PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt['id'], "slist").'", "'.addslashes(addslashes(trim($db->dt['pname']))).'", "'.addslashes(addslashes(trim($db->dt['brand_name']))).'", "'.$db->dt['sellprice'].'","", "", "", "", "", "'.$db->dt[disp].'", "'.$db->dt[state].'","","","","","'.$db->dt[one_commission].'","'.$db->dt[product_type].'","'.$db->dt[gid].'");'."\n";
             }
             $mString .= '</script>'."\n";
         }
