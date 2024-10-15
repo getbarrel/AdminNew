@@ -1171,8 +1171,10 @@ if ($act == "single_goods_reg" && strlen($p_no) > 0) {        //메모리에 저
                     if ($mainimg != "") {
                         $mainimg_array = explode("|", trim($mainimg));
 
+                        $time = date('YmdHis', time());
+
                         for ($i = 0; $i < count($mainimg_array); $i++) {
-                            Batch_Images_Processing('mainNew', $mainimg_array[$i], $pid, $goods_img_file, $i);
+                            Batch_Images_Processing('mainNew', $mainimg_array[$i], $pid, $goods_img_file, $i, $time);
                         }
                     }
 
@@ -1431,14 +1433,14 @@ if ($act == "mandatory_down") {
 }
 
 
-function Batch_Images_Processing($process_type, $xlImageFileName, $bpid, $goods_img_file = '', $num)
+function Batch_Images_Processing($process_type, $xlImageFileName, $bpid, $goods_img_file = '', $num, $time = '')
 {
     global $admin_config;
 
     //syslog(LOG_INFO, '$admin_config[mall_data_root]\r\n');
 
-    $uploadDirectory = UploadDirText($_SERVER["DOCUMENT_ROOT"] . $admin_config[mall_data_root] . "/images/product", $bpid, 'Y');
-    $sourceDirectory = $_SERVER["DOCUMENT_ROOT"] . $admin_config[mall_data_root] . "/BatchUploadImages/";
+    //$uploadDirectory = UploadDirText($_SERVER["DOCUMENT_ROOT"] . $admin_config[mall_data_root] . "/images/product", $bpid, 'Y');
+    $sourceDirectory = $_SERVER["DOCUMENT_ROOT"] . $admin_config["mall_data_root"] . "/BatchUploadImages/";
 
     if ($goods_img_file != "") {
         $goods_img_file_array = explode(".", $goods_img_file);
@@ -1470,7 +1472,7 @@ function Batch_Images_Processing($process_type, $xlImageFileName, $bpid, $goods_
             }
         }
     } else if ($process_type == 'mainNew') {
-        ExcelImageCopyNew($sourceImageFileFullPath, $bpid, $num);
+        ExcelImageCopyNew($sourceImageFileFullPath, $bpid, $num, $time);
     } else {
         if (substr($sourceImageFileFullPath, 0, 5) != "http:") {
             if (file_exists($sourceImageFileFullPath)) {
@@ -1595,32 +1597,39 @@ function checkImageExist($image_url)
     }
 }
 
-function ExcelImageCopyNew($image_path, $pid, $num)
+function ExcelImageCopyNew($image_path, $pid, $num, $time)
 {
     global $admin_config, $DOCUMENT_ROOT, $image_db;
 
-    $uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew", $pid, 'Y');
-    $adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew", $pid, 'Y');
-
-    $basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$uploaddir;
-	//$backUpBasicDir = $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/productNew";
-
-	$addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$adduploaddir;
-	//$backUpAddDir	= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/addimgNew";
-
-	/*if(!is_dir($backUpBasicDir)){
-        mkdir($backUpBasicDir);
-        chmod($backUpBasicDir,0777);
+    $addQaDir = "";
+    if($_SESSION['admin_config']['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+        $addQaDir = "/QA";
     }
 
-	if(!is_dir($backUpAddDir)){
-        mkdir($backUpAddDir);
-        chmod($backUpAddDir,0777);
-    }*/
+    $uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir, $pid, 'Y');
+    $adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir, $pid, 'Y');
+
+    $basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir.$uploaddir;
+	//$backUpBasicDir = $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/productNew";
+
+	$addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir.$adduploaddir;
+	//$backUpAddDir	= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/addimgNew";
+
+	if(!is_dir($basicDir)){
+        mkdir($basicDir);
+        chmod($basicDir,0777);
+    }
+
+	if(!is_dir($addDir)){
+        mkdir($addDir);
+        chmod($addDir,0777);
+    }
 
 	//$postCount = 0;
 
-    $image_info     = getimagesize($image_path);
+    $image_type = substr($image_path, -3);
+
+    $image_info = getimagesize($image_path);
 
     if ($image_info[0] > $image_info[1]) {
         $image_resize_type = "W";
@@ -1629,30 +1638,55 @@ function ExcelImageCopyNew($image_path, $pid, $num)
     }
 
     // 원본이미지
-    copy($image_path, $basicDir."/basic_".$pid."_".$num.".gif");
+    copy($image_path, $basicDir."/basic_".$pid."_".$time."_".$num.".gif");
 
     $image_db->query("select width,height from shop_image_resizeinfo order by idx");//kbk 11/12/15
     $image_info2 = $image_db->fetchall();
 
     // 리스트이미지
-    copy($image_path, $addDir."/list_".$pid."_".$num.".gif");
-    resize_jpg($addDir."/list_".$pid."_".$num.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
+    if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
+        MirrorPNG($image_path, $addDir."/list_".$pid."_".$time."_".$num.".gif", MIRROR_NONE);
+        resize_png($addDir."/list_".$pid."_".$time."_".$num.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
+    }else{
+        copy($image_path, $addDir."/list_".$pid."_".$time."_".$num.".gif");
+        resize_jpg($addDir."/list_".$pid."_".$time."_".$num.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
+    }
 
     // 오버이미지
-    copy($image_path, $addDir."/over_".$pid."_".$num.".gif");
-    resize_jpg($addDir."/over_".$pid."_".$num.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
+    if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
+        MirrorPNG($image_path, $addDir."/over_".$pid."_".$time."_".$num.".gif", MIRROR_NONE);
+        resize_png($addDir."/over_".$pid."_".$time."_".$num.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
+    }else{
+        copy($image_path, $addDir."/over_".$pid."_".$time."_".$num.".gif");
+        resize_jpg($addDir."/over_".$pid."_".$time."_".$num.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
+    }
 
     // 이미지작은
-    copy($image_path, $addDir."/slist_".$pid."_".$num.".gif");
-    resize_jpg($addDir."/slist_".$pid."_".$num.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
+    if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
+        MirrorPNG($image_path, $addDir."/slist_".$pid."_".$time."_".$num.".gif", MIRROR_NONE);
+        resize_png($addDir."/slist_".$pid."_".$time."_".$num.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
+    }else{
+        copy($image_path, $addDir."/slist_".$pid."_".$time."_".$num.".gif");
+        resize_jpg($addDir."/slist_".$pid."_".$time."_".$num.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
+    }
 
     // 썸네일이미지
-    copy($image_path, $addDir."/nail_".$pid."_".$num.".gif");
-    resize_jpg($addDir."/nail_".$pid."_".$num.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
+    if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
+        MirrorPNG($image_path, $addDir."/nail_".$pid."_".$time."_".$num.".gif", MIRROR_NONE);
+        resize_png($addDir."/nail_".$pid."_".$time."_".$num.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
+    }else{
+        copy($image_path, $addDir."/nail_".$pid."_".$time."_".$num.".gif");
+        resize_jpg($addDir."/nail_".$pid."_".$time."_".$num.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
+    }
 
     // 패턴이미지
-    copy($image_path, $addDir."/patt_".$pid."_".$num.".gif");
-    resize_jpg($addDir."/patt_".$pid."_".$num.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
+    if ($image_type == "png" || $image_type == "PNG" || $image_type == "jpg" || $image_type == "JPG" || $image_type == "jpeg" || $image_type == "JPEG") {
+        MirrorPNG($image_path, $addDir."/patt_".$pid."_".$time."_".$num.".gif", MIRROR_NONE);
+        resize_png($addDir."/patt_".$pid."_".$time."_".$num.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
+    }else{
+        copy($image_path, $addDir."/patt_".$pid."_".$time."_".$num.".gif");
+        resize_jpg($addDir."/patt_".$pid."_".$time."_".$num.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
+    }
 
     if (file_exists($image_path)) {
         unlink($image_path);

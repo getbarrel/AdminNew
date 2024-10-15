@@ -449,6 +449,11 @@ if($admininfo[admin_level] == 9){
 			$barcode_str = "";
 		}
 
+                    $addQaDir = "";
+                    if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                        $addQaDir = "/QA";
+                    }
+
 					$Contents .= "
 					<tr height='30' align='center'>
 						<td class='' style='text-align:center;background:#fff;'>".$num."</td>
@@ -456,7 +461,7 @@ if($admininfo[admin_level] == 9){
 							<table>
 								<tr>
 									<td align='center'>
-										<img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt[pid], "slist", $db->dt)."'  onerror=\"this.src='".$admin_config[mall_data_root]."/images/noimg_52.gif'\" style='margin:2px;border:1px solid silver'  width=50 style='margin:5px;'>
+										<img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt[pid], "slist", $db->dt)."'  onerror=\"this.src='".$admin_config[mall_data_root]."/images/noimg_52.gif'\" style='margin:2px;border:1px solid silver'  width=50 style='margin:5px;'>
 									</td>
 									<td>";
 
