@@ -980,12 +980,18 @@ function relationEventGroupProductList($dc_ix, $group_code, $disp_type=""){
 	}else{
 		$i=0;
 		if($disp_type == "clipart"){
+
+            $addQaDir = "";
+            if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                $addQaDir = "/QA";
+            }
+
 			$mString = '<ul id="productList_'.$group_code.'" name="productList" class="productList"></ul>'."\n";
 			$mString .= '<script id="setproduct">'."\n";
 			$mString .= 'ms_productSearch.groupCode = '.$group_code.";\n";
 			for($i=0;$i<count($products);$i++){
 				//$slave_db->fetch($i);
-				$imgPath = PrintImage($admin_config['mall_data_root'].'/images/addimgNew', $products[$i]['id'], 'slist');
+				$imgPath = PrintImage($admin_config['mall_data_root'].'/images/addimgNew'.$addQaDir, $products[$i]['id'], 'slist');
 				 
 				$mString .= 'ms_productSearch._setProduct("productList_'.$group_code.'", "M", "'.$products[$i]['id'].'", "'.$imgPath.'", "'.addslashes(addslashes(trim($products[$i]['pname']))).'", "'.addslashes(addslashes(trim($products[$i]['brand_name']))).'", "'.$products[$i]['sellprice'].'", "'.$products[$i]['listprice'].'", "'.$products[$i]['reserve'].'", "'.$products[$i]['coprice'].'", "'.$products[$i]['wholesale_price'].'", "'.$products[$i]['wholesale_sellprice'].'", "'.$products[$i]['disp'].'", "'.$products[$i]['state'].'", "'.$products[$i]['dcprice'].'");'."\n";
 			}

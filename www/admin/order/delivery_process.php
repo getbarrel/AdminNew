@@ -1285,13 +1285,18 @@ $Contents .= "
 						</select>
 					</td>";
 				}else{
+                        $addQaDir = "";
+                        if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                            $addQaDir = "/QA";
+                        }
+
 						$Contents .= "
 						<td class='list_box_td' style='padding-left:10px'>
 							<TABLE>
 								<TR>
 									<TD align='center'>
 									<!-- a  href='/shop/goods_view.php?id=".$ddb->dt[pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $ddb->dt[pid], "m", $ddb->dt)."'  width=50 style='margin:5px;'></a -->
-									<a  href='/shop/goods_view.php?id=".$ddb->dt[pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $ddb->dt[pid], "slist", $ddb->dt)."'  width=50 style='margin:5px;'></a><br/>";
+									<a  href='/shop/goods_view.php?id=".$ddb->dt[pid]."' target=_blank><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $ddb->dt[pid], "slist", $ddb->dt)."'  width=50 style='margin:5px;'></a><br/>";
 
 						if($ddb->dt[product_type]=='21'||$ddb->dt[product_type]=='31'){
 						$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($ddb->dt[product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$ddb->dt[product_type].".gif' align='absmiddle' ></label> ";

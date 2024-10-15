@@ -1371,13 +1371,17 @@ if($list_type == "bs_general" || $list_type == "general"){
 										$Contents .= "
 											<td bgColor='#ffffff' ><input type=checkbox name='od_ix[]' id='od_ix' class='od_ix' onclick='checkSet($(this));' od_status='".$oddb->dt[status]."' od_refund_status='".$oddb->dt[refund_status]."' set_group='".$oddb->dt[set_group]."' company_id='".$oddb->dt[company_id]."' ea_check='".$oddb->dt[ori_company_id]."|".$oddb->dt[delivery_type]."|".$oddb->dt[delivery_package]."|".$oddb->dt[delivery_method]."|".$oddb->dt[delivery_pay_method]."|".$oddb->dt[delivery_addr_use]."|".$oddb->dt[factory_info_addr_ix].( $oddb->dt[delivery_package]=="Y" ? "|".$oddb->dt[pid] : "")."' value='".$oddb->dt[od_ix]."' ></td>";
 									}
+										$addQaDir = "";
+										if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+											$addQaDir = "/QA";
+										}
 										$Contents .= "
 											<td bgColor='#ffffff' colspan='2'>
 												<table width='100%'>
 													<tr>
 														<td align='center' width='70'>
 														<!-- a href='../product/goods_input.php?id=".$oddb->dt[pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $oddb->dt[pid], 'm', $oddb->dt)."'  title='".$LargeImageSize."'><img src='".PrintImage($admin_config[mall_data_root]."/images/product", $oddb->dt[pid], "m" , $oddb->dt)."' width=50 style='margin:5px;'></a -->
-														<a href='../product/goods_input.php?id=".$oddb->dt[pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $oddb->dt[pid], 'slist', $oddb->dt)."'  title='".$LargeImageSize."'><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $oddb->dt[pid], "list" , $oddb->dt)."' width=50 style='margin:5px;'></a><br/>";
+														<a href='../product/goods_input.php?id=".$oddb->dt[pid]."' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $oddb->dt[pid], 'slist', $oddb->dt)."'  title='".$LargeImageSize."'><img src='".PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $oddb->dt[pid], "list" , $oddb->dt)."' width=50 style='margin:5px;'></a><br/>";
 
 														if($oddb->dt[product_type]=='21'||$oddb->dt[product_type]=='31'){
 															$Contents .= "<label class='helpcloud' help_width='190' help_height='15' help_html='".($oddb->dt[product_type]=='21' ? "서브스크립션 커머스(배송상품)" : "로컬딜리버리 커머스(배송상품)")."'><img src='../images/".$admininfo[language]."/s_product_type_".$oddb->dt[product_type].".gif' align='absmiddle' ></label> ";

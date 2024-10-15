@@ -130,10 +130,16 @@ $str_page_bar = page_bar($total, $page, $max, $query_string,"");
 
 $list_item = "";
 $deleteBool = false;
+
+$addQaDir = "";
+if($_SESSION['admin_config']['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+    $addQaDir = "/QA";
+}
+
 if(!empty($product_data)){
     foreach($product_data as $key=>$val){
         //$img_str = PrintImage($_SESSION['admin_config']['mall_data_root']."/images/product", $val['id'], "ms");
-        $img_str = PrintImage($_SESSION['admin_config']['mall_data_root']."/images/addimgNew", $val['id'], "slist");
+        $img_str = PrintImage($_SESSION['admin_config']['mall_data_root']."/images/addimgNew".$addQaDir, $val['id'], "slist");
 
         if($cid == $val['cid']){
             $deleteBool = true;
