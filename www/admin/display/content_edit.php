@@ -1584,10 +1584,12 @@ $Contents .= "<table cellpadding=0 cellspacing=0 width=100% >
                             for($s=0; $s < count($palyerSubject);$s++){
                                 $subjectIdx = $palyerSubject[$s]['idx'];
                                 $checked = "";
-                                foreach($player_subject as $key => $val){
-                                    if($subjectIdx == $key){
-                                        $checked = "checked";
-                                        break;
+                                if($player_subject){
+                                    foreach($player_subject as $key => $val){
+                                        if($subjectIdx == $key){
+                                            $checked = "checked";
+                                            break;
+                                        }
                                     }
                                 }
                                 $Contents .= $palyerSubject[$s]['subject']." <input type='checkbox' name='player_subject[$subjectIdx]' id='player_subject[$subjectIdx]' $checked>";
