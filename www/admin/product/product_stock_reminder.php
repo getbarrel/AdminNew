@@ -251,6 +251,18 @@ $Contents .=	"
                     </table>
                 </td>
             </tr>";
+
+    $Contents .=	"
+							<tr height=27>
+								<td class='search_box_title'><label for='regdate'>신청일자</label></td>
+								<td class='search_box_item' colspan=3 >
+								<div style='float:left; padding-left:10px;'>
+									".search_date('sdate','edate',$sdate,$edate)."
+								</div>
+								</td>
+							</tr>";
+
+
 $Contents .= "
 			<tr height=27>
 				<td class='search_box_title' >조건검색 </td>
@@ -345,10 +357,13 @@ $Contents .= "
             $disp='';
         }
     }
+
+	if($sdate != "") {
+		$where .= " and date_format(sr.regdate, '%Y-%m-%d') >= '".$sdate."' and date_format(sr.regdate, '%Y-%m-%d') <= '".$edate."' ";
+	}
 /*}else{
 	$total = 0;
 }*/
-
 if($_REQUEST["mode"] == "excel"){
 	$sql = "select sr.* from shop_product_stock_reminder sr left join shop_product p on sr.pid = p.id left join shop_product_options_detail d on d.id = sr.op_id where 1 $where";
 
@@ -541,12 +556,16 @@ if($total == 0){
 	</tr>";
 
 }else{
+    $addQaDir = "";
+    if($admin_config['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+        $addQaDir = "/QA";
+    }
     for ($i = 0; $i < $total; $i++)
     {
         $db->fetch($i);
 
         //$img_str = PrintImage($admin_config[mall_data_root]."/images/product", $db->dt[pid], "s", '');
-        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt[pid], "slist", '');
+        $img_str = PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt[pid], "slist", '');
 
         $sql = "select * from shop_product where id = '".$db->dt[pid]."'";
         $mdb->query($sql);
@@ -595,13 +614,14 @@ if($total == 0){
 		} else {
 			$regdate = $db->dt[regdate];
 		}
+
 			//onClick='input_check_num()'
         $Contents .="
 		<tr height='45' onMouseOver=\"this.style.backgroundColor='#E8ECF1'; \" onMouseOut=\"this.style.backgroundColor=''\">
 			<td class='list_box_td'><input type=checkbox name=sr_ix[] id='code' class='sr_ix' pid='".$db->dt[pid]."' option_id='".$db->dt['op_id']."' value='".$db->dt[sr_ix]."'></td>
 			<td class='list_box_td' >".$regdate."</td>
 			<!-- td class='list_box_td' height='80px'><a href='/shop/goods_view.php?id=".$db->dt[pid]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/product", $db->dt[pid], $LargeImageSize, '')."'><img src='".$img_str."' width=50 height=50></a></td -->
-			<td class='list_box_td' height='80px'><a href='/shop/goods_view.php?id=".$db->dt[pid]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew", $db->dt[pid], 'list', '')."'><img src='".$img_str."' width=50 height=50></a></td>
+			<td class='list_box_td' height='80px'><a href='/shop/goods_view.php?id=".$db->dt[pid]."' target='_blank' class='screenshot'  rel='".PrintImage($admin_config[mall_data_root]."/images/addimgNew".$addQaDir, $db->dt[pid], 'list', '')."'><img src='".$img_str."' width=50 height=50></a></td>
 			<td class='list_box_td' >".$pname."<p>(".$add_info.")</p></td>
 			<td class='list_box_td' >".$option_div."</td>
 			<td class='list_box_td' >".$_SELL_STATUS[$state].$soldout."</td>

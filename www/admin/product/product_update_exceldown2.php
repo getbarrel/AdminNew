@@ -244,9 +244,14 @@ if($act == 'excel_down'){
 			}else if($key == "mainimg"){
 				$value_str = " ";
 
+                $addQaDir = "";
+                if($_SESSION['admin_config']['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+                    $addQaDir = "/QA";
+                }
+
                 $Pid = zerofill($goods_info[$i][id]);
-                $imgdir = UploadDirText($_SESSION["admin_config"]["mall_data_root"]."/images/productNew", $Pid);
-                $imgpath = $_SESSION["admin_config"]["mall_data_root"]."/images/productNew".$imgdir;
+                $imgdir = UploadDirText($_SESSION["admin_config"]["mall_data_root"]."/images/productNew".$addQaDir, $Pid);
+                $imgpath = $_SESSION["admin_config"]["mall_data_root"]."/images/productNew".$addQaDir.$imgdir;
 
                 if (file_exists($imgpath)) {
                     $handle  = opendir($imgpath); // 디렉토리 open

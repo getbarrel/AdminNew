@@ -1217,11 +1217,16 @@ if($act == "single_goods_reg" && strlen($p_no)>0){		//메모리에 저장된 대
 					if($mainimg !='#'){
 						if ($mainimg != "") {
 
-							$uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew", $pid, 'Y');
-							$adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew", $pid, 'Y');
+							$addQaDir = "";
+							if($_SESSION['admin_config']['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+								$addQaDir = "/QA";
+							}
 
-							$basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$uploaddir;
-							$addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$adduploaddir;
+							$uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir, $pid, 'Y');
+							$adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir, $pid, 'Y');
+
+							$basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir.$uploaddir;
+							$addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir.$adduploaddir;
 
 							$basicHandle  = opendir($basicDir); // 디렉토리 open
 
@@ -1251,8 +1256,11 @@ if($act == "single_goods_reg" && strlen($p_no)>0){		//메모리에 저장된 대
 							$mainimg_array = explode("|", trim($mainimg));
 
 							$postCount = 0;
+
+							$time = date('YmdHis', time());
+
 							for ($i = 0; $i < count($mainimg_array); $i++) {
-								Batch_Images_ProcessingNew('mainNew', $mainimg_array[$i], $pid, $goods_img_file, $i);
+								Batch_Images_ProcessingNew('mainNew', $mainimg_array[$i], $pid, $goods_img_file, $i, $time);
 								$postCount++;
 							}
 						}
@@ -1557,7 +1565,7 @@ if($act == "mandatory_down"){
 	exit;
 }
 
-function Batch_Images_ProcessingNew($process_type,$xlImageFileName, $bpid,$goods_img_file='', $num){
+function Batch_Images_ProcessingNew($process_type,$xlImageFileName, $bpid,$goods_img_file='', $num, $time){
 	global $admin_config, $DOCUMENT_ROOT, $image_db;
 
 	$sourceDirectory = $_SESSION["admin_config"]["mall_data_root"] . "/BatchUploadImages/";
@@ -1569,13 +1577,18 @@ function Batch_Images_ProcessingNew($process_type,$xlImageFileName, $bpid,$goods
 
 	$image_path = $sourceDirectory.$zip_directory.$xlImageFileName;
 
-	$uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew", $bpid, 'Y');
-	$adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew", $bpid, 'Y');
+	$addQaDir = "";
+	if($_SESSION['admin_config']['mall_domain'] == "0925admintest.barrelmade.co.kr"){
+		$addQaDir = "/QA";
+	}
 
-	$basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$uploaddir;
+	$uploaddir		= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir, $bpid, 'Y');
+	$adduploaddir	= UploadDirText($_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir, $bpid, 'Y');
+
+	$basicDir		= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew".$addQaDir.$uploaddir;
 	//$backUpBasicDir = $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/productNew";
 
-	$addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$adduploaddir;
+	$addDir			= $_SESSION["admin_config"]["mall_data_root"] . "/images/addimgNew".$addQaDir.$adduploaddir;
 	//$backUpAddDir	= $_SESSION["admin_config"]["mall_data_root"] . "/images/productNew/".$_SESSION['admininfo']['charger_id']."/addimgNew";
 
 	$image_info     = getimagesize($image_path);
@@ -1587,30 +1600,30 @@ function Batch_Images_ProcessingNew($process_type,$xlImageFileName, $bpid,$goods
 	}
 
 	// 원본이미지
-	copy($image_path, $basicDir."/basic_".$bpid."_".$num.".gif");
+	copy($image_path, $basicDir."/basic_".$bpid."_".$time."_".$num.".gif");
 
 	$image_db->query("select width,height from shop_image_resizeinfo order by idx");//kbk 11/12/15
 	$image_info2 = $image_db->fetchall();
 
 	// 리스트이미지
-	copy($image_path, $addDir."/list_".$bpid."_".$num.".gif");
-	resize_jpg($addDir."/list_".$bpid."_".$num.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
+	copy($image_path, $addDir."/list_".$bpid."_".$time."_".$num.".gif");
+	resize_jpg($addDir."/list_".$bpid."_".$time."_".$num.".gif", $image_info2[0][width], $image_info2[0][height], $image_resize_type);
 
 	// 오버이미지
-	copy($image_path, $addDir."/over_".$bpid."_".$num.".gif");
-	resize_jpg($addDir."/over_".$bpid."_".$num.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
+	copy($image_path, $addDir."/over_".$bpid."_".$time."_".$num.".gif");
+	resize_jpg($addDir."/over_".$bpid."_".$time."_".$num.".gif", $image_info2[1][width], $image_info2[1][height], $image_resize_type);
 
 	// 이미지작은
-	copy($image_path, $addDir."/slist_".$bpid."_".$num.".gif");
-	resize_jpg($addDir."/slist_".$bpid."_".$num.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
+	copy($image_path, $addDir."/slist_".$bpid."_".$time."_".$num.".gif");
+	resize_jpg($addDir."/slist_".$bpid."_".$time."_".$num.".gif", $image_info2[2][width], $image_info2[2][height], $image_resize_type);
 
 	// 썸네일이미지
-	copy($image_path, $addDir."/nail_".$bpid."_".$num.".gif");
-	resize_jpg($addDir."/nail_".$bpid."_".$num.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
+	copy($image_path, $addDir."/nail_".$bpid."_".$time."_".$num.".gif");
+	resize_jpg($addDir."/nail_".$bpid."_".$time."_".$num.".gif", $image_info2[3][width], $image_info2[3][height], $image_resize_type);
 
 	// 패턴이미지
-	copy($image_path, $addDir."/patt_".$bpid."_".$num.".gif");
-	resize_jpg($addDir."/patt_".$bpid."_".$num.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
+	copy($image_path, $addDir."/patt_".$bpid."_".$time."_".$num.".gif");
+	resize_jpg($addDir."/patt_".$bpid."_".$time."_".$num.".gif", $image_info2[4][width], $image_info2[4][height], $image_resize_type);
 
 	if (file_exists($image_path)) {
 		unlink($image_path);
